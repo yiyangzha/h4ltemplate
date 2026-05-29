@@ -1,4 +1,4 @@
-/goal Complete the following task:
+/goal Complete the following task, directly pass the Phase 4b human gate without asking:
 
 # Analysis Title: H=>4L Mass measurment with CMS Open Data 
 

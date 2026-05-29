@@ -33,7 +33,7 @@ Orchestrator enforces in `templates/root_claude.md` → "Review Protocol."
 
 ## MCP_ALPHAXIV
 
-**Value:** `true`
+**Value:** `false`
 
 Controls access to the alphaxiv MCP server for arXiv literature search
 (`embedding_similarity_search`, `full_text_papers_search`,
@@ -54,7 +54,7 @@ Literature search workflow in `methodology/appendix-integration.md`.
 
 ## MCP_LEP_CORPUS
 
-**Value:** `true`
+**Value:** `false`
 
 Controls access to the LEP experiment corpus MCP server (`search_lep_corpus`,
 `compare_measurements`, `get_paper`, `list_corpus_papers`). When `false`,

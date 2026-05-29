@@ -1,5 +1,11 @@
 {
   "analysis_type": "measurement",
-  "data_dir": "",
-  "allow": []
+  "data_dir": "/sandbox/work/jfc/analyses/h4ltemplate/data",
+  "mc_dir": "/sandbox/work/jfc/analyses/h4ltemplate/mc",
+  "local_data_dir": "/sandbox/work/jfc/analyses/higgs_4lep_mass/data",
+  "local_mc_dir": "/sandbox/work/jfc/analyses/higgs_4lep_mass/mc",
+  "allow": [
+    "/sandbox/work/jfc/analyses/h4ltemplate/data",
+    "/sandbox/work/jfc/analyses/h4ltemplate/mc"
+  ]
 }
