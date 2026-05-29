@@ -24,7 +24,7 @@ def main() -> None:
             {"MC prediction": mc},
             VARIABLE_LABELS.get(name, name),
             "Events",
-            r"$13$ TeV, broad window",
+            r"$13$ TeV, 10 fb$^{-1}$",
         )
         verdict = "passes" if item["passes_d7_gate"] else "fails"
         caption = (

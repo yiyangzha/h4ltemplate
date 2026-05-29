@@ -363,6 +363,10 @@
 
 - Re-read Phase 3 selection artifacts and figures as Follow-up 2. Fixed MC stack omissions in validation plots, aligned D7 plot normalization with the shape gate, added per-model S2 gate evidence, quantified VBF downscope evidence, and clarified Phase 4 category handoff boundaries.
 
+## 2026-05-29 — Phase 3 Level 2 plot validation fixes
+
+- Fixed blocking per-figure validation findings by replacing the mixed-plot `Open Data+Sim` label with explicit `Open Data and Open Simulation` wording, removing broad-window text from the top-right experiment label area, and regenerating all Phase 3 input/selection figures plus the figure registry.
+
 ## 2026-05-29 — Phase 3 selection artifact
 
 - Built `phase3_selection/outputs/SELECTION.md` from Phase 3 JSON/NPZ outputs.

@@ -76,6 +76,10 @@ def data_mc_comparison(
     data_err = np.sqrt(data_counts)
     ax.errorbar(centers, data_counts, yerr=data_err, xerr=0.5 * widths, marker="o", linestyle="None", color="black", label="Data")
     mc_total = np.sum(np.vstack([mc_by_stack[name] for name in stacks]), axis=0) if stacks else np.zeros_like(data_counts, dtype=float)
+    visible_top = max(float(np.max(data_counts + data_err)) if len(data_counts) else 0.0, float(np.max(mc_total)) if len(mc_total) else 0.0)
+    if visible_top > 0.0:
+        current_bottom, current_top = ax.get_ylim()
+        ax.set_ylim(current_bottom, max(current_top, visible_top * 1.55))
     pull_den = np.sqrt(data_counts + np.maximum(mc_total, 0.0))
     pulls = np.zeros_like(data_counts, dtype=float)
     np.divide(data_counts - mc_total, pull_den, out=pulls, where=pull_den > 0)
@@ -89,5 +93,13 @@ def data_mc_comparison(
     ax.tick_params(labelbottom=False)
     ax.legend(loc="upper right", fontsize="x-small")
     mpl_magic(ax)
-    mh.label.exp_label(exp="CMS", text="", loc=2, data=True, llabel="Open Data+Sim", rlabel=rlabel, ax=ax)
+    mh.label.exp_label(
+        exp="CMS",
+        text="",
+        loc=2,
+        data=True,
+        llabel="Open Data and Open Simulation",
+        rlabel=rlabel,
+        ax=ax,
+    )
     return fig

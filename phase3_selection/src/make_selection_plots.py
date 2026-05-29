@@ -42,8 +42,19 @@ def plot_cutflow_summary() -> int:
     ax.set_ylabel("Events")
     ax.set_xlabel("Cumulative selection step")
     ax.set_yscale("log")
+    visible_top = max(max(data_counts), max(mc_weighted))
+    if visible_top > 0.0:
+        ax.set_ylim(top=visible_top * 2.5)
     ax.legend(loc="upper right", fontsize="x-small")
-    mh.label.exp_label(exp="CMS", text="", loc=2, data=True, llabel="Open Data+Sim", rlabel=r"$13$ TeV, 10 fb$^{-1}$", ax=ax)
+    mh.label.exp_label(
+        exp="CMS",
+        text="",
+        loc=2,
+        data=True,
+        llabel="Open Data and Open Simulation",
+        rlabel=r"$13$ TeV, 10 fb$^{-1}$",
+        ax=ax,
+    )
     caption = (
         "Cumulative Phase 3 cutflow for data raw counts and prompt-normalized MC weighted yields. "
         "Every sample-level cutflow is monotonic, and the fit-window endpoint is 69 data events with 56.6098 expected MC events."
@@ -129,7 +140,15 @@ def plot_angular_closure() -> int:
     ax.set_xlabel("Recomputed quantity")
     ax.set_yscale("log")
     ax.legend(loc="upper right", fontsize="x-small")
-    mh.label.exp_label(exp="CMS", text="", loc=2, data=True, llabel="Open Data+Sim", rlabel=r"$13$ TeV", ax=ax)
+    mh.label.exp_label(
+        exp="CMS",
+        text="",
+        loc=2,
+        data=True,
+        llabel="Open Data and Open Simulation",
+        rlabel=r"$13$ TeV",
+        ax=ax,
+    )
     caption = (
         "Angular reconstruction closure summary showing the maximum per-sample median absolute mass difference for recomputed four-vector quantities. "
         "All medians are far below the 0.1 GeV closure gate and all angular physical-range checks have zero out-of-range entries."
@@ -152,7 +171,18 @@ def plot_vbf_downscope_evidence() -> int:
     ax.set_xticks(np.arange(len(values)), labels)
     ax.set_ylabel("Count")
     ax.set_xlabel("VBF recovery evidence")
-    mh.label.exp_label(exp="CMS", text="", loc=2, data=True, llabel="Open Data+Sim", rlabel=r"$13$ TeV", ax=ax)
+    visible_top = max(values)
+    if visible_top > 0:
+        ax.set_ylim(top=visible_top * 1.55)
+    mh.label.exp_label(
+        exp="CMS",
+        text="",
+        loc=2,
+        data=True,
+        llabel="Open Data and Open Simulation",
+        rlabel=r"$13$ TeV",
+        ax=ax,
+    )
     caption = (
         "VBF recovery and downscope evidence from branch inventories and allowed join sources. "
         "No checked flat ntuple contains real jet or VBF discriminator branches, no allowed upstream join source exists, and no lepton-only category is labeled VBF."
@@ -191,8 +221,19 @@ def plot_category_viability() -> int:
     ax.set_xticks(x, channels)
     ax.set_ylabel("Events in 105 < m4l < 140 GeV")
     ax.set_xlabel("Final-state category")
+    visible_top = max(max(signal), max(background), max(np.asarray(data) + np.sqrt(data)))
+    if visible_top > 0.0:
+        ax.set_ylim(top=visible_top * 1.35)
     ax.legend(loc="upper right", fontsize="x-small")
-    mh.label.exp_label(exp="CMS", text="", loc=2, data=True, llabel="Open Data+Sim", rlabel=r"$13$ TeV, 10 fb$^{-1}$", ax=ax)
+    mh.label.exp_label(
+        exp="CMS",
+        text="",
+        loc=2,
+        data=True,
+        llabel="Open Data and Open Simulation",
+        rlabel=r"$13$ TeV, 10 fb$^{-1}$",
+        ax=ax,
+    )
     caption = (
         "S1 final-state category viability summary for the fit window. "
         "The 4mu, 4e, and 2e2mu categories are retained as the nominal simultaneous-fit categories, while S2 classifier categories fail low-stat viability."
@@ -250,7 +291,7 @@ def plot_approach_and_mva() -> int:
         weights = events["weight"].astype(float)
         data, _ = hist_counts(best[is_data], np.ones(np.sum(is_data), dtype=float), edges)
         mc, _ = hist_counts(best[~is_data], weights[~is_data], edges)
-        fig = data_mc_comparison(edges, data, {"MC prediction": mc}, "Classifier score", "Events", r"$13$ TeV, broad window")
+        fig = data_mc_comparison(edges, data, {"MC prediction": mc}, "Classifier score", "Events", r"$13$ TeV, 10 fb$^{-1}$")
         caption = (
             "Best S2 classifier score data/MC comparison in the broad validation window. "
             "The score-shape gate and low-stat category viability failed, so this diagnostic is preserved as rejected-approach evidence rather than used in the nominal fit."
