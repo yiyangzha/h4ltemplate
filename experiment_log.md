@@ -19,6 +19,16 @@
 - B findings: data-quality prose needs outlier/extreme interpretation; preselection/content boundary needs tighter characterization; literature survey is thin for Phase 2 strategy.
 - Next step: spawn a fixer agent for all A/B findings, then run verification arbiter before fresh review.
 
+## 2026-05-29T19:33:00Z — Phase 1 PASS boundary
+
+- Fixer `petra_11e2` resolved all Phase 1 review findings and committed `68a1505`.
+- Verification arbiter `sally_b946` marked all findings FIXED in `PHASE1_FIX_VERIFICATION_sally_b946_2026-05-29.md`.
+- Fresh Phase 1 reviewer `theo_6ec8` returned PASS in `PHASE1_REVIEW2_theo_6ec8_2026-05-29.md`.
+- Orchestrator regression/maximality check written to `REGRESSION_CHECK_phase1.md`; no Phase 1 blockers remain.
+- Updated `pixi.toml` `all` task to run the current Phase 1 chain only; future executors must extend it as they add scripts.
+- Validation after update: `pixi run all` passed, `pixi run lint-plots` passed, and figure registry smoke test found 6 entries/12 files with no missing, empty, stale, or orphan files.
+- Carry Phase 2 risks forward: primary vs local ROOT copies differ; user-provided MC cross sections need validation; no jet/VBF branches; no precomputed MELA/angular branches; no truth-level branches.
+
 ## 2026-05-29T18:18:33Z — Phase 1 executor plan
 
 - Phase 1 executor session `albert_0f97` read the required runtime,
@@ -168,6 +178,34 @@
 ## 2026-05-29 — Phase 1 artifacts built
 
 - Built Phase 1 markdown artifacts from metadata, small-slice surveys, coverage checks, figure registry, and public literature source notes.
+
+## 2026-05-29 — Phase 1 artifacts built
+
+- Built Phase 1 markdown artifacts from metadata, small-slice surveys, coverage checks, figure registry, and public literature source notes.
+
+## 2026-05-29 — Phase 1 metadata inventory
+
+- Inspected 24 ROOT files structurally with uproot and wrote `phase1_exploration/outputs/root_metadata.json`.
+
+## 2026-05-29 — Phase 1 small-slice reconnaissance
+
+- Surveyed branch ranges, NaN/inf counts, and integer/flag unique values on at most 1000 entries per primary tree.
+
+## 2026-05-29 — Phase 1 coverage check
+
+- Summed MC Metadata generated-event counts where available and computed prompt-luminosity nominal MC weights for downstream validation.
+
+## 2026-05-29 — Phase 1 histogram summaries
+
+- Produced small-slice histogram summaries for available 4l mass, Z mass, jet, and discriminant candidate branches.
+
+## 2026-05-29 — Phase 1 exploration figures
+
+- Produced 6 small-slice exploration figures and updated `phase1_exploration/outputs/FIGURES.json`.
+
+## 2026-05-29 — Phase 1 PDF toolchain test
+
+- Ran `pixi run build-pdf /sandbox/work/jfc/analyses/higgs_4lep_mass/analysis_note/test_build.tex`; passed=True; temporary stub removed.
 
 ## 2026-05-29 — Phase 1 artifacts built
 

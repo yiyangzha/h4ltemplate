@@ -3,6 +3,6 @@
   "passed": true,
   "returncode": 0,
   "stderr_tail": "Pixi task (build-pdf): tectonic /sandbox/work/jfc/analyses/higgs_4lep_mass/analysis_note/test_build.tex\n",
-  "stdout_tail": "note: Running TeX ...\nnote: Rerunning TeX because \"test_build.aux\" changed ...\nnote: Running xdvipdfmx ...\nnote: Writing `/sandbox/work/jfc/analyses/higgs_4lep_mass/analysis_note/test_build.pdf` (8.2529296875 KiB)\nnote: Skipped writing 1 intermediate files (use --keep-intermediates to keep them)\n",
+  "stdout_tail": "note: Running TeX ...\nnote: Rerunning TeX because \"test_build.aux\" changed ...\nnote: Running xdvipdfmx ...\nnote: Writing `/sandbox/work/jfc/analyses/higgs_4lep_mass/analysis_note/test_build.pdf` (8.2548828125 KiB)\nnote: Skipped writing 1 intermediate files (use --keep-intermediates to keep them)\n",
   "stub_removed": true
 }
