@@ -24,13 +24,13 @@ list showing all phases with their execution pipeline and review tier.
 Use this exact structure:
 
 ```
-Phase 1: Strategy — executor + 4-bot review
+Phase 1: Strategy — executor + 2-bot review
 Phase 2: Exploration — executor + self-review
 Phase 3: Selection — executor + 1-bot review
-Phase 4a: Expected results — executor + note writer + typesetter + 4-bot+bib review
-Phase 4b: 10% data validation — executor + note writer + typesetter + 4-bot+bib review + human gate
+Phase 4a: Expected results — executor + note writer + typesetter + 1-bot+bib review
+Phase 4b: 10% data validation — executor + note writer + typesetter + 2-bot+bib review + human gate
 Phase 4c: Full data results — executor + note writer + 1-bot review
-Phase 5: Final documentation — executor + note writer + typesetter + 5-bot review
+Phase 5: Final documentation — executor + note writer + typesetter + 1-bot review
 ```
 
 Mark each phase complete as it finishes. This gives the human visibility
@@ -128,7 +128,7 @@ disk.
 - Using an LLM for format conversion — use pandoc, not an agent
 - Writing a workaround when a maintained tool exists — `pixi add` it instead
 - Accepting reviewer PASS too easily — the arbiter should ITERATE liberally
-- Spawning subagents without `model: "opus/gpt-5.5"` — this silently degrades quality
+- Spawning subagents without `model: "opus/gpt-5.5 (medium/low)"` — this silently degrades quality
 - Subagents reading files with `cat | sed | head` instead of the Read tool
 - **Writing ad-hoc prompts for defined agent roles** — read `agents/{role}.md`
   and use its prompt template. Ad-hoc prompts drift from the spec, miss
@@ -183,7 +183,7 @@ disk.
   orchestrator is the last line of defense against process failures.
 
 **Subagent model selection:** All subagents — executors, reviewers, arbiters,
-fix agents — must be spawned with `model: "opus/gpt-5.5"`. Never use Sonnet or Haiku
+fix agents — must be spawned with `model: "opus/gpt-5.5 (medium/low)"`. Never use Sonnet or Haiku
 for any analysis subagent. This is non-negotiable.
 
 **Subagent file reading:** Instruct all subagents to use the Read tool to
@@ -314,7 +314,7 @@ The arbiter must not PASS with unresolved A or B items.
 | 4c: Full data | 1-bot |
 | 5: Documentation | 5-bot (4-bot + rendering + BibTeX validator) |
 
-**Iteration limits:** 4/5-bot: warn at 3, strong warn at 5, hard cap at 10. 1-bot: warn at 2, escalate after 3. All subagents use `model: "opus/gpt-5.5"`.
+**Iteration limits:** 4/5-bot: warn at 3, strong warn at 5, hard cap at 10. 1-bot: warn at 2, escalate after 3. All subagents use `model: "opus/gpt-5.5 (medium/low)"`.
 
 **Validation target rule (§6.8):** Any result with a pull > 3-sigma from a
 well-measured reference value (PDG, published measurement) is **Category A**
