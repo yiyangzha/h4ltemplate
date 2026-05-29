@@ -34,8 +34,8 @@ WORK_DIR = SCRIPT_DIR.parents[2]
 DEFAULT_INPUT = SCRIPT_DIR / "ntuple"
 DEFAULT_DATA_DIR = SCRIPT_DIR / "data"
 DEFAULT_MC_DIR = SCRIPT_DIR / "mc"
-DEFAULT_DATA_NAME = "cms_20fb_13TeV.root"
-DEFAULT_LUMI_FB = 20.0
+DEFAULT_DATA_NAME = "cms_10fb_13TeV.root"
+DEFAULT_LUMI_FB = 10.0
 
 TREE_NAME = "h4lTree"
 METADATA_NAME = "Metadata"
@@ -202,15 +202,11 @@ def read_metadata_n_events(root_file: uproot.ReadOnlyDirectory, path: Path) -> i
     if METADATA_N_EVENTS not in metadata.keys():
         raise KeyError(f"{path} is missing '{METADATA_NAME}/{METADATA_N_EVENTS}'")
 
-    n_events = metadata[METADATA_N_EVENTS].array(
-        library="np",
-        entry_start=0,
-        entry_stop=1,
-    )
-    if len(n_events) != 1:
-        raise ValueError(f"{path} has no entry 0 in '{METADATA_NAME}/{METADATA_N_EVENTS}'")
+    n_events = metadata[METADATA_N_EVENTS].array(library="np")
+    if len(n_events) == 0:
+        raise ValueError(f"{path} has no entries in '{METADATA_NAME}/{METADATA_N_EVENTS}'")
 
-    value = int(n_events[0])
+    value = int(np.sum(n_events))
     if value <= 0:
         raise ValueError(f"{path} has non-positive generated event count: {value}")
     return value
