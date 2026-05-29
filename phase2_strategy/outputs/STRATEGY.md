@@ -125,19 +125,52 @@ Primary retained references:
   MC/data control distributions.
 - [D9] Method parity with CMS-HIG-16-041/CMS-HIG-19-001 is addressed by using
   a profile-likelihood signal-strength extraction as the nominal method and
-  by requiring Phase 4a to implement a parametric mass-shape cross-check
-  (`zfit` or equivalent) if feasible. If the cross-check cannot be made, the
-  executor must document three concrete attempts and keep the binned fit as a
-  detector-level simplification rather than an official-equivalent method.
+  by requiring Phase 4a to attempt the simultaneous category mass extraction
+  defined below, with `mu` profiled. A `zfit` or equivalent parametric
+  mass-shape model is an acceptable implementation path. If the mass
+  extraction cannot be made, the executor must document closure failure or
+  three concrete infeasibility attempts and keep the result as a detector-level
+  simplification rather than an official-equivalent method.
+
+### Binding Mass-Extraction Attempt
+
+The nominal Phase 4 mass result must first attempt a simultaneous category
+mass extraction, not only a peak estimator. The required attempt is:
+
+1. Build the same simultaneous category workspace used for the `mu` fit, with
+   final-state categories and any validated classifier categories sharing a
+   common Higgs-mass parameter.
+2. Construct signal templates from the M125 samples by an explicit,
+   reviewable morphing/shift procedure: apply mass hypotheses by shifting the
+   signal `m4l` template relative to the nominal M125 peak, propagate lepton
+   momentum scale/resolution variations through the shifted templates, and
+   preserve per-category normalization separately from shape changes. A
+   `zfit` parametric signal-shape model may replace binned morphing if it
+   uses the same categories and records fitted shape parameters.
+3. Profile `mu` while scanning/fitting the mass parameter. `mu` is not fixed
+   to its nominal or Asimov value in the mass extraction.
+4. Run injected-mass closure tests on MC/Asimov pseudo-data using at least
+   three mass hypotheses spanning the intended scan range, including the
+   nominal M125 point and two shifted injected masses. The reported mass bias
+   must be below the larger of `0.2 GeV` or one-third of the expected
+   statistical mass uncertainty in every tested category combination; otherwise
+   the bias is corrected and revalidated or the mass result is downgraded.
+5. Downgrade is allowed only after the closure criteria fail after a
+   documented attempted fix, or after three concrete infeasibility attempts
+   are recorded with filenames, error/failure mode, and why no supported
+   implementation remains. If downgraded, the AN may report only a
+   detector-level peak-position cross-check and must not label it a nominal
+   simultaneous mass fit.
 
 ## Observable Definition
 
 The primary observable is the reconstructed four-lepton invariant mass
 `m4l` stored in `h4lTree`, with masses in GeV. The fitted range is
-`105 < m4l < 140 GeV` [D3]. The fit has one global parameter of interest,
-`mu`, defined as the ratio of the fitted H->ZZ->4l signal rate to the
-nominal standard-model expectation encoded by the prompt-provided effective
-sample cross sections and metadata-generated event counts.
+`105 < m4l < 140 GeV` [D3]. The signal-strength fit has one global parameter
+of interest, `mu`, defined as the ratio of the fitted H->ZZ->4l signal rate to
+the nominal standard-model expectation encoded by the prompt-provided
+effective sample cross sections and metadata-generated event counts. The mass
+fit adds a shared mass parameter and profiles `mu`.
 
 The secondary observable is a Higgs mass estimator. With only M125 signal
 samples, Phase 4 must not claim an official-quality mass scan unless a
@@ -165,6 +198,10 @@ The likelihood model is:
   backgrounds; DY+jets reducible fake proxy; TTBar diagnostic only.
 - Parameters: `mu` for all signal modes together, nuisance parameters for
   luminosity/normalization, shape, lepton, background, and MC-stat sources.
+- Mass extraction: a simultaneous mass scan or fit sharing categories with the
+  `mu` workspace is a binding Phase 4a attempt. In that model `mu` is profiled
+  and the mass-shape/morphing closure criteria in "Binding Mass-Extraction
+  Attempt" control whether the result is nominal or downgraded.
 - Binning: variable or fixed `m4l` bins inside `105 < m4l < 140 GeV`, with
   no bin accepted below about five total expected events unless the fit uses
   toy validation and MC-stat terms remain stable.
@@ -198,6 +235,28 @@ Normalization formula: for each MC sample use
 from the user prompt converted consistently with pb cross sections. Phase 3
 must record the denominator and weight for every sample and must not infer
 luminosity from observed data.
+
+Fake-background and sideband protocol:
+
+- The signal window is `105 < m4l < 140 GeV` and is excluded from any
+  sideband-only constraint used to set reducible-background normalization or
+  shape uncertainties.
+- The broad validation range is `70 < m4l < 170 GeV`. Low-mass sideband:
+  `70 <= m4l < 105 GeV`; high-mass sideband: `140 < m4l <= 170 GeV`. Phase 3
+  may also make wider diagnostic plots, but the sideband constraint must use
+  these predeclared windows unless a review-approved downscope explains why
+  the ntuples do not populate them.
+- DY+jets is nominally constrained by a log-normal normalization nuisance from
+  the sideband transfer-factor closure. If the combined weighted DY sideband
+  yield is below 10 expected events, the nuisance must be treated as weakly
+  constrained or floated with a documented prior-width scan; it must not be
+  fixed to the prompt cross section without a closure comparison.
+- TTBar is promoted to a nominal separate reducible component if its weighted
+  expected yield is at least 10 percent of the DY+jets weighted yield in the
+  signal window, or at least 20 percent in either sideband, after the Phase 3
+  selection. If below both thresholds, TTBar remains omitted from the nominal
+  fake model but its full template difference is assigned as an omission
+  systematic on the reducible background.
 
 ## Selection Approaches For Phase 3
 
@@ -251,9 +310,14 @@ Phase 3 must complete all recovery checks below before downscoping VBF:
 3. Check whether a safe event-key join to an allowed upstream NanoAOD/source
    file is possible under `paths.json`; if not allowed or not uniquely keyed,
    state that explicitly.
-4. If recoverable, define a VBF-enriched category using jet multiplicity and
+4. Real jet recovery requires expanding the allowed inputs beyond the current
+   `paths.json` allow-list, which currently permits only the flat ntuple data
+   and MC directories. If no expanded path is approved and uniquely joinable,
+   Phase 3 must immediately perform a formal VBF downscope after recording the
+   branch, provenance, and allow-list checks.
+5. If recoverable, define a VBF-enriched category using jet multiplicity and
    dijet kinematics, then add jet-energy and category-migration systematics.
-5. If not recoverable, write a formal VBF downscope subsection in
+6. If not recoverable, write a formal VBF downscope subsection in
    `SELECTION.md`, with evidence from branch/provenance checks and a
    comparison table explaining which CMS-HIG-16-041 categories are
    non-comparable.
@@ -289,6 +353,18 @@ Required validation before use:
   expected `mu` uncertainty by at least 10 percent, passes the same GoF gates,
   and uses a held-out validation split with a fixed random seed. Otherwise the
   NN remains a documented attempted approach.
+- Before any category split beyond final state is promoted, Phase 3 must write
+  a prefit viability table with expected total, signal, and background counts
+  for every proposed category and `m4l` bin, plus the number of bins below
+  five total expected events. A split is vetoed if more than 25 percent of its
+  fit bins are below five expected events, if any category has zero expected
+  background after template smoothing, if MC-stat nuisance terms dominate the
+  expected `mu` uncertainty, or if per-category GoF/toy validation gives
+  p <= 0.05 without a documented remediation.
+- Classifier overtraining must be checked with train-versus-validation score
+  distributions and a fixed-seed split. Category boundaries must be varied by
+  at least one bin or by a small score-threshold scan; nominal conclusions must
+  be stable within the expected statistical uncertainty.
 
 ## Systematic Plan
 
@@ -315,6 +391,63 @@ review accepts a formal downscope.
 | Unfolding response/model dependence | Not applicable | No particle-level result or response matrix is defined. |
 | Closed-form extraction efficiency correlations | Not applicable | `conventions/extraction.md` does not govern this template fit. |
 
+### Shape-Fit Convention Coverage
+
+This analysis adopts the shape-fit/search convention only where it maps onto a
+pp H->4l measurement. Rows below are binding Phase 4a coverage requirements
+unless explicitly marked not applicable.
+
+| `conventions/search.md` row | Coverage decision |
+| --- | --- |
+| Signal cross-section theory uncertainty | Will implement: ggH, VBF, WH, and ZH normalization/composition nuisance inputs from public/theory or prompt-effective source hierarchy; retained as acceptance/composition uncertainty for inclusive `mu`. |
+| Signal acceptance | Will approximate by MC sample/category acceptance variations and generator/source comparisons where public alternatives exist; if no alternative generator exists, assign a documented fallback envelope from category-stability and lepton-scale/resolution closure. |
+| Signal shape | Will implement through the mass-template shift/morphing or parametric signal-shape procedure used by the binding mass-extraction attempt, including mass and width/shape variations where supported. |
+| ISR modeling | Not applicable as a LEP beam row; pp replacement is signal and ZZ PDF/QCD-scale acceptance/modeling uncertainty plus pileup validation. |
+| 4-fermion backgrounds | Will implement as pp irreducible qqZZ and ggZZ background normalization/shape uncertainties, not LEP WW/We+nu generator comparisons. |
+| Background normalization | Will implement for qqZZ, ggZZ, DY+jets, and promoted TTBar using theory/prompt-source priors and sideband constraints defined above. |
+| Background shape | Will implement by template variations, sideband closure, alternative binning, and TTBar/DY reducible-shape comparisons. |
+| qqbar(gamma) modeling | Not applicable as a LEP two-fermion row; pp replacement is DY+jets fake-proxy modeling and reducible-background shape/normalization envelope. |
+| MC statistics | Will implement bin-by-bin template statistical nuisance terms. |
+| Detector simulation model | Will approximate by data/MC validation of retained observables and closure-derived envelopes because no official detector recalibration is available. |
+| Object calibration | Will implement lepton efficiency and momentum scale/resolution uncertainties; jet calibration only if real jets are recovered under [A3]. |
+| Beam energy | Not applicable to pp mass calibration; pp replacement is lepton momentum scale/resolution and external PDG/CMS mass-reference comparison, never a fitted beam-energy nuisance. |
+| Luminosity | Will implement a normalization nuisance. The central value is the user-provided `10 fb^-1`; the uncertainty follows the fallback hierarchy below. |
+| QCD scale variations | Will implement for signal and ZZ normalization/acceptance where public values or prompt-effective uncertainties are available; otherwise use documented fallback envelopes. |
+| Fragmentation model | Not applicable to the nominal no-jet, leptonic H->4l fit; if real VBF jets are recovered, revisit as jet/category modeling before review. |
+| Heavy flavour treatment | Not applicable unless a b-tagged or heavy-flavour category is introduced, which is not part of this strategy. |
+
+### Fallback Systematics Evidence Rules
+
+Fallback nuisance values must be reviewable and machine-readable. For each
+source, Phase 3/4 writes `systematics_sources.json` or an equivalent table
+with: source name, nominal value, uncertainty, citation/search trail, closure
+metric used, fallback flag, and affected templates.
+
+- Source hierarchy: use official public CMS/open-data calibration or paper
+  value first; then validated prompt-provided effective value; then
+  same-year public reference value scaled only with documented rationale; then
+  a conservative closure-derived envelope. Values from model memory are not
+  allowed.
+- Luminosity: central value remains the user-provided `10 fb^-1`. If no
+  certified luminosity uncertainty for that subset exists, treat the central
+  value as user-provided and assign a conservative normalization envelope at
+  least as large as the public CMS 2017 full-year relative luminosity
+  uncertainty used as a scale reference, with a prior-width sensitivity scan.
+- Effective cross sections: every prompt effective cross section needs a
+  public/campaign search trail and yield-closure comparison. If no public
+  match exists, mark it user-provided and assign a per-process normalization
+  nuisance from closure and comparison to reference yields rather than
+  silently treating it as independently verified.
+- Lepton efficiencies: prefer public CMS scale-factor uncertainties. If none
+  apply to these ntuples, derive a closure envelope from channel ratios,
+  Z-candidate control distributions, and trigger/ID validation plots; store
+  before/after yields and chi2/p-values.
+- Other fallback envelopes: define the envelope from at least one closure
+  comparison or alternative modeling choice. If only a user-provided value
+  exists and no closure comparison can be constructed, the artifact must label
+  the nuisance as user-provided, scan a wider prior, and report the impact as
+  a limitation instead of a calibrated systematic.
+
 ## Validation Tests
 
 Phase 3 and Phase 4 must make these machine-readable where practical.
@@ -330,10 +463,11 @@ Phase 3 and Phase 4 must make these machine-readable where practical.
    physical angular ranges.
 6. Approach comparison: S1 versus S2 expected precision, GoF, stability, and
    background closure on the same datasets.
-7. Method-parity cross-check: compare the nominal binned `pyhf` signal-strength
-   fit to a parametric mass-shape fit if feasible; otherwise document three
-   failed attempts and the exact blocking reason.
-8. Signal injection/recovery: inject `mu = 0`, `1`, and `2` into MC/Asimov
+7. Method-parity and mass-fit cross-check: execute the binding simultaneous
+   category mass extraction or document the three-attempt infeasibility rule,
+   and compare the nominal binned `pyhf` signal-strength fit to the mass-shape
+   result when feasible.
+8. Signal injection/recovery: inject `mu = 0`, `1`, `2`, and `5` into MC/Asimov
    pseudo-data; fitted `mu` bias must be below 20 percent or investigated.
 9. Goodness of fit: category and combined chi2/ndf with p-value; toys if
    asymptotic approximations are questionable due to low bin counts.
@@ -342,6 +476,9 @@ Phase 3 and Phase 4 must make these machine-readable where practical.
     results with statistical scaling.
 12. Mass-template closure: if a mass estimator or morphing scan is reported,
     demonstrate bias and uncertainty on MC pseudo-data.
+13. Category viability: prefit expected total/signal/background counts per
+    proposed category and `m4l` bin, low-stat bin counts, MC-stat stability,
+    overtraining, category-boundary stability, and GoF veto outcomes.
 
 ## Precision Estimates
 
@@ -392,6 +529,15 @@ Phase 4a closure tests quantify it.
 5. Systematic impact ranking and uncertainty breakdown on `mu`.
 6. Comparison summary table/figure against CMS-HIG-16-041, CMS-HIG-19-001,
    and PDG/world-average mass values, with explicit non-comparable rows.
+
+The final AN must include a comparability matrix before extracting numerical
+pulls from reference values. Required rows are inclusive `mu`, mass, fiducial
+cross section, width, production-sensitive categories, VBF categories, and
+reducible-background treatment. Each row is classified as matched,
+approximated/not directly comparable, or unavailable/not measured; pulls are
+reported only for matched quantitative observables. The matrix must also keep
+the HEPData `ins1608162` versus `ins1608166` ambiguity as a cleanup item until
+the record identity is resolved before numerical table extraction.
 
 Methodology diagrams planned for the analysis note:
 

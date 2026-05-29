@@ -113,6 +113,23 @@
 
 - Built Phase 1 markdown artifacts from metadata, small-slice surveys, coverage checks, figure registry, and public literature source notes.
 
+## 2026-05-29 — Phase 2 strategy fixes (fiona_8d6e)
+
+- Resolved the Phase 2 arbiter Required Fix List in scoped strategy files.
+  Updated `phase2_strategy/outputs/STRATEGY.md` with a binding simultaneous
+  category mass-extraction attempt with `mu` profiled, mass-shape/morphing
+  closure and downgrade rules, `mu = 5` injection validation, quantitative
+  sideband/DY/TTBar rules, current-`paths.json` VBF downscope requirements,
+  angular/NN prefit viability and overtraining/boundary checks, a row-by-row
+  shape-fit convention coverage matrix, fallback systematics evidence rules,
+  and final AN comparability requirements including the HEPData
+  `ins1608162`/`ins1608166` cleanup.
+- Updated `COMMITMENTS.md` with explicit [D1]-[D9] carryover entries, proof
+  artifacts for every decision, origin tags for generic systematic/
+  validation/figure/cross-check items, mass-fit and signal-injection
+  commitments, and final AN comparability matrix commitments. Wrote fixer log
+  and fix report under `phase2_strategy/`.
+
 ## 2026-05-29T19:08:32Z — Phase 1 fixer petra_11e2
 
 - Resolved A1 by relabeling all six bin-width-normalized exploration plots as densities and regenerating PNG/PDF figures plus `FIGURES.json`.
