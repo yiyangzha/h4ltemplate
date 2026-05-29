@@ -1,41 +1,46 @@
 #!/usr/bin/env python3
 
 """
-Build a fake "unlabelled data" sample from labelled H->4l ntuples.
+Build a fake 10 fb^-1 CMS data sample from the H->4l MC ntuples.
 
-Input:
-  - ROOT files produced by h4l_ntuplize.py
-  - each file should contain a flat TTree named h4lTree
+The input files are selected MC ntuples.  Each entry in h4lTree is one event
+that passed the ntuplizer selection, while Metadata/nEvents entry 0 stores the
+number of originally generated events for that MC file.
 
-Behavior:
-  - groups files by the sample names / aliases from prompt.md
-  - computes expected event yields from xsec * lumi
-  - samples events from each process proportional to its expected yield
-  - shuffles the final merged sample
-  - writes a ROOT or Parquet file with no process label column
+For every known process, this script computes the expected selected yield as
 
-Examples:
-  python make_fake_data.py \
-      --input /path/to/ntuples \
-      --output fake_data.root \
-      --lumi 20
+    xsec(pb) * lumi(fb^-1) * 1000 * n_selected / n_generated
 
-  python make_fake_data.py \
-      --input /path/to/ntuples/*.root \
-      --output fake_data.parquet \
-      --lumi 20 \
-      --seed 7
+then randomly takes that many h4lTree entries without replacement.  The chosen
+entries from all processes are shuffled into a fake data file, and all entries
+not used in fake data are written as the new MC samples.
 """
 
 from __future__ import annotations
 
 import argparse
 import glob
+import math
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, Iterable, List, Sequence, Tuple
+from typing import Dict, Iterable, List, Mapping, Sequence
 
 import numpy as np
 import uproot
+
+
+SCRIPT_DIR = Path(__file__).resolve().parent
+WORK_DIR = SCRIPT_DIR.parents[2]
+DEFAULT_INPUT = SCRIPT_DIR / "ntuple"
+DEFAULT_DATA_DIR = WORK_DIR / "data"
+DEFAULT_MC_DIR = WORK_DIR / "mc"
+DEFAULT_DATA_NAME = "cms_10fb_13TeV.root"
+DEFAULT_LUMI_FB = 10.0
+
+TREE_NAME = "h4lTree"
+METADATA_NAME = "Metadata"
+METADATA_N_EVENTS = "nEvents"
+DROP_FAKE_DATA_BRANCHES = {"run", "lumi", "luminosityBlock", "event"}
 
 
 SAMPLES = [
@@ -104,24 +109,24 @@ SAMPLES = [
         ],
     },
     {
-        "label": "GluGluToContinToZZTo2e2mu_TuneCP5_13TeV-mcfm701-pythia8",
-        "xsec_pb": 3.185e+00,
+        "label": "GGZZ2E2Mu",
+        "xsec_pb": 3.185e00,
         "aliases": [
             "GGZZ2E2Mu.root",
             "GluGluToContinToZZTo2e2mu_TuneCP5_13TeV-mcfm701-pythia8",
         ],
     },
     {
-        "label": "GluGluToContinToZZTo4mu_TuneCP5_13TeV-mcfm701-pythia8",
-        "xsec_pb": 1.575,
+        "label": "GGZZ4Mu",
+        "xsec_pb": 1.575e00,
         "aliases": [
             "GGZZ4Mu.root",
             "GluGluToContinToZZTo4mu_TuneCP5_13TeV-mcfm701-pythia8",
         ],
     },
     {
-        "label": "GluGluToContinToZZTo4e_TuneCP5_13TeV-mcfm701-pythia8",
-        "xsec_pb": 1.619,
+        "label": "GGZZ4E",
+        "xsec_pb": 1.619e00,
         "aliases": [
             "GGZZ4E.root",
             "GluGluToContinToZZTo4e_TuneCP5_13TeV-mcfm701-pythia8",
@@ -130,303 +135,437 @@ SAMPLES = [
 ]
 
 
+@dataclass(frozen=True)
+class FileInfo:
+    path: Path
+    sample_label: str
+    xsec_pb: float
+    selected_entries: int
+    generated_events: int
+    branches: List[str]
+
+
+@dataclass(frozen=True)
+class SamplePlan:
+    label: str
+    xsec_pb: float
+    files: List[FileInfo]
+    selected_entries: int
+    generated_events: int
+    expected_selected: float
+    target_entries: int
+    remaining_entries: int
+
+
 def expand_inputs(items: Sequence[str]) -> List[Path]:
-    """Expand files, directories, and glob patterns into a flat file list."""
+    """Expand files, directories, and glob patterns into a sorted ROOT file list."""
     out: List[Path] = []
     for item in items:
-        p = Path(item)
+        p = Path(item).expanduser()
         if any(ch in item for ch in ["*", "?", "["]):
-            out.extend(Path(x) for x in sorted(glob.glob(item)))
+            out.extend(Path(x) for x in glob.glob(item))
         elif p.is_dir():
-            out.extend(sorted(p.rglob("*.root")))
+            out.extend(p.rglob("*.root"))
         else:
             out.append(p)
 
-    files = [p for p in out if p.exists() and p.is_file()]
+    files = sorted({p.resolve() for p in out if p.exists() and p.is_file() and p.suffix == ".root"})
     if not files:
         raise FileNotFoundError("No input ROOT files found.")
     return files
 
 
-def resolve_sample(path: Path) -> dict | None:
+def resolve_sample(path: Path) -> Mapping[str, object] | None:
     """Return the sample spec matching a file path, or None if unknown."""
     haystack = f"{path.name} {path.as_posix()}"
     matches = []
     for spec in SAMPLES:
-        pats = [spec["label"], *spec["aliases"]]
-        if any(pat in haystack for pat in pats):
+        patterns = [str(spec["label"]), *[str(x) for x in spec["aliases"]]]
+        if any(pattern in haystack for pattern in patterns):
             matches.append(spec)
+
     if not matches:
         return None
-    # Prefer the most specific match.
-    return sorted(matches, key=lambda s: max(len(x) for x in [s["label"], *s["aliases"]]), reverse=True)[0]
+
+    return sorted(
+        matches,
+        key=lambda spec: max(len(str(x)) for x in [spec["label"], *spec["aliases"]]),
+        reverse=True,
+    )[0]
 
 
-def get_tree_info(fname: Path, tree_name: str) -> Tuple[int, List[str]]:
-    with uproot.open(fname) as f:
-        if tree_name not in f:
-            raise KeyError(f"{fname} does not contain tree '{tree_name}'")
-        tree = f[tree_name]
-        keys = [k.decode() if isinstance(k, bytes) else k for k in tree.keys()]
-        return int(tree.num_entries), keys
+def read_metadata_n_events(root_file: uproot.ReadOnlyDirectory, path: Path) -> int:
+    if METADATA_NAME not in root_file:
+        raise KeyError(f"{path} is missing the '{METADATA_NAME}' tree")
+
+    metadata = root_file[METADATA_NAME]
+    if METADATA_N_EVENTS not in metadata.keys():
+        raise KeyError(f"{path} is missing '{METADATA_NAME}/{METADATA_N_EVENTS}'")
+
+    n_events = metadata[METADATA_N_EVENTS].array(
+        library="np",
+        entry_start=0,
+        entry_stop=1,
+    )
+    if len(n_events) != 1:
+        raise ValueError(f"{path} has no entry 0 in '{METADATA_NAME}/{METADATA_N_EVENTS}'")
+
+    value = int(n_events[0])
+    if value <= 0:
+        raise ValueError(f"{path} has non-positive generated event count: {value}")
+    return value
 
 
-def load_arrays(fname: Path, tree_name: str, branches: Sequence[str]) -> Dict[str, np.ndarray]:
-    with uproot.open(fname) as f:
-        tree = f[tree_name]
+def read_file_info(path: Path, tree_name: str) -> FileInfo:
+    spec = resolve_sample(path)
+    if spec is None:
+        raise ValueError(f"Unknown MC sample; no cross section configured for {path}")
+
+    with uproot.open(path) as root_file:
+        if tree_name not in root_file:
+            raise KeyError(f"{path} does not contain tree '{tree_name}'")
+
+        tree = root_file[tree_name]
+        branches = [k.decode() if isinstance(k, bytes) else str(k) for k in tree.keys()]
+        selected_entries = int(tree.num_entries)
+        generated_events = read_metadata_n_events(root_file, path)
+
+    return FileInfo(
+        path=path,
+        sample_label=str(spec["label"]),
+        xsec_pb=float(spec["xsec_pb"]),
+        selected_entries=selected_entries,
+        generated_events=generated_events,
+        branches=branches,
+    )
+
+
+def build_sample_plans(files: Sequence[Path], tree_name: str, lumi_fb: float) -> List[SamplePlan]:
+    grouped: Dict[str, List[FileInfo]] = {}
+    for path in files:
+        info = read_file_info(path, tree_name)
+        grouped.setdefault(info.sample_label, []).append(info)
+
+    plans: List[SamplePlan] = []
+    for spec in SAMPLES:
+        label = str(spec["label"])
+        if label not in grouped:
+            continue
+
+        sample_files = grouped[label]
+        selected_entries = sum(info.selected_entries for info in sample_files)
+        generated_events = sum(info.generated_events for info in sample_files)
+        expected_selected = float(spec["xsec_pb"]) * lumi_fb * 1000.0
+        expected_selected *= selected_entries / float(generated_events)
+        target_entries = int(math.floor(expected_selected + 0.5))
+        remaining_entries = selected_entries - target_entries
+
+        plans.append(
+            SamplePlan(
+                label=label,
+                xsec_pb=float(spec["xsec_pb"]),
+                files=sample_files,
+                selected_entries=selected_entries,
+                generated_events=generated_events,
+                expected_selected=expected_selected,
+                target_entries=target_entries,
+                remaining_entries=remaining_entries,
+            )
+        )
+
+    return plans
+
+
+def print_sample_plan(plans: Sequence[SamplePlan], lumi_fb: float) -> None:
+    print(f"Lumi target: {lumi_fb:g} fb^-1")
+    print("Per-sample plan before writing:")
+    print(
+        f"{'sample':<18} {'xsec[pb]':>12} {'generated':>12} "
+        f"{'selected':>10} {'data@lumi':>12} {'take':>8} {'mc left':>8}"
+    )
+    print("-" * 88)
+    for plan in plans:
+        print(
+            f"{plan.label:<18} {plan.xsec_pb:>12.6g} {plan.generated_events:>12d} "
+            f"{plan.selected_entries:>10d} {plan.expected_selected:>12.3f} "
+            f"{plan.target_entries:>8d} {plan.remaining_entries:>8d}"
+        )
+
+
+def validate_plans(plans: Sequence[SamplePlan]) -> None:
+    bad = [plan for plan in plans if plan.target_entries > plan.selected_entries]
+    if not bad:
+        return
+
+    print("\nERROR: at least one sample does not have enough selected entries.")
+    for plan in bad:
+        print(
+            f"  {plan.label}: need {plan.target_entries}, "
+            f"available {plan.selected_entries}"
+        )
+    raise SystemExit(1)
+
+
+def validate_output_names(file_infos: Iterable[FileInfo], output_dir: Path) -> None:
+    names: Dict[str, Path] = {}
+    for info in file_infos:
+        name = info.path.name
+        if name in names:
+            raise ValueError(
+                "Multiple input files would write the same MC output name "
+                f"'{output_dir / name}': {names[name]} and {info.path}"
+            )
+        names[name] = info.path
+
+
+def choose_entries(
+    plans: Sequence[SamplePlan],
+    rng: np.random.Generator,
+) -> Dict[Path, np.ndarray]:
+    """Choose fake-data entry indices for each input file without replacement."""
+    chosen_by_file: Dict[Path, np.ndarray] = {}
+
+    for plan in plans:
+        print(f"Selecting {plan.target_entries} events for {plan.label}")
+        counts = [info.selected_entries for info in plan.files]
+        offsets = np.cumsum([0, *counts])
+
+        if plan.target_entries > 0:
+            chosen_global = rng.choice(
+                plan.selected_entries,
+                size=plan.target_entries,
+                replace=False,
+            )
+        else:
+            chosen_global = np.array([], dtype=np.int64)
+
+        for index, info in enumerate(plan.files):
+            start = offsets[index]
+            stop = offsets[index + 1]
+            in_file = chosen_global[(chosen_global >= start) & (chosen_global < stop)]
+            chosen_by_file[info.path] = (in_file - start).astype(np.int64, copy=False)
+            print(f"  {info.path.name}: fake data {len(chosen_by_file[info.path])}, "
+                  f"new MC {info.selected_entries - len(chosen_by_file[info.path])}")
+
+    return chosen_by_file
+
+
+def data_branch_order(file_infos: Sequence[FileInfo]) -> List[str]:
+    """Use only branches common to all input MC files, dropping event identity branches."""
+    if not file_infos:
+        raise ValueError("No input files were planned.")
+
+    common = set(file_infos[0].branches)
+    for info in file_infos[1:]:
+        common &= set(info.branches)
+
+    branches = [
+        branch
+        for branch in file_infos[0].branches
+        if branch in common and branch not in DROP_FAKE_DATA_BRANCHES
+    ]
+    if not branches:
+        raise ValueError("No common h4lTree branches remain after dropping run/lumi/event.")
+    return branches
+
+
+def load_arrays(path: Path, tree_name: str, branches: Sequence[str]) -> Dict[str, np.ndarray]:
+    with uproot.open(path) as root_file:
+        tree = root_file[tree_name]
         return tree.arrays(list(branches), library="np")
 
 
-def proportional_targets(counts: List[int], total_target: int) -> List[int]:
-    """Split total_target across files proportional to counts, preserving the sum."""
-    if total_target <= 0:
-        return [0] * len(counts)
-
-    total = float(sum(counts))
-    if total <= 0:
-        return [0] * len(counts)
-
-    raw = [total_target * c / total for c in counts]
-    base = [int(np.floor(x)) for x in raw]
-    remainder = total_target - sum(base)
-
-    frac_order = np.argsort([x - np.floor(x) for x in raw])[::-1]
-    for i in frac_order[:remainder]:
-        base[int(i)] += 1
-    return base
+def subset_arrays(arrays: Mapping[str, np.ndarray], indices: np.ndarray) -> Dict[str, np.ndarray]:
+    return {key: value[indices] for key, value in arrays.items()}
 
 
-def scale_targets(targets: Dict[str, int], max_events: int) -> Dict[str, int]:
-    """Scale down all targets so the total does not exceed max_events."""
-    if max_events <= 0:
-        return targets
-
-    total = sum(targets.values())
-    if total <= max_events:
-        return targets
-
-    scale = max_events / float(total)
-    raw = {k: v * scale for k, v in targets.items()}
-    out = {k: int(np.floor(v)) for k, v in raw.items()}
-    remainder = max_events - sum(out.values())
-
-    # Add leftover events to the biggest fractional parts.
-    order = sorted(raw.keys(), key=lambda k: raw[k] - np.floor(raw[k]), reverse=True)
-    for k in order[:remainder]:
-        if targets[k] > 0:
-            out[k] += 1
-    return out
-
-
-def sample_one_file(arrays: Dict[str, np.ndarray], n_take: int, rng: np.random.Generator) -> Dict[str, np.ndarray]:
-    if n_take <= 0:
-        return {}
-
-    n_avail = len(next(iter(arrays.values())))
-    replace = n_take > n_avail
-    idx = rng.choice(n_avail, size=n_take, replace=replace)
-    return {k: v[idx] for k, v in arrays.items()}
-
-
-def concat_dicts(chunks: List[Dict[str, np.ndarray]]) -> Dict[str, np.ndarray]:
+def concat_chunks(chunks: Sequence[Mapping[str, np.ndarray]]) -> Dict[str, np.ndarray]:
     if not chunks:
         return {}
 
-    out: Dict[str, List[np.ndarray]] = {}
-    for chunk in chunks:
-        for k, v in chunk.items():
-            out.setdefault(k, []).append(v)
-    return {k: np.concatenate(vs, axis=0) for k, vs in out.items()}
+    keys = list(chunks[0].keys())
+    keyset = set(keys)
+    for chunk in chunks[1:]:
+        if set(chunk.keys()) != keyset:
+            raise ValueError("Cannot concatenate chunks with different branch sets.")
+
+    return {
+        key: np.concatenate([chunk[key] for chunk in chunks], axis=0)
+        for key in keys
+    }
 
 
-def shuffle_dict(arrays: Dict[str, np.ndarray], rng: np.random.Generator) -> Dict[str, np.ndarray]:
+def shuffle_arrays(
+    arrays: Mapping[str, np.ndarray],
+    rng: np.random.Generator,
+) -> Dict[str, np.ndarray]:
     if not arrays:
         return {}
-    n = len(next(iter(arrays.values())))
-    order = rng.permutation(n)
-    return {k: v[order] for k, v in arrays.items()}
+
+    n_entries = len(next(iter(arrays.values())))
+    order = rng.permutation(n_entries)
+    return {key: value[order] for key, value in arrays.items()}
 
 
-def build_fake_data(
-    files: Sequence[Path],
+def write_tree(
+    outfile: Path,
     tree_name: str,
+    arrays: Mapping[str, np.ndarray],
+    metadata: Mapping[str, np.ndarray],
+) -> None:
+    if not arrays:
+        raise ValueError(f"Refusing to write {outfile}: no h4lTree branches.")
+
+    outfile.parent.mkdir(parents=True, exist_ok=True)
+    branch_types = {key: value.dtype for key, value in arrays.items()}
+    metadata_types = {key: value.dtype for key, value in metadata.items()}
+
+    with uproot.recreate(outfile.as_posix()) as root_file:
+        tree = root_file.mktree(tree_name, branch_types)
+        tree.extend(dict(arrays))
+
+        meta_tree = root_file.mktree(METADATA_NAME, metadata_types)
+        meta_tree.extend(dict(metadata))
+
+
+def write_outputs(
+    plans: Sequence[SamplePlan],
+    chosen_by_file: Mapping[Path, np.ndarray],
+    tree_name: str,
+    data_outfile: Path,
+    mc_dir: Path,
     lumi_fb: float,
-    seed: int,
-    max_events: int,
-) -> Tuple[Dict[str, np.ndarray], int, int]:
-    """
-    Returns:
-      output_arrays, total_input_events, total_output_events
-    """
-    rng = np.random.default_rng(seed)
+    rng: np.random.Generator,
+) -> None:
+    all_files = [info for plan in plans for info in plan.files]
+    validate_output_names(all_files, mc_dir)
+    fake_data_branches = data_branch_order(all_files)
 
-    grouped: Dict[str, List[Path]] = {}
-    for f in files:
-        spec = resolve_sample(f)
-        if spec is None:
-            print(f"WARNING: skipping unknown sample file: {f}")
-            continue
-        grouped.setdefault(spec["label"], []).append(f)
+    print(f"Fake data branches: {len(fake_data_branches)} kept, "
+          f"{sorted(DROP_FAKE_DATA_BRANCHES)} dropped when present")
 
-    if not grouped:
-        raise RuntimeError("No files matched any known sample label.")
+    fake_data_chunks: List[Dict[str, np.ndarray]] = []
 
-    per_sample_targets: Dict[str, int] = {}
-    per_sample_counts: Dict[str, int] = {}
-    total_input = 0
+    for plan in plans:
+        print(f"Processing sample {plan.label}")
+        for info in plan.files:
+            selected = np.sort(chosen_by_file.get(info.path, np.array([], dtype=np.int64)))
+            all_indices = np.arange(info.selected_entries, dtype=np.int64)
+            remaining = np.setdiff1d(all_indices, selected, assume_unique=True)
 
-    for spec in SAMPLES:
-        label = spec["label"]
-        if label not in grouped:
-            continue
+            arrays = load_arrays(info.path, tree_name, info.branches)
 
-        files_for_sample = grouped[label]
-        print("files",files_for_sample)
-        counts = []
-        branches_common = None
+            if len(selected) > 0:
+                fake_source = {branch: arrays[branch] for branch in fake_data_branches}
+                fake_data_chunks.append(subset_arrays(fake_source, selected))
 
-        for f in files_for_sample:
-            n, keys = get_tree_info(f, tree_name)
-            counts.append(n)
-            total_input += n
-            keyset = set(keys)
-            branches_common = keyset if branches_common is None else (branches_common & keyset)
+            mc_arrays = subset_arrays(arrays, remaining)
+            mc_outfile = mc_dir / info.path.name
+            write_tree(
+                mc_outfile,
+                tree_name,
+                mc_arrays,
+                {METADATA_N_EVENTS: np.array([info.generated_events], dtype=np.int64)},
+            )
+            print(f"  wrote MC {len(remaining)} entries -> {mc_outfile}")
 
-        if not branches_common:
-            raise RuntimeError(f"No common branches found for sample {label}")
+    fake_data = shuffle_arrays(concat_chunks(fake_data_chunks), rng)
+    if not fake_data:
+        raise SystemExit("No fake data events were selected; nothing to write.")
 
-        #target = int(round(spec["xsec_pb"] * lumi_fb * 1000.0))
-        expected = spec["xsec_pb"] * lumi_fb * 1000.0
-        target = int(rng.poisson(expected))
-        per_sample_targets[label] = target
-        per_sample_counts[label] = sum(counts)
-
-    per_sample_targets = scale_targets(per_sample_targets, max_events)
-
-    sampled_chunks: List[Dict[str, np.ndarray]] = []
-
-    for spec in SAMPLES:
-        label = spec["label"]
-        if label not in grouped:
-            continue
-
-        files_for_sample = grouped[label]
-        target_total = per_sample_targets.get(label, 0)
-        if target_total <= 0:
-            continue
-
-        # Determine the common branches across the files in this sample.
-        branches_common = None
-        file_meta = []
-        for f in files_for_sample:
-            n, keys = get_tree_info(f, tree_name)
-            branches_common = set(keys) if branches_common is None else (branches_common & set(keys))
-            file_meta.append((f, n))
-
-        branches = sorted(branches_common)
-        counts = [n for _, n in file_meta]
-        target_per_file = proportional_targets(counts, target_total)
-
-        sample_chunks: List[Dict[str, np.ndarray]] = []
-        for (f, n_avail), n_take in zip(file_meta, target_per_file):
-            if n_take <= 0:
-                continue
-            arrays = load_arrays(f, tree_name, branches)
-            sample_chunks.append(sample_one_file(arrays, n_take, rng))
-
-        if sample_chunks:
-            sampled_chunks.append(concat_dicts(sample_chunks))
-
-    out = concat_dicts(sampled_chunks)
-    out = shuffle_dict(out, rng)
-
-    total_output = len(next(iter(out.values()))) if out else 0
-    return out, total_input, total_output
-
-
-def write_root(outfile: Path, arrays: Dict[str, np.ndarray], lumi_fb: float, n_input: int) -> None:
-    branch_types = {k: v.dtype for k, v in arrays.items()}
-
-    with uproot.recreate(outfile.as_posix()) as f:
-        tree = f.mktree("h4lTree", branch_types)
-        tree.extend(arrays)
-
-        meta = f.mktree(
-            "Metadata",
-            {
-                "nInputEvents": np.dtype("int64"),
-                "nOutputEvents": np.dtype("int64"),
-                "lumi_fb": np.dtype("float64"),
-            },
-        )
-        meta.extend(
-            {
-                "nInputEvents": np.array([n_input], dtype=np.int64),
-                "nOutputEvents": np.array([len(next(iter(arrays.values()))) if arrays else 0], dtype=np.int64),
-                "lumi_fb": np.array([lumi_fb], dtype=np.float64),
-            }
-        )
-
-
-def write_parquet(outfile: Path, arrays: Dict[str, np.ndarray], lumi_fb: float, n_input: int) -> None:
-    import pyarrow as pa
-    import pyarrow.parquet as pq
-
-    pa_cols = {k: pa.array(v) for k, v in arrays.items()}
-    table = pa.table(pa_cols).replace_schema_metadata(
+    n_fake_data = len(next(iter(fake_data.values())))
+    write_tree(
+        data_outfile,
+        tree_name,
+        fake_data,
         {
-            b"nInputEvents": str(n_input).encode(),
-            b"nOutputEvents": str(len(next(iter(arrays.values()))) if arrays else 0).encode(),
-            b"lumi_fb": str(lumi_fb).encode(),
-        }
+            METADATA_N_EVENTS: np.array([n_fake_data], dtype=np.int64),
+            "lumi_fb": np.array([lumi_fb], dtype=np.float64),
+        },
     )
-    pq.write_table(table, outfile.as_posix(), compression="snappy")
+    print(f"Wrote fake data {n_fake_data} entries -> {data_outfile}")
 
 
 def parse_args() -> argparse.Namespace:
-    p = argparse.ArgumentParser(description=__doc__)
-    p.add_argument("--input", nargs="+", required=True, help="ROOT file(s), directories, or glob patterns")
-    p.add_argument("--output", required=True, help="Output .root or .parquet file")
-    p.add_argument("--tree", default="h4lTree", help="Input tree name (default: h4lTree)")
-    p.add_argument("--lumi", type=float, default=20.0, help="Target luminosity in fb^-1 (default: 20)")
-    p.add_argument("--seed", type=int, default=12345, help="RNG seed (default: 12345)")
-    p.add_argument(
-        "--max-events",
-        type=int,
-        default=-1,
-        help="Optional cap on the total output size; targets are scaled down proportionally",
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--input",
+        nargs="+",
+        default=[str(DEFAULT_INPUT)],
+        help=f"Input ROOT file(s), directories, or glob patterns (default: {DEFAULT_INPUT})",
     )
-    return p.parse_args()
+    parser.add_argument(
+        "--data-dir",
+        default=str(DEFAULT_DATA_DIR),
+        help=f"Directory for fake data output (default: {DEFAULT_DATA_DIR})",
+    )
+    parser.add_argument(
+        "--mc-dir",
+        default=str(DEFAULT_MC_DIR),
+        help=f"Directory for remaining MC outputs (default: {DEFAULT_MC_DIR})",
+    )
+    parser.add_argument(
+        "--data-name",
+        default=DEFAULT_DATA_NAME,
+        help=f"Fake data ROOT filename (default: {DEFAULT_DATA_NAME})",
+    )
+    parser.add_argument(
+        "--tree",
+        default=TREE_NAME,
+        help=f"Input/output tree name (default: {TREE_NAME})",
+    )
+    parser.add_argument(
+        "--lumi",
+        type=float,
+        default=DEFAULT_LUMI_FB,
+        help=f"Target luminosity in fb^-1 (default: {DEFAULT_LUMI_FB:g})",
+    )
+    parser.add_argument(
+        "--seed",
+        type=int,
+        default=12345,
+        help="Random seed for event choice and fake-data mixing (default: 12345)",
+    )
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Print the per-sample plan and validation only; do not write outputs",
+    )
+    return parser.parse_args()
 
 
 def main() -> None:
     args = parse_args()
-    files = expand_inputs(args.input)
-    outfile = Path(args.output)
-    suffix = outfile.suffix.lower()
+    if args.lumi <= 0:
+        raise SystemExit("--lumi must be positive")
 
-    if suffix not in {".root", ".parquet"}:
-        raise SystemExit(f"Output must end in .root or .parquet, got {outfile.suffix}")
+    input_files = expand_inputs(args.input)
+    data_outfile = Path(args.data_dir).expanduser().resolve() / args.data_name
+    mc_dir = Path(args.mc_dir).expanduser().resolve()
 
-    arrays, n_input, n_output = build_fake_data(
-        files=files,
+    print(f"Input ROOT files: {len(input_files)}")
+    print(f"Data output: {data_outfile}")
+    print(f"MC output directory: {mc_dir}")
+
+    plans = build_sample_plans(input_files, args.tree, args.lumi)
+    print_sample_plan(plans, args.lumi)
+    validate_plans(plans)
+
+    if args.dry_run:
+        print("Dry run requested; outputs were not written.")
+        return
+
+    rng = np.random.default_rng(args.seed)
+    chosen_by_file = choose_entries(plans, rng)
+    write_outputs(
+        plans=plans,
+        chosen_by_file=chosen_by_file,
         tree_name=args.tree,
+        data_outfile=data_outfile,
+        mc_dir=mc_dir,
         lumi_fb=args.lumi,
-        seed=args.seed,
-        max_events=args.max_events,
+        rng=rng,
     )
-
-    if not arrays:
-        raise SystemExit("No events were selected; nothing to write.")
-
-    if suffix == ".root":
-        write_root(outfile, arrays, args.lumi, n_input)
-    else:
-        write_parquet(outfile, arrays, args.lumi, n_input)
-
-    print(f"Wrote {n_output} events to {outfile}")
-    print(f"Input events scanned: {n_input}")
-    print(f"Lumi target: {args.lumi} fb^-1")
 
 
 if __name__ == "__main__":
