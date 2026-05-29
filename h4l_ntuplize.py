@@ -525,15 +525,19 @@ def rows_to_arrays(rows):
     return out
 
 
-def write_root(arrays, path):
+def write_root(arrays, path, total_events):
     branch_types = {k: v.dtype for k, v in arrays.items()}
     with uproot.recreate(str(path)) as f:
         tree = f.mktree("h4lTree", branch_types)
         tree.extend(arrays)
+
+        f["Metadata"] = {
+            "nEvents": np.array([total_events], dtype=np.int64)
+        }
     print(f"Written {len(next(iter(arrays.values())))} events ->{path}  [ROOT TTree: h4lTree]")
 
 
-def write_parquet(arrays, path):
+def write_parquet(arrays, path, total_events):
     import pyarrow as pa
     import pyarrow.parquet as pq
 
@@ -551,8 +555,12 @@ def write_parquet(arrays, path):
             pa_cols[k] = pa.array(v)
 
     table = pa.table(pa_cols)
-    pq.write_table(table, path, compression='snappy')
-    print(f"Written {len(table)} events ->{path}  [Parquet, snappy]")
+    table = table.replace_schema_metadata({
+        b"n_input_events": str(total_events).encode()
+    })
+
+    pq.write_table(table, path, compression="snappy")
+    print(f"Written {len(table)} events -> {path} [Parquet, snappy]")
 
 # ---------------------------------------------------------------------------
 # Main
@@ -595,18 +603,17 @@ def main():
 
     all_rows = []
     n_in = 0
-
     for fname in args.input:
         print("Reading "+fname+" ...")
+
         with uproot.open(fname) as f:
             if args.tree not in f:
                 print("  WARNING: tree "+args.tree+" not found in "+fname+" skipping")
                 continue
             tree = f[args.tree]
             branches = branches_to_read(tree.keys())
-
+            
             for chunk in tree.iterate(branches, step_size=args.chunk):
-
                 rows = read_chunk(chunk, cuts)
                 all_rows.extend(rows)
                 n_in += len(chunk['run'])
@@ -627,9 +634,9 @@ def main():
     arrays = rows_to_arrays(all_rows)
 
     if suffix == '.root':
-        write_root(arrays, output_path)
+        write_root(arrays, output_path, n_in)
     else:
-        write_parquet(arrays, output_path)
+        write_parquet(arrays, output_path, n_in)
 
 
 if __name__ == '__main__':
