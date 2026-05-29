@@ -46,7 +46,7 @@ DROP_FAKE_DATA_BRANCHES = {"run", "lumi", "event"}
 SAMPLES = [
     {
         "label": "GluGluToHToZZ",
-        "xsec_pb": 2.887e01,
+        "xsec_pb": 1.333521e-02,
         "aliases": [
             "GluGluToHToZZ.root",
             "GluGluHToZZTo4L_M125_TuneCP5_13TeV_powheg2_minloHJJ_JHUGenV7011_pythia8",
@@ -54,7 +54,7 @@ SAMPLES = [
     },
     {
         "label": "VBF_HToZZ",
-        "xsec_pb": 3.935e00,
+        "xsec_pb": 1.038159e-03,
         "aliases": [
             "VBF_HToZZ.root",
             "VBF_HToZZTo4L_M125_TuneCP5_13TeV_powheg2_JHUGenV7011_pythia8",
@@ -62,7 +62,7 @@ SAMPLES = [
     },
     #{
     #    "label": "ZHToZZ",
-    #    "xsec_pb": 7.935e-01,
+    #    "xsec_pb": 2.458e-04,
     #    "aliases": [
     #        "ZHToZZ.root",
     #        "ZH_HToZZ_4LFilter_M125_TuneCP5_13TeV_powheg2-minlo-HZJ_JHUGenV7011_pythia8",
@@ -70,7 +70,7 @@ SAMPLES = [
     #},
     {
         "label": "WPHToZZ",
-        "xsec_pb": 8.648e-01,
+        "xsec_pb": 2.305562e-04,
         "aliases": [
             "WPHToZZ.root",
             "WplusH_HToZZTo4L_M125_TuneCP5_13TeV_powheg2-minlo-HWJ_JHUGenV7011_pythia8",
@@ -78,7 +78,7 @@ SAMPLES = [
     },
     {
         "label": "WMHToZZ",
-        "xsec_pb": 5.409e-01,
+        "xsec_pb": 1.469e-04,
         "aliases": [
             "WMHToZZ.root",
             "WminusH_HToZZTo4L_M125_TuneCP5_13TeV_powheg2-minlo-HWJ_JHUGenV7011_pythia8",
@@ -102,7 +102,7 @@ SAMPLES = [
     },
     {
         "label": "TTBar",
-        "xsec_pb": 5.270e01,
+        "xsec_pb": 8.731e01,
         "aliases": [
             "TTBar.root",
             "TTJets_DiLept_TuneCP5_13TeV-madgraphMLM-pythia8",
@@ -110,7 +110,7 @@ SAMPLES = [
     },
     {
         "label": "GGZZ2E2Mu",
-        "xsec_pb": 3.185e00,
+        "xsec_pb": 3.185e-03,
         "aliases": [
             "GGZZ2E2Mu.root",
             "GluGluToContinToZZTo2e2mu_TuneCP5_13TeV-mcfm701-pythia8",
@@ -118,7 +118,7 @@ SAMPLES = [
     },
     {
         "label": "GGZZ4Mu",
-        "xsec_pb": 1.575e00,
+        "xsec_pb": 1.575e-03,
         "aliases": [
             "GGZZ4Mu.root",
             "GluGluToContinToZZTo4mu_TuneCP5_13TeV-mcfm701-pythia8",
@@ -126,7 +126,7 @@ SAMPLES = [
     },
     {
         "label": "GGZZ4E",
-        "xsec_pb": 1.619e00,
+        "xsec_pb": 1.619e-03,
         "aliases": [
             "GGZZ4E.root",
             "GluGluToContinToZZTo4e_TuneCP5_13TeV-mcfm701-pythia8",
