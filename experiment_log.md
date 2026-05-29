@@ -359,6 +359,10 @@
 
 - Updated `COMMITMENTS.md` for Phase 3-resolved proof artifacts and formal VBF downscope items.
 
+## 2026-05-29 — Phase 3 final cutflow readability fix
+
+- Redesigned `cutflow_summary` as a horizontal log-yield cutflow with concise step labels and registry metadata preserving the full cut-step mapping and endpoint counts.
+
 ## 2026-05-29 — Phase 3 VERIFY self-critique fixes
 
 - Re-read Phase 3 selection artifacts and figures as Follow-up 2. Fixed MC stack omissions in validation plots, aligned D7 plot normalization with the shape gate, added per-model S2 gate evidence, quantified VBF downscope evidence, and clarified Phase 4 category handoff boundaries.

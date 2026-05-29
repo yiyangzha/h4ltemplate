@@ -238,27 +238,6 @@
     "source": "phase3_selection/outputs/input_validation.json"
   },
   {
-    "caption": "Cumulative Phase 3 cutflow for data raw counts and prompt-normalized MC weighted yields. Every sample-level cutflow is monotonic, and the fit-window endpoint is 69 data events with 56.6098 expected MC events.",
-    "created_utc": "2026-05-29T22:24:33+00:00",
-    "description": "Cumulative Phase 3 cutflow for data raw counts and prompt-normalized MC weighted yields. Every sample-level cutflow is monotonic, and the fit-window endpoint is 69 data events with 56.6098 expected MC events.",
-    "id": "cutflow_summary",
-    "metadata": {
-      "steps": [
-        "all",
-        "finite_core",
-        "trigger_bitmask_nonzero",
-        "valid_final_state",
-        "flavor_matched_lepton_id",
-        "z_pair_sanity",
-        "broad_validation_window_70_170",
-        "fit_window_105_140"
-      ]
-    },
-    "pdf": "figures/cutflow_summary.pdf",
-    "png": "figures/cutflow_summary.png",
-    "source": "phase3_selection/outputs/cutflow.json"
-  },
-  {
     "caption": "Inclusive four-lepton mass distribution in the broad validation window. MC is normalized with prompt effective cross sections and Metadata denominators, while DY+jets remains the nominal fake proxy. The lower panel shows pulls and the fit-window version is the handoff input for downstream template fits.",
     "created_utc": "2026-05-29T22:24:34+00:00",
     "description": "Inclusive four-lepton mass distribution in the broad validation window. MC is normalized with prompt effective cross sections and Metadata denominators, while DY+jets remains the nominal fake proxy. The lower panel shows pulls and the fit-window version is the handoff input for downstream template fits.",
@@ -460,5 +439,40 @@
     "pdf": "figures/mva_best_score_datamc.pdf",
     "png": "figures/mva_best_score_datamc.png",
     "source": "phase3_selection/outputs/mva_scores.npz"
+  },
+  {
+    "caption": "Cumulative Phase 3 cutflow for data raw counts and prompt-normalized MC weighted yields. The rendered step labels are abbreviated for readability; `70-170` is the broad validation mass window and `105-140` is the fit window. Every sample-level cutflow is monotonic, and the fit-window endpoint is 69 data events with 56.6098 expected MC events.",
+    "created_utc": "2026-05-29T22:40:56+00:00",
+    "description": "Cumulative Phase 3 cutflow for data raw counts and prompt-normalized MC weighted yields. The rendered step labels are abbreviated for readability; `70-170` is the broad validation mass window and `105-140` is the fit window. Every sample-level cutflow is monotonic, and the fit-window endpoint is 69 data events with 56.6098 expected MC events.",
+    "id": "cutflow_summary",
+    "metadata": {
+      "display_labels": {
+        "all": "All",
+        "broad_validation_window_70_170": "70-170",
+        "finite_core": "Finite core",
+        "fit_window_105_140": "105-140",
+        "flavor_matched_lepton_id": "Flavor ID",
+        "trigger_bitmask_nonzero": "Trigger > 0",
+        "valid_final_state": "Valid FS",
+        "z_pair_sanity": "Z pairing"
+      },
+      "endpoint": {
+        "data_raw": 69.0,
+        "mc_weighted": 56.60982531014632
+      },
+      "steps": [
+        "all",
+        "finite_core",
+        "trigger_bitmask_nonzero",
+        "valid_final_state",
+        "flavor_matched_lepton_id",
+        "z_pair_sanity",
+        "broad_validation_window_70_170",
+        "fit_window_105_140"
+      ]
+    },
+    "pdf": "figures/cutflow_summary.pdf",
+    "png": "figures/cutflow_summary.png",
+    "source": "phase3_selection/outputs/cutflow.json"
   }
 ]

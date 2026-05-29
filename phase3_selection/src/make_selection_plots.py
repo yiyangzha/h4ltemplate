@@ -21,7 +21,17 @@ from selection_common import (
 def plot_cutflow_summary() -> int:
     cutflow = read_json(OUT / "cutflow.json")
     steps = cutflow["steps"]
-    x = np.arange(len(steps), dtype=float)
+    display_labels = {
+        "all": "All",
+        "finite_core": "Finite core",
+        "trigger_bitmask_nonzero": "Trigger > 0",
+        "valid_final_state": "Valid FS",
+        "flavor_matched_lepton_id": "Flavor ID",
+        "z_pair_sanity": "Z pairing",
+        "broad_validation_window_70_170": "70-170",
+        "fit_window_105_140": "105-140",
+    }
+    y = np.arange(len(steps), dtype=float)[::-1]
     data_counts = []
     mc_weighted = []
     for step in steps:
@@ -36,16 +46,16 @@ def plot_cutflow_summary() -> int:
         data_counts.append(data_total)
         mc_weighted.append(mc_total)
     fig, ax = plt.subplots(figsize=(10, 10))
-    ax.plot(x, data_counts, marker="o", color="black", label="Data raw events")
-    ax.plot(x, mc_weighted, marker="s", color="#0072B2", label="MC weighted yield")
-    ax.set_xticks(x, [step.replace("_", "\n") for step in steps])
-    ax.set_ylabel("Events")
-    ax.set_xlabel("Cumulative selection step")
-    ax.set_yscale("log")
+    ax.plot(data_counts, y, marker="o", color="black", label="Data raw events")
+    ax.plot(mc_weighted, y, marker="s", color="#0072B2", label="MC weighted yield")
+    ax.set_yticks(y, [display_labels.get(step, step) for step in steps])
+    ax.set_xlabel("Events")
+    ax.set_ylabel("Cumulative selection step")
+    ax.set_xscale("log")
     visible_top = max(max(data_counts), max(mc_weighted))
     if visible_top > 0.0:
-        ax.set_ylim(top=visible_top * 2.5)
-    ax.legend(loc="upper right", fontsize="x-small")
+        ax.set_xlim(right=visible_top * 2.5)
+    ax.legend(loc="lower right", fontsize="x-small")
     mh.label.exp_label(
         exp="CMS",
         text="",
@@ -57,9 +67,21 @@ def plot_cutflow_summary() -> int:
     )
     caption = (
         "Cumulative Phase 3 cutflow for data raw counts and prompt-normalized MC weighted yields. "
+        "The rendered step labels are abbreviated for readability; `70-170` is the broad validation mass window and `105-140` is the fit window. "
         "Every sample-level cutflow is monotonic, and the fit-window endpoint is 69 data events with 56.6098 expected MC events."
     )
-    save_and_register(fig, "cutflow_summary", caption, "phase3_selection/outputs/cutflow.json", {"steps": steps})
+    metadata = {
+        "steps": steps,
+        "display_labels": {step: display_labels.get(step, step) for step in steps},
+        "endpoint": {"data_raw": data_counts[-1], "mc_weighted": mc_weighted[-1]},
+    }
+    save_and_register(
+        fig,
+        "cutflow_summary",
+        caption,
+        "phase3_selection/outputs/cutflow.json",
+        metadata,
+    )
     return 1
 
 

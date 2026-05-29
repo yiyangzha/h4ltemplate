@@ -193,7 +193,6 @@ broad-window templates are explicitly validation-only.
 | input_validation_sublead_abs_eta | figures/input_validation_sublead_abs_eta.png | figures/input_validation_sublead_abs_eta.pdf |
 | input_validation_sublead_lepton_pt | figures/input_validation_sublead_lepton_pt.png | figures/input_validation_sublead_lepton_pt.pdf |
 | input_validation_y4l | figures/input_validation_y4l.png | figures/input_validation_y4l.pdf |
-| cutflow_summary | figures/cutflow_summary.png | figures/cutflow_summary.pdf |
 | m4l_broad_window_inclusive | figures/m4l_broad_window_inclusive.png | figures/m4l_broad_window_inclusive.pdf |
 | m4l_fit_window_inclusive | figures/m4l_fit_window_inclusive.png | figures/m4l_fit_window_inclusive.pdf |
 | m4l_fit_4mu | figures/m4l_fit_4mu.png | figures/m4l_fit_4mu.pdf |
@@ -208,6 +207,7 @@ broad-window templates are explicitly validation-only.
 | mva_roc_logistic | figures/mva_roc_logistic.png | figures/mva_roc_logistic.pdf |
 | mva_roc_small_nn | figures/mva_roc_small_nn.png | figures/mva_roc_small_nn.pdf |
 | mva_best_score_datamc | figures/mva_best_score_datamc.png | figures/mva_best_score_datamc.pdf |
+| cutflow_summary | figures/cutflow_summary.png | figures/cutflow_summary.pdf |
 
 ## Method Health And Open Issues
 
