@@ -62,6 +62,7 @@ def data_mc_comparison(
     xlabel: str,
     ylabel: str,
     rlabel: str,
+    legend_loc: str = "upper right",
 ):
     fig, (ax, rax) = plt.subplots(2, 1, figsize=(10, 10), gridspec_kw={"height_ratios": [3, 1]}, sharex=True)
     fig.subplots_adjust(hspace=0)
@@ -91,7 +92,7 @@ def data_mc_comparison(
     rax.set_ylabel("Pull")
     rax.set_xlabel(xlabel)
     ax.tick_params(labelbottom=False)
-    ax.legend(loc="upper right", fontsize="x-small")
+    ax.legend(loc=legend_loc, fontsize="x-small")
     mpl_magic(ax)
     mh.label.exp_label(
         exp="CMS",

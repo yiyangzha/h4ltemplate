@@ -193,11 +193,6 @@ broad-window templates are explicitly validation-only.
 | input_validation_sublead_abs_eta | figures/input_validation_sublead_abs_eta.png | figures/input_validation_sublead_abs_eta.pdf |
 | input_validation_sublead_lepton_pt | figures/input_validation_sublead_lepton_pt.png | figures/input_validation_sublead_lepton_pt.pdf |
 | input_validation_y4l | figures/input_validation_y4l.png | figures/input_validation_y4l.pdf |
-| m4l_broad_window_inclusive | figures/m4l_broad_window_inclusive.png | figures/m4l_broad_window_inclusive.pdf |
-| m4l_fit_window_inclusive | figures/m4l_fit_window_inclusive.png | figures/m4l_fit_window_inclusive.pdf |
-| m4l_fit_4mu | figures/m4l_fit_4mu.png | figures/m4l_fit_4mu.pdf |
-| m4l_fit_4e | figures/m4l_fit_4e.png | figures/m4l_fit_4e.pdf |
-| m4l_fit_2e2mu | figures/m4l_fit_2e2mu.png | figures/m4l_fit_2e2mu.pdf |
 | sideband_dy_ttbar_diagnostics | figures/sideband_dy_ttbar_diagnostics.png | figures/sideband_dy_ttbar_diagnostics.pdf |
 | angular_closure_median_deltas | figures/angular_closure_median_deltas.png | figures/angular_closure_median_deltas.pdf |
 | vbf_downscope_evidence | figures/vbf_downscope_evidence.png | figures/vbf_downscope_evidence.pdf |
@@ -208,6 +203,11 @@ broad-window templates are explicitly validation-only.
 | mva_roc_small_nn | figures/mva_roc_small_nn.png | figures/mva_roc_small_nn.pdf |
 | mva_best_score_datamc | figures/mva_best_score_datamc.png | figures/mva_best_score_datamc.pdf |
 | cutflow_summary | figures/cutflow_summary.png | figures/cutflow_summary.pdf |
+| m4l_broad_window_inclusive | figures/m4l_broad_window_inclusive.png | figures/m4l_broad_window_inclusive.pdf |
+| m4l_fit_window_inclusive | figures/m4l_fit_window_inclusive.png | figures/m4l_fit_window_inclusive.pdf |
+| m4l_fit_4mu | figures/m4l_fit_4mu.png | figures/m4l_fit_4mu.pdf |
+| m4l_fit_4e | figures/m4l_fit_4e.png | figures/m4l_fit_4e.pdf |
+| m4l_fit_2e2mu | figures/m4l_fit_2e2mu.png | figures/m4l_fit_2e2mu.pdf |
 
 ## Method Health And Open Issues
 

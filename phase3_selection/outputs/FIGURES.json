@@ -238,71 +238,6 @@
     "source": "phase3_selection/outputs/input_validation.json"
   },
   {
-    "caption": "Inclusive four-lepton mass distribution in the broad validation window. MC is normalized with prompt effective cross sections and Metadata denominators, while DY+jets remains the nominal fake proxy. The lower panel shows pulls and the fit-window version is the handoff input for downstream template fits.",
-    "created_utc": "2026-05-29T22:24:34+00:00",
-    "description": "Inclusive four-lepton mass distribution in the broad validation window. MC is normalized with prompt effective cross sections and Metadata denominators, while DY+jets remains the nominal fake proxy. The lower panel shows pulls and the fit-window version is the handoff input for downstream template fits.",
-    "id": "m4l_broad_window_inclusive",
-    "metadata": {
-      "category": "inclusive",
-      "window": "broad_window"
-    },
-    "pdf": "figures/m4l_broad_window_inclusive.pdf",
-    "png": "figures/m4l_broad_window_inclusive.png",
-    "source": "phase3_selection/outputs/fit_inputs_s1.json"
-  },
-  {
-    "caption": "Inclusive four-lepton mass distribution in the fit window. MC is normalized with prompt effective cross sections and Metadata denominators, while DY+jets remains the nominal fake proxy. The lower panel shows pulls and the fit-window version is the handoff input for downstream template fits.",
-    "created_utc": "2026-05-29T22:24:35+00:00",
-    "description": "Inclusive four-lepton mass distribution in the fit window. MC is normalized with prompt effective cross sections and Metadata denominators, while DY+jets remains the nominal fake proxy. The lower panel shows pulls and the fit-window version is the handoff input for downstream template fits.",
-    "id": "m4l_fit_window_inclusive",
-    "metadata": {
-      "category": "inclusive",
-      "window": "fit_window"
-    },
-    "pdf": "figures/m4l_fit_window_inclusive.pdf",
-    "png": "figures/m4l_fit_window_inclusive.png",
-    "source": "phase3_selection/outputs/fit_inputs_s1.json"
-  },
-  {
-    "caption": "Four-lepton mass distribution for the 4mu final-state category in `105 < m4l < 140 GeV`. These final-state categories are the nominal Phase 4 simultaneous-fit categories because the classifier split failed the promotion gates and no real VBF category is available.",
-    "created_utc": "2026-05-29T22:24:36+00:00",
-    "description": "Four-lepton mass distribution for the 4mu final-state category in `105 < m4l < 140 GeV`. These final-state categories are the nominal Phase 4 simultaneous-fit categories because the classifier split failed the promotion gates and no real VBF category is available.",
-    "id": "m4l_fit_4mu",
-    "metadata": {
-      "category": "4mu",
-      "window": "fit_window"
-    },
-    "pdf": "figures/m4l_fit_4mu.pdf",
-    "png": "figures/m4l_fit_4mu.png",
-    "source": "phase3_selection/outputs/fit_inputs_s1.json"
-  },
-  {
-    "caption": "Four-lepton mass distribution for the 4e final-state category in `105 < m4l < 140 GeV`. These final-state categories are the nominal Phase 4 simultaneous-fit categories because the classifier split failed the promotion gates and no real VBF category is available.",
-    "created_utc": "2026-05-29T22:24:36+00:00",
-    "description": "Four-lepton mass distribution for the 4e final-state category in `105 < m4l < 140 GeV`. These final-state categories are the nominal Phase 4 simultaneous-fit categories because the classifier split failed the promotion gates and no real VBF category is available.",
-    "id": "m4l_fit_4e",
-    "metadata": {
-      "category": "4e",
-      "window": "fit_window"
-    },
-    "pdf": "figures/m4l_fit_4e.pdf",
-    "png": "figures/m4l_fit_4e.png",
-    "source": "phase3_selection/outputs/fit_inputs_s1.json"
-  },
-  {
-    "caption": "Four-lepton mass distribution for the 2e2mu final-state category in `105 < m4l < 140 GeV`. These final-state categories are the nominal Phase 4 simultaneous-fit categories because the classifier split failed the promotion gates and no real VBF category is available.",
-    "created_utc": "2026-05-29T22:24:37+00:00",
-    "description": "Four-lepton mass distribution for the 2e2mu final-state category in `105 < m4l < 140 GeV`. These final-state categories are the nominal Phase 4 simultaneous-fit categories because the classifier split failed the promotion gates and no real VBF category is available.",
-    "id": "m4l_fit_2e2mu",
-    "metadata": {
-      "category": "2e2mu",
-      "window": "fit_window"
-    },
-    "pdf": "figures/m4l_fit_2e2mu.pdf",
-    "png": "figures/m4l_fit_2e2mu.png",
-    "source": "phase3_selection/outputs/fit_inputs_s1.json"
-  },
-  {
     "caption": "DY+jets and TTBar reducible-background diagnostics across the predeclared sideband and signal regions. TTBar/DY ratios are {'high_sideband_140_170': 0.16348247967166454, 'low_sideband_70_105': 0.09536477980847097, 'signal_window_105_140': 0.04440264879971137}, so TTBar is not promoted to the nominal fake model by the Phase 2 thresholds.",
     "created_utc": "2026-05-29T22:24:38+00:00",
     "description": "DY+jets and TTBar reducible-background diagnostics across the predeclared sideband and signal regions. TTBar/DY ratios are {'high_sideband_140_170': 0.16348247967166454, 'low_sideband_70_105': 0.09536477980847097, 'signal_window_105_140': 0.04440264879971137}, so TTBar is not promoted to the nominal fake model by the Phase 2 thresholds.",
@@ -474,5 +409,70 @@
     "pdf": "figures/cutflow_summary.pdf",
     "png": "figures/cutflow_summary.png",
     "source": "phase3_selection/outputs/cutflow.json"
+  },
+  {
+    "caption": "Inclusive four-lepton mass distribution in the broad validation window. MC is normalized with prompt effective cross sections and Metadata denominators, while DY+jets remains the nominal fake proxy. The lower panel shows pulls and the fit-window version is the handoff input for downstream template fits.",
+    "created_utc": "2026-05-29T22:56:00+00:00",
+    "description": "Inclusive four-lepton mass distribution in the broad validation window. MC is normalized with prompt effective cross sections and Metadata denominators, while DY+jets remains the nominal fake proxy. The lower panel shows pulls and the fit-window version is the handoff input for downstream template fits.",
+    "id": "m4l_broad_window_inclusive",
+    "metadata": {
+      "category": "inclusive",
+      "window": "broad_window"
+    },
+    "pdf": "figures/m4l_broad_window_inclusive.pdf",
+    "png": "figures/m4l_broad_window_inclusive.png",
+    "source": "phase3_selection/outputs/fit_inputs_s1.json"
+  },
+  {
+    "caption": "Inclusive four-lepton mass distribution in the fit window. MC is normalized with prompt effective cross sections and Metadata denominators, while DY+jets remains the nominal fake proxy. The lower panel shows pulls and the fit-window version is the handoff input for downstream template fits.",
+    "created_utc": "2026-05-29T22:56:01+00:00",
+    "description": "Inclusive four-lepton mass distribution in the fit window. MC is normalized with prompt effective cross sections and Metadata denominators, while DY+jets remains the nominal fake proxy. The lower panel shows pulls and the fit-window version is the handoff input for downstream template fits.",
+    "id": "m4l_fit_window_inclusive",
+    "metadata": {
+      "category": "inclusive",
+      "window": "fit_window"
+    },
+    "pdf": "figures/m4l_fit_window_inclusive.pdf",
+    "png": "figures/m4l_fit_window_inclusive.png",
+    "source": "phase3_selection/outputs/fit_inputs_s1.json"
+  },
+  {
+    "caption": "Four-lepton mass distribution for the 4mu final-state category in `105 < m4l < 140 GeV`. These final-state categories are the nominal Phase 4 simultaneous-fit categories because the classifier split failed the promotion gates and no real VBF category is available.",
+    "created_utc": "2026-05-29T22:56:02+00:00",
+    "description": "Four-lepton mass distribution for the 4mu final-state category in `105 < m4l < 140 GeV`. These final-state categories are the nominal Phase 4 simultaneous-fit categories because the classifier split failed the promotion gates and no real VBF category is available.",
+    "id": "m4l_fit_4mu",
+    "metadata": {
+      "category": "4mu",
+      "window": "fit_window"
+    },
+    "pdf": "figures/m4l_fit_4mu.pdf",
+    "png": "figures/m4l_fit_4mu.png",
+    "source": "phase3_selection/outputs/fit_inputs_s1.json"
+  },
+  {
+    "caption": "Four-lepton mass distribution for the 4e final-state category in `105 < m4l < 140 GeV`. These final-state categories are the nominal Phase 4 simultaneous-fit categories because the classifier split failed the promotion gates and no real VBF category is available.",
+    "created_utc": "2026-05-29T22:56:03+00:00",
+    "description": "Four-lepton mass distribution for the 4e final-state category in `105 < m4l < 140 GeV`. These final-state categories are the nominal Phase 4 simultaneous-fit categories because the classifier split failed the promotion gates and no real VBF category is available.",
+    "id": "m4l_fit_4e",
+    "metadata": {
+      "category": "4e",
+      "window": "fit_window"
+    },
+    "pdf": "figures/m4l_fit_4e.pdf",
+    "png": "figures/m4l_fit_4e.png",
+    "source": "phase3_selection/outputs/fit_inputs_s1.json"
+  },
+  {
+    "caption": "Four-lepton mass distribution for the 2e2mu final-state category in `105 < m4l < 140 GeV`. These final-state categories are the nominal Phase 4 simultaneous-fit categories because the classifier split failed the promotion gates and no real VBF category is available.",
+    "created_utc": "2026-05-29T22:56:05+00:00",
+    "description": "Four-lepton mass distribution for the 2e2mu final-state category in `105 < m4l < 140 GeV`. These final-state categories are the nominal Phase 4 simultaneous-fit categories because the classifier split failed the promotion gates and no real VBF category is available.",
+    "id": "m4l_fit_2e2mu",
+    "metadata": {
+      "category": "2e2mu",
+      "window": "fit_window"
+    },
+    "pdf": "figures/m4l_fit_2e2mu.pdf",
+    "png": "figures/m4l_fit_2e2mu.png",
+    "source": "phase3_selection/outputs/fit_inputs_s1.json"
   }
 ]

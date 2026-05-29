@@ -105,7 +105,15 @@ def plot_m4l_windows() -> int:
     made = 0
     for window, label in (("broad_window", "broad validation"), ("fit_window", "fit")):
         data, stacks, edges = mc_stack_from_fit(fit_inputs, window, "inclusive")
-        fig = data_mc_comparison(edges, data, stacks, r"$m_{4\ell}$ [GeV]", "Events", r"$13$ TeV, 10 fb$^{-1}$")
+        fig = data_mc_comparison(
+            edges,
+            data,
+            stacks,
+            r"$m_{4\ell}$ [GeV]",
+            "Events",
+            r"$13$ TeV, 10 fb$^{-1}$",
+            legend_loc="center right",
+        )
         caption = (
             f"Inclusive four-lepton mass distribution in the {label} window. "
             "MC is normalized with prompt effective cross sections and Metadata denominators, while DY+jets remains the nominal fake proxy. "
@@ -115,7 +123,15 @@ def plot_m4l_windows() -> int:
         made += 1
     for channel in FINAL_STATE_LABELS:
         data, stacks, edges = mc_stack_from_fit(fit_inputs, "fit_window", channel)
-        fig = data_mc_comparison(edges, data, stacks, r"$m_{4\ell}$ [GeV]", "Events", r"$13$ TeV, 10 fb$^{-1}$")
+        fig = data_mc_comparison(
+            edges,
+            data,
+            stacks,
+            r"$m_{4\ell}$ [GeV]",
+            "Events",
+            r"$13$ TeV, 10 fb$^{-1}$",
+            legend_loc="center right",
+        )
         caption = (
             f"Four-lepton mass distribution for the {channel} final-state category in `105 < m4l < 140 GeV`. "
             "These final-state categories are the nominal Phase 4 simultaneous-fit categories because the classifier split failed the promotion gates and no real VBF category is available."

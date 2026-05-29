@@ -359,6 +359,10 @@
 
 - Updated `COMMITMENTS.md` for Phase 3-resolved proof artifacts and formal VBF downscope items.
 
+## 2026-05-29 — Phase 3 mass-plot legend layout fix
+
+- Moved mass-stack data/MC legends out of the experiment-label region and regenerated the m4l stack figures plus the Phase 3 figure registry/artifact.
+
 ## 2026-05-29 — Phase 3 final cutflow readability fix
 
 - Redesigned `cutflow_summary` as a horizontal log-yield cutflow with concise step labels and registry metadata preserving the full cut-step mapping and endpoint counts.
