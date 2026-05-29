@@ -8,3 +8,4 @@ __pycache__/
 
 # SLURM logs
 .slurm_*.out
+*.root
