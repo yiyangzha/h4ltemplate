@@ -178,12 +178,16 @@ templates are explicitly validation-only.
 | input_validation_sublead_abs_eta | figures/input_validation_sublead_abs_eta.png | figures/input_validation_sublead_abs_eta.pdf |
 | input_validation_sublead_lepton_pt | figures/input_validation_sublead_lepton_pt.png | figures/input_validation_sublead_lepton_pt.pdf |
 | input_validation_y4l | figures/input_validation_y4l.png | figures/input_validation_y4l.pdf |
+| cutflow_summary | figures/cutflow_summary.png | figures/cutflow_summary.pdf |
 | m4l_broad_window_inclusive | figures/m4l_broad_window_inclusive.png | figures/m4l_broad_window_inclusive.pdf |
 | m4l_fit_window_inclusive | figures/m4l_fit_window_inclusive.png | figures/m4l_fit_window_inclusive.pdf |
 | m4l_fit_4mu | figures/m4l_fit_4mu.png | figures/m4l_fit_4mu.pdf |
 | m4l_fit_4e | figures/m4l_fit_4e.png | figures/m4l_fit_4e.pdf |
 | m4l_fit_2e2mu | figures/m4l_fit_2e2mu.png | figures/m4l_fit_2e2mu.pdf |
 | sideband_dy_ttbar_diagnostics | figures/sideband_dy_ttbar_diagnostics.png | figures/sideband_dy_ttbar_diagnostics.pdf |
+| angular_closure_median_deltas | figures/angular_closure_median_deltas.png | figures/angular_closure_median_deltas.pdf |
+| vbf_downscope_evidence | figures/vbf_downscope_evidence.png | figures/vbf_downscope_evidence.pdf |
+| category_viability_s1 | figures/category_viability_s1.png | figures/category_viability_s1.pdf |
 | approach_comparison_mu_proxy | figures/approach_comparison_mu_proxy.png | figures/approach_comparison_mu_proxy.pdf |
 | mva_roc_bdt | figures/mva_roc_bdt.png | figures/mva_roc_bdt.pdf |
 | mva_roc_logistic | figures/mva_roc_logistic.png | figures/mva_roc_logistic.pdf |

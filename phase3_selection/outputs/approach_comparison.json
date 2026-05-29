@@ -17,7 +17,7 @@
     }
   },
   "common_metric": "Asimov counting precision proxy sqrt(S+B)/S in 105 < m4l < 140 GeV, plus D7/GoF/category gates",
-  "created_utc": "2026-05-29T21:36:18+00:00",
+  "created_utc": "2026-05-29T21:52:30+00:00",
   "selected_configuration": "S1_reference_like_final_state_categories",
   "selection_reason": "S1 retained because S2 did not pass all input, score-shape, low-stat, overtraining, or >10% improvement gates."
 }

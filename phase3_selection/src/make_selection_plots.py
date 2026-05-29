@@ -1,7 +1,8 @@
 from __future__ import annotations
 
+import matplotlib.pyplot as plt
+import mplhep as mh
 import numpy as np
-from scipy.stats import chi2
 
 from plot_utils import data_mc_comparison, save_and_register
 from selection_common import (
@@ -15,6 +16,40 @@ from selection_common import (
     read_json,
     setup_logging,
 )
+
+
+def plot_cutflow_summary() -> int:
+    cutflow = read_json(OUT / "cutflow.json")
+    steps = cutflow["steps"]
+    x = np.arange(len(steps), dtype=float)
+    data_counts = []
+    mc_weighted = []
+    for step in steps:
+        data_total = 0.0
+        mc_total = 0.0
+        for sample, payload in cutflow["samples"].items():
+            row = next(item for item in payload["all_channels"] if item["step"] == step)
+            if sample.startswith("cms_"):
+                data_total += row["raw_entries"]
+            else:
+                mc_total += row["weighted_yield"]
+        data_counts.append(data_total)
+        mc_weighted.append(mc_total)
+    fig, ax = plt.subplots(figsize=(10, 10))
+    ax.plot(x, data_counts, marker="o", color="black", label="Data raw events")
+    ax.plot(x, mc_weighted, marker="s", color="#0072B2", label="MC weighted yield")
+    ax.set_xticks(x, [step.replace("_", "\n") for step in steps])
+    ax.set_ylabel("Events")
+    ax.set_xlabel("Cumulative selection step")
+    ax.set_yscale("log")
+    ax.legend(loc="upper right", fontsize="x-small")
+    mh.label.exp_label(exp="CMS", text="", loc=2, data=True, llabel="Open Data+Sim", rlabel=r"$13$ TeV, 10 fb$^{-1}$", ax=ax)
+    caption = (
+        "Cumulative Phase 3 cutflow for data raw counts and prompt-normalized MC weighted yields. "
+        "Every sample-level cutflow is monotonic, and the fit-window endpoint is 69 data events with 56.6098 expected MC events."
+    )
+    save_and_register(fig, "cutflow_summary", caption, "phase3_selection/outputs/cutflow.json", {"steps": steps})
+    return 1
 
 
 def mc_stack_from_fit(fit_inputs: dict, window: str, category: str) -> tuple[np.ndarray, dict[str, np.ndarray], np.ndarray]:
@@ -80,6 +115,92 @@ def plot_sidebands() -> int:
     return 1
 
 
+def plot_angular_closure() -> int:
+    closure = read_json(OUT / "angular_closure.json")
+    quantities = ["m4l", "mZ1", "mZ2"]
+    max_medians = []
+    for quantity in quantities:
+        max_medians.append(max(item["median_abs_diff_GeV"][quantity] for item in closure["samples"]))
+    fig, ax = plt.subplots(figsize=(10, 10))
+    ax.errorbar(np.arange(len(quantities)), max_medians, marker="o", linestyle="None", color="#009E73", label="Observed closure")
+    ax.axhline(0.1, color="#D55E00", linestyle="--", label="0.1 GeV gate")
+    ax.set_xticks(np.arange(len(quantities)), [r"$m_{4\ell}$", r"$m_{Z1}$", r"$m_{Z2}$"])
+    ax.set_ylabel("Max sample median absolute difference [GeV]")
+    ax.set_xlabel("Recomputed quantity")
+    ax.set_yscale("log")
+    ax.legend(loc="upper right", fontsize="x-small")
+    mh.label.exp_label(exp="CMS", text="", loc=2, data=True, llabel="Open Data+Sim", rlabel=r"$13$ TeV", ax=ax)
+    caption = (
+        "Angular reconstruction closure summary showing the maximum per-sample median absolute mass difference for recomputed four-vector quantities. "
+        "All medians are far below the 0.1 GeV closure gate and all angular physical-range checks have zero out-of-range entries."
+    )
+    save_and_register(fig, "angular_closure_median_deltas", caption, "phase3_selection/outputs/angular_closure.json", {"overall_pass": closure["overall_pass"]})
+    return 1
+
+
+def plot_vbf_downscope_evidence() -> int:
+    evidence = read_json(OUT / "vbf_recovery_downscope.json")
+    checks = evidence["primary_and_local_branch_checks"]
+    checked_files = len(checks)
+    files_with_jet_vbf = sum(1 for item in checks if item["jet_or_vbf_like_branches"])
+    allowed_upstream = len(evidence["join_check"]["allowed_upstream_sources"])
+    safe_join = int(evidence["join_check"]["safe_event_key_join_possible"])
+    values = [checked_files, files_with_jet_vbf, allowed_upstream, safe_join]
+    labels = ["ROOT files\nchecked", "Files with\njet/VBF branches", "Allowed upstream\njoin sources", "Safe event-key\njoin"]
+    fig, ax = plt.subplots(figsize=(10, 10))
+    ax.errorbar(np.arange(len(values)), values, marker="o", linestyle="None", color="black")
+    ax.set_xticks(np.arange(len(values)), labels)
+    ax.set_ylabel("Count")
+    ax.set_xlabel("VBF recovery evidence")
+    mh.label.exp_label(exp="CMS", text="", loc=2, data=True, llabel="Open Data+Sim", rlabel=r"$13$ TeV", ax=ax)
+    caption = (
+        "VBF recovery and downscope evidence from branch inventories and allowed join sources. "
+        "No checked flat ntuple contains real jet or VBF discriminator branches, no allowed upstream join source exists, and no lepton-only category is labeled VBF."
+    )
+    save_and_register(fig, "vbf_downscope_evidence", caption, "phase3_selection/outputs/vbf_recovery_downscope.json", {"decision": evidence["decision"]})
+    return 1
+
+
+def plot_category_viability() -> int:
+    fit_inputs = read_json(OUT / "fit_inputs_s1.json")
+    channels = FINAL_STATE_LABELS
+    signal = []
+    background = []
+    data = []
+    for channel in channels:
+        sig = 0.0
+        bkg = 0.0
+        obs = 0.0
+        for sample_payload in fit_inputs["samples"].values():
+            item = sample_payload["fit_window"][channel]
+            if item["stack"] == "Data":
+                obs += item["weighted_yield"]
+            elif item["group"].startswith("signal"):
+                sig += item["weighted_yield"]
+            else:
+                bkg += item["weighted_yield"]
+        signal.append(sig)
+        background.append(bkg)
+        data.append(obs)
+    x = np.arange(len(channels), dtype=float)
+    width = 0.25
+    fig, ax = plt.subplots(figsize=(10, 10))
+    ax.errorbar(x - width, signal, marker="s", linestyle="None", color="#009E73", label="Signal")
+    ax.errorbar(x, background, marker="^", linestyle="None", color="#0072B2", label="Background")
+    ax.errorbar(x + width, data, yerr=np.sqrt(data), marker="o", linestyle="None", color="black", label="Data")
+    ax.set_xticks(x, channels)
+    ax.set_ylabel("Events in 105 < m4l < 140 GeV")
+    ax.set_xlabel("Final-state category")
+    ax.legend(loc="upper right", fontsize="x-small")
+    mh.label.exp_label(exp="CMS", text="", loc=2, data=True, llabel="Open Data+Sim", rlabel=r"$13$ TeV, 10 fb$^{-1}$", ax=ax)
+    caption = (
+        "S1 final-state category viability summary for the fit window. "
+        "The 4mu, 4e, and 2e2mu categories are retained as the nominal simultaneous-fit categories, while S2 classifier categories fail low-stat viability."
+    )
+    save_and_register(fig, "category_viability_s1", caption, "phase3_selection/outputs/fit_inputs_s1.json", {"channels": channels})
+    return 1
+
+
 def plot_approach_and_mva() -> int:
     made = 0
     comparison = read_json(OUT / "approach_comparison.json")
@@ -141,8 +262,12 @@ def plot_approach_and_mva() -> int:
 
 def main() -> None:
     setup_logging()
-    made = plot_m4l_windows()
+    made = plot_cutflow_summary()
+    made += plot_m4l_windows()
     made += plot_sidebands()
+    made += plot_angular_closure()
+    made += plot_vbf_downscope_evidence()
+    made += plot_category_viability()
     made += plot_approach_and_mva()
     append_session(f"2026-05-29 selection plots\n\n- Wrote {made} selection, sideband, and approach-comparison figures.")
     append_experiment(f"## 2026-05-29 — Phase 3 selection figures\n\n- Produced {made} selection/sideband/MVA diagnostic figures and updated `FIGURES.json`.")
