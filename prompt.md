@@ -6,6 +6,7 @@ You are performing a Higgs boson measurement in the 4 lepton (electron or muon) 
 
 - In the final analysis note, compare the final results with JHEP 11 (2017) 047 / CMS-HIG-16-041 as comprehensively as the available ntuples and this analysis scope allow. Cover every result from that paper that is meaningfully comparable; for non-comparable results, state the reason explicitly.
 - In those comparison tables and figures, include previous-study results and PDG/world-average results where the paper or public references provide them.
+- Use the same fit mass window as in JHEP 11 (2017) 047 / CMS-HIG-16-041.
 
 Data and MC are flat ntuples produced with the script h4l_ntuplize.py.
 
