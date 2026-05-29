@@ -303,6 +303,21 @@
 
 - Built Phase 3 primary-path provenance, MC normalization, cutflow, sideband diagnostics, S1 fit-ready histograms, and compact broad-window event arrays using primary prompt ROOT files only.
 
+## 2026-05-29 — Phase 3 VERIFY and Level 2 plot validation
+
+- Executor `magnus_d784` completed formal VERIFY Follow-up 1 and Follow-up 2.
+  The plan check found and fixed residual `np.histogram` usage and missing
+  planned diagnostics (`3f427e1`, `e248213`).
+- Self-critique found and fixed input-validation MC overlay/normalization,
+  S2-rejection wording, VBF evidence quantification, and Phase 4 handoff
+  wording (`c3e7c8e`).
+- Per-figure validators found plot-label, cutflow-readability, mass-legend,
+  and model-name presentation issues. Fix commits: `0bf8908`, `34155e3`,
+  `63227ca`, and `c7d6adf`.
+- Final Level 2 status: all 29 figures in `phase3_selection/outputs/FIGURES.json`
+  have PASS validation on the final committed image set. Summary:
+  `phase3_selection/review/validation/PERFIG_VALIDATION_SUMMARY_2026-05-29.md`.
+
 ## 2026-05-29 — Phase 3 VBF recovery/downscope gate
 
 - Checked primary and local branch inventories plus ntuplizer provenance for jet/VBF content. Decision: formal VBF downscope; no lepton-only category will be labeled VBF.
