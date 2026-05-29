@@ -465,7 +465,7 @@ Model), subagent spawning rules (Agent tool only — above in Tool Constraints).
 **Subagent model selection:** Read `TOGGLES.md` for the
 `REVIEW_MODEL_DIVERSITY` flag. When `true`, use the per-role model
 assignment table in `methodology/06-review.md` §6.2. When `false`,
-all subagents use `model: "opus"`. Principle: Opus for physics reasoning
+all subagents use `model: "opus/gpt-5.5"`. Principle: Opus for physics reasoning
 and final judgment; Sonnet for visual critique and secondary review;
 Haiku for fast mechanical tasks.
 

@@ -12,7 +12,7 @@ respect all flags below. Do not assume defaults; read the actual values.
 
 When `true`, review panels use diverse model assignments (Opus for physics
 reasoning and judgment, Sonnet for visual critique and secondary review,
-Haiku for mechanical tasks). When `false`, all subagents use `model: "opus"`.
+Haiku for mechanical tasks). When `false`, all subagents use `model: "opus/gpt-5.5"`.
 
 **Spec location:** Per-role assignment table in `methodology/06-review.md` §6.2.
 Orchestrator reads the flag in `templates/root_claude.md` → "Subagent model selection."
