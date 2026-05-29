@@ -14,8 +14,9 @@ For every known process, this script computes the expected selected yield as
 then randomly takes that many h4lTree entries without replacement, unless a
 process needs more fake-data entries than it has selected MC entries.  In that
 case only that process is sampled with replacement.  The chosen entries from
-all processes are shuffled into a fake data file, and all entries not used in
-fake data are written as the new MC samples.
+all processes are shuffled into a fake data file.  By default, the new MC
+samples keep all original selected entries; pass --no-use-all-mc to write only
+entries not used in fake data.
 """
 
 from __future__ import annotations
@@ -36,8 +37,8 @@ WORK_DIR = SCRIPT_DIR.parents[2]
 DEFAULT_INPUT = SCRIPT_DIR / "ntuple"
 DEFAULT_DATA_DIR = SCRIPT_DIR / "data"
 DEFAULT_MC_DIR = SCRIPT_DIR / "mc"
-DEFAULT_DATA_NAME = "cms_10fb_13TeV.root"
-DEFAULT_LUMI_FB = 10.0
+DEFAULT_DATA_NAME = "cms_100fb_13TeV.root"
+DEFAULT_LUMI_FB = 100.0
 
 TREE_NAME = "h4lTree"
 METADATA_NAME = "Metadata"
@@ -319,6 +320,7 @@ def validate_output_names(file_infos: Iterable[FileInfo], output_dir: Path) -> N
 def choose_entries(
     plans: Sequence[SamplePlan],
     rng: np.random.Generator,
+    use_all_mc: bool,
 ) -> Dict[Path, np.ndarray]:
     """Choose fake-data entry indices for each input file."""
     chosen_by_file: Dict[Path, np.ndarray] = {}
@@ -345,8 +347,11 @@ def choose_entries(
             in_file = chosen_global[(chosen_global >= start) & (chosen_global < stop)]
             chosen_by_file[info.path] = (in_file - start).astype(np.int64, copy=False)
             used_for_mc = np.unique(chosen_by_file[info.path])
+            new_mc_entries = (
+                info.selected_entries if use_all_mc else info.selected_entries - len(used_for_mc)
+            )
             print(f"  {info.path.name}: fake data {len(chosen_by_file[info.path])}, "
-                  f"new MC {info.selected_entries - len(used_for_mc)}")
+                  f"new MC {new_mc_entries}")
 
     return chosen_by_file
 
@@ -437,6 +442,7 @@ def write_outputs(
     mc_dir: Path,
     lumi_fb: float,
     rng: np.random.Generator,
+    use_all_mc: bool,
 ) -> None:
     all_files = [info for plan in plans for info in plan.files]
     validate_output_names(all_files, mc_dir)
@@ -452,8 +458,11 @@ def write_outputs(
         for info in plan.files:
             selected = np.sort(chosen_by_file.get(info.path, np.array([], dtype=np.int64)))
             all_indices = np.arange(info.selected_entries, dtype=np.int64)
-            used_for_mc = np.unique(selected)
-            remaining = np.setdiff1d(all_indices, used_for_mc, assume_unique=True)
+            if use_all_mc:
+                mc_indices = all_indices
+            else:
+                used_for_mc = np.unique(selected)
+                mc_indices = np.setdiff1d(all_indices, used_for_mc, assume_unique=True)
 
             arrays = load_arrays(info.path, tree_name, info.branches)
 
@@ -461,7 +470,7 @@ def write_outputs(
                 fake_source = {branch: arrays[branch] for branch in fake_data_branches}
                 fake_data_chunks.append(subset_arrays(fake_source, selected))
 
-            mc_arrays = subset_arrays(arrays, remaining)
+            mc_arrays = subset_arrays(arrays, mc_indices)
             mc_outfile = mc_dir / info.path.name
             write_tree(
                 mc_outfile,
@@ -469,7 +478,7 @@ def write_outputs(
                 mc_arrays,
                 {METADATA_N_EVENTS: np.array([info.generated_events], dtype=np.int64)},
             )
-            print(f"  wrote MC {len(remaining)} entries -> {mc_outfile}")
+            print(f"  wrote MC {len(mc_indices)} entries -> {mc_outfile}")
 
     fake_data = shuffle_arrays(concat_chunks(fake_data_chunks), rng)
     if not fake_data:
@@ -504,7 +513,16 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--mc-dir",
         default=str(DEFAULT_MC_DIR),
-        help=f"Directory for remaining MC outputs (default: {DEFAULT_MC_DIR})",
+        help=f"Directory for MC outputs (default: {DEFAULT_MC_DIR})",
+    )
+    parser.add_argument(
+        "--use-all-mc",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help=(
+            "Write all original selected MC entries to MC outputs by default; "
+            "use --no-use-all-mc to write only entries not selected for fake data"
+        ),
     )
     parser.add_argument(
         "--data-name",
@@ -558,7 +576,7 @@ def main() -> None:
         return
 
     rng = np.random.default_rng(args.seed)
-    chosen_by_file = choose_entries(plans, rng)
+    chosen_by_file = choose_entries(plans, rng, use_all_mc=args.use_all_mc)
     write_outputs(
         plans=plans,
         chosen_by_file=chosen_by_file,
@@ -567,6 +585,7 @@ def main() -> None:
         mc_dir=mc_dir,
         lumi_fb=args.lumi,
         rng=rng,
+        use_all_mc=args.use_all_mc,
     )
 
 

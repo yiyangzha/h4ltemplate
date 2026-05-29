@@ -26,14 +26,21 @@ Usage:
       --output h4l_ntuple.parquet \\
       [--tree Events] \\
       [--chunk 50000] \\
+      [--file-workers 8] \\
       [--workers 4]
 
   python h4l_ntuplize.py --input step5_NANO.root --output h4l_ntuple.root
+
+Remote HTTP read failures are retried. Files that still fail after all retries
+are skipped so the remaining inputs can continue.
 """
 
 import argparse
+import concurrent.futures
 import itertools
 import sys
+import threading
+import time
 from pathlib import Path
 
 import numpy as np
@@ -57,6 +64,10 @@ HLT_PATHS = [
     "Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ",  # bit 9
     "Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_DZ", # bit 10
 ]
+
+WARNED_MISSING_HLT = set()
+WARNED_MISSING_HLT_LOCK = threading.Lock()
+REMOTE_READ_RETRIES = 3
 
 MZ = 91.1876  # GeV
 
@@ -241,6 +252,14 @@ def read_chunk(chunk, cuts):
     """
     rows = []
     nevt = len(chunk['run'])
+    present_fields = set(chunk.fields)
+
+    missing_hlt = [f'HLT_{name}' for name in HLT_PATHS if f'HLT_{name}' not in present_fields]
+    for key in missing_hlt:
+        with WARNED_MISSING_HLT_LOCK:
+            if key not in WARNED_MISSING_HLT:
+                print(f"WARNING: HLT branch {key} missing; treating it as false.")
+                WARNED_MISSING_HLT.add(key)
 
     for iev in range(nevt):
         if iev % 1000 == 0:
@@ -412,6 +431,8 @@ def read_chunk(chunk, cuts):
         trig = 0
         for bit, name in enumerate(HLT_PATHS):
             key = 'HLT_'+str(name)
+            if key not in present_fields:
+                continue
             v = chunk[key]
             if v is not None and bool(v[iev]):
                 trig |= (1 << bit)
@@ -531,10 +552,10 @@ def write_root(arrays, path, total_events):
         tree = f.mktree("h4lTree", branch_types)
         tree.extend(arrays)
 
-        f["Metadata"] = {
-            "nEvents": np.array([total_events], dtype=np.int64)
-        }
-    print(f"Written {len(next(iter(arrays.values())))} events ->{path}  [ROOT TTree: h4lTree]")
+        metadata = {"nEvents": np.array([total_events], dtype=np.int64)}
+        meta_tree = f.mktree("Metadata", {k: v.dtype for k, v in metadata.items()})
+        meta_tree.extend(metadata)
+    print(f"Written {len(next(iter(arrays.values())))} events ->{path}  [ROOT TTrees: h4lTree, Metadata]")
 
 
 def write_parquet(arrays, path, total_events):
@@ -563,6 +584,161 @@ def write_parquet(arrays, path, total_events):
     print(f"Written {len(table)} events -> {path} [Parquet, snappy]")
 
 # ---------------------------------------------------------------------------
+# Input processing
+# ---------------------------------------------------------------------------
+
+def make_uproot_executors(workers):
+    if workers <= 1:
+        return None, None
+
+    from uproot.source.futures import ThreadPoolExecutor
+    return ThreadPoolExecutor(workers), ThreadPoolExecutor(workers)
+
+
+def shutdown_executor(executor):
+    if executor is not None:
+        executor.shutdown()
+
+
+def is_remote_read_error(exc):
+    seen = set()
+    current = exc
+    while current is not None and id(current) not in seen:
+        seen.add(id(current))
+        name = type(current).__name__
+        text = str(current)
+        if "ClientResponseError" in name or "ClientResponseError" in text:
+            return True
+        if "HTTP" in name and "Error" in name:
+            return True
+        current = current.__cause__ or current.__context__
+    return False
+
+
+def process_input_file_once(index, fname, args, cuts, max_events):
+    print("Reading "+fname+" ...")
+
+    rows_out = []
+    n_in = 0
+    decompression_executor, interpretation_executor = make_uproot_executors(args.workers)
+
+    try:
+        with uproot.open(fname) as f:
+            if args.tree not in f:
+                print("  WARNING: tree "+args.tree+" not found in "+fname+" skipping")
+                return index, n_in, rows_out
+
+            tree = f[args.tree]
+            branches = branches_to_read(tree.keys())
+
+            for chunk in tree.iterate(
+                branches,
+                step_size=args.chunk,
+                decompression_executor=decompression_executor,
+                interpretation_executor=interpretation_executor,
+            ):
+                rows = read_chunk(chunk, cuts)
+                rows_out.extend(rows)
+                n_in += len(chunk['run'])
+
+                if max_events > 0 and n_in >= max_events:
+                    print("  Reached --max-events "+str(max_events)+", stopping.")
+                    break
+    finally:
+        shutdown_executor(decompression_executor)
+        shutdown_executor(interpretation_executor)
+
+    return index, n_in, rows_out
+
+
+def process_input_file(index, fname, args, cuts, max_events=-1):
+    for attempt in range(1, REMOTE_READ_RETRIES + 1):
+        try:
+            return process_input_file_once(index, fname, args, cuts, max_events)
+        except Exception as exc:
+            if not is_remote_read_error(exc):
+                raise
+
+            if attempt == REMOTE_READ_RETRIES:
+                print(
+                    "WARNING: skipping "
+                    + fname
+                    + " after "
+                    + str(REMOTE_READ_RETRIES)
+                    + " remote read attempts. Last error: "
+                    + type(exc).__name__
+                    + ": "
+                    + str(exc)
+                    + ". Lower --file-workers/--workers if the HTTP endpoint is throttling."
+                )
+                return index, 0, []
+
+            wait_seconds = 2 * attempt
+            print(
+                "WARNING: remote read failed for "
+                + fname
+                + " on attempt "
+                + str(attempt)
+                + "/"
+                + str(REMOTE_READ_RETRIES)
+                + ". Last error: "
+                + type(exc).__name__
+                + ": "
+                + str(exc)
+                + ". Retrying in "
+                + str(wait_seconds)
+                + "s."
+            )
+            time.sleep(wait_seconds)
+
+
+def process_inputs_sequential(args, cuts):
+    all_rows = []
+    n_in = 0
+
+    for index, fname in enumerate(args.input):
+        max_events = -1
+        if args.max_events > 0:
+            if n_in >= args.max_events:
+                break
+            max_events = args.max_events - n_in
+
+        _, file_n_in, file_rows = process_input_file(index, fname, args, cuts, max_events)
+        all_rows.extend(file_rows)
+        n_in += file_n_in
+
+        if args.max_events > 0 and n_in >= args.max_events:
+            break
+
+    return all_rows, n_in
+
+
+def process_inputs_parallel(args, cuts, file_workers):
+    results = {}
+    with concurrent.futures.ThreadPoolExecutor(max_workers=file_workers) as executor:
+        futures = [
+            executor.submit(process_input_file, index, fname, args, cuts, -1)
+            for index, fname in enumerate(args.input)
+        ]
+        try:
+            for future in concurrent.futures.as_completed(futures):
+                index, file_n_in, file_rows = future.result()
+                results[index] = (file_n_in, file_rows)
+        except Exception:
+            for future in futures:
+                future.cancel()
+            raise
+
+    all_rows = []
+    n_in = 0
+    for index in range(len(args.input)):
+        file_n_in, file_rows = results[index]
+        all_rows.extend(file_rows)
+        n_in += file_n_in
+
+    return all_rows, n_in
+
+# ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
 
@@ -577,6 +753,10 @@ def parse_args():
                    help='TTree name inside the NanoAOD file (default: Events)')
     p.add_argument('--chunk',  type=int, default=50000,
                    help='Events per read chunk (default: 50000)')
+    p.add_argument('--file-workers', type=int, default=1,
+                   help='Number of input files to process concurrently (default: 1)')
+    p.add_argument('--workers', type=int, default=1,
+                   help='Number of uproot worker threads for reading/decompression (default: 1)')
     p.add_argument('--max-events', type=int, default=-1,
                    help='Stop after this many input events (-1 = all)')
     # Selection overrides
@@ -601,29 +781,20 @@ def main():
     if suffix not in ('.root', '.parquet'):
         sys.exit("ERROR: output file must end in .root or .parquet, got "+suffix)
 
-    all_rows = []
-    n_in = 0
-    for fname in args.input:
-        print("Reading "+fname+" ...")
+    if args.workers < 1:
+        sys.exit("ERROR: --workers must be >= 1")
+    if args.file_workers < 1:
+        sys.exit("ERROR: --file-workers must be >= 1")
 
-        with uproot.open(fname) as f:
-            if args.tree not in f:
-                print("  WARNING: tree "+args.tree+" not found in "+fname+" skipping")
-                continue
-            tree = f[args.tree]
-            branches = branches_to_read(tree.keys())
-            
-            for chunk in tree.iterate(branches, step_size=args.chunk):
-                rows = read_chunk(chunk, cuts)
-                all_rows.extend(rows)
-                n_in += len(chunk['run'])
+    file_workers = min(args.file_workers, len(args.input))
+    if args.max_events > 0 and file_workers > 1:
+        print("WARNING: --max-events with --file-workers > 1 uses sequential input processing to preserve --max-events behavior.")
+        file_workers = 1
 
-                if args.max_events > 0 and n_in >= args.max_events:
-                    print("  Reached --max-events "+str(args.max_events)+", stopping.")
-                    break
-
-        if args.max_events > 0 and n_in >= args.max_events:
-            break
+    if file_workers == 1:
+        all_rows, n_in = process_inputs_sequential(args, cuts)
+    else:
+        all_rows, n_in = process_inputs_parallel(args, cuts, file_workers)
 
     print("\nProcessed "+str(n_in)+" input events "+str(len(all_rows))+" passing the H selection")
 
