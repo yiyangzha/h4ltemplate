@@ -1,3 +1,5 @@
+/goal Complete the following task:
+
 # Analysis Title: H=>4L Mass measurment with CMS Open Data 
 
 You are performing a Higgs boson measurement in the 4 lepton (electron or muon) decay channel using CMS Open Data from 2017 at √s = 13 TeV. The final state is 4 electrons or muons that are loosely isolated, and ideally come from a Higgs boson decay. Your goal is to produce distributions of key observables — particularly the 4 lepton mass — showing the Higgs signal contribution on top of Standard Model backgrounds, with this mass distribution we then ask that you perform a fit of the mass and compute the mu value. This loosely follows the official CMS publication (JHEP 11 (2017) 047). To optimize the higgs signal selection, do some categorization, in particular add a VBF category, be sure to fit all categories simulataneously when you extract the mass. To improve the discrimination can you further train a neural network on the 4 lepton angular parameters in the 4 lepton rest frame, so that we can extract signal from teh background. Lastly, for the fake background just use drell-yan+jets Monte Carlo, don't bother with a full fake rate esimtate. 
