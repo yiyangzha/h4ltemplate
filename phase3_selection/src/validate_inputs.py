@@ -8,6 +8,7 @@ from selection_common import (
     VARIABLE_LABELS,
     append_experiment,
     append_session,
+    hist_counts,
     now,
     read_json,
     safe_divide,
@@ -35,9 +36,8 @@ VARIABLE_BINS = {
 
 
 def hist_pair(values: np.ndarray, is_data: np.ndarray, weights: np.ndarray, edges: np.ndarray) -> dict:
-    data_counts, _ = np.histogram(values[is_data], bins=edges)
-    mc_counts, _ = np.histogram(values[~is_data], bins=edges, weights=weights[~is_data])
-    mc_sumw2, _ = np.histogram(values[~is_data], bins=edges, weights=np.square(weights[~is_data]))
+    data_counts, _ = hist_counts(values[is_data], np.ones(np.sum(is_data), dtype=float), edges)
+    mc_counts, mc_sumw2 = hist_counts(values[~is_data], weights[~is_data], edges)
     finite = np.isfinite(data_counts) & np.isfinite(mc_counts)
     data_total = float(np.sum(data_counts))
     mc_total = float(np.sum(mc_counts))

@@ -6,6 +6,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+import boost_histogram as bh
 import numpy as np
 from rich.logging import RichHandler
 
@@ -291,8 +292,13 @@ def poisson_sumw2(weights: np.ndarray) -> float:
 
 
 def hist_counts(values: np.ndarray, weights: np.ndarray, edges: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
-    counts, _ = np.histogram(values, bins=edges, weights=weights)
-    sumw2, _ = np.histogram(values, bins=edges, weights=np.square(weights))
+    finite = np.isfinite(values) & np.isfinite(weights)
+    axis = bh.axis.Variable(edges)
+    hist = bh.Histogram(axis, storage=bh.storage.Weight())
+    hist.fill(values[finite], weight=weights[finite])
+    view = hist.view()
+    counts = np.asarray(view.value, dtype=float)
+    sumw2 = np.asarray(view.variance, dtype=float)
     return counts.astype(float), sumw2.astype(float)
 
 
@@ -305,4 +311,3 @@ def safe_divide(num: np.ndarray, den: np.ndarray) -> np.ndarray:
 def channel_order_key(label: str) -> int:
     order = {"4mu": 0, "4e": 1, "2e2mu": 2}
     return order.get(label, 99)
-

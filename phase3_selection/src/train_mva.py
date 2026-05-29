@@ -59,9 +59,8 @@ def score_shape_gate(score: np.ndarray, meta: dict[str, np.ndarray]) -> dict[str
     is_data = meta["is_data"].astype(bool)
     weights = meta["weight"].astype(float)
     edges = np.linspace(0, 1, 7)
-    data_counts, _ = np.histogram(score[is_data], bins=edges)
-    mc_counts, _ = np.histogram(score[~is_data], bins=edges, weights=weights[~is_data])
-    mc_sumw2, _ = np.histogram(score[~is_data], bins=edges, weights=np.square(weights[~is_data]))
+    data_counts, _ = hist_counts(score[is_data], np.ones(np.sum(is_data), dtype=float), edges)
+    mc_counts, mc_sumw2 = hist_counts(score[~is_data], weights[~is_data], edges)
     scale = np.sum(data_counts) / np.sum(mc_counts) if np.sum(mc_counts) > 0 else np.nan
     mc_shape = mc_counts * scale if np.isfinite(scale) else mc_counts
     variance = data_counts + mc_sumw2 * scale * scale if np.isfinite(scale) else data_counts + mc_sumw2
@@ -162,10 +161,10 @@ def main() -> None:
         train_score = model_score(model, x_train)
         fpr, tpr, _ = roc_curve(y_test, test_score, sample_weight=w_test)
         score_bins = np.linspace(0, 1, 11)
-        train_sig, _ = np.histogram(train_score[y_train == 1], bins=score_bins)
-        train_bkg, _ = np.histogram(train_score[y_train == 0], bins=score_bins)
-        test_sig, _ = np.histogram(test_score[y_test == 1], bins=score_bins)
-        test_bkg, _ = np.histogram(test_score[y_test == 0], bins=score_bins)
+        train_sig, _ = hist_counts(train_score[y_train == 1], np.ones(np.sum(y_train == 1), dtype=float), score_bins)
+        train_bkg, _ = hist_counts(train_score[y_train == 0], np.ones(np.sum(y_train == 0), dtype=float), score_bins)
+        test_sig, _ = hist_counts(test_score[y_test == 1], np.ones(np.sum(y_test == 1), dtype=float), score_bins)
+        test_bkg, _ = hist_counts(test_score[y_test == 0], np.ones(np.sum(y_test == 0), dtype=float), score_bins)
         score_all = model_score(model, x)
         scores_all[name] = score_all
         overtraining_gap = float(abs(np.mean(train_score[y_train == 1]) - np.mean(test_score[y_test == 1])))

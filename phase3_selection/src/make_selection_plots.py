@@ -11,6 +11,7 @@ from selection_common import (
     VARIABLE_LABELS,
     append_experiment,
     append_session,
+    hist_counts,
     read_json,
     setup_logging,
 )
@@ -126,8 +127,8 @@ def plot_approach_and_mva() -> int:
         edges = np.linspace(0, 1, 11)
         is_data = events["is_data"].astype(bool)
         weights = events["weight"].astype(float)
-        data, _ = np.histogram(best[is_data], bins=edges)
-        mc, _ = np.histogram(best[~is_data], bins=edges, weights=weights[~is_data])
+        data, _ = hist_counts(best[is_data], np.ones(np.sum(is_data), dtype=float), edges)
+        mc, _ = hist_counts(best[~is_data], weights[~is_data], edges)
         fig = data_mc_comparison(edges, data, {"MC prediction": mc}, "Classifier score", "Events", r"$13$ TeV, broad window")
         caption = (
             "Best S2 classifier score data/MC comparison in the broad validation window. "
