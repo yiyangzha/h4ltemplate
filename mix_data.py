@@ -194,25 +194,23 @@ def resolve_sample(path: Path) -> Mapping[str, object] | None:
     )[0]
 
 
-def root_module():
-    try:
-        import ROOT
-    except ImportError as exc:
-        raise RuntimeError("PyROOT is required to read Metadata/nEvents from the input ROOT files.") from exc
+def read_metadata_n_events(root_file: uproot.ReadOnlyDirectory, path: Path) -> int:
+    if METADATA_NAME not in root_file:
+        raise KeyError(f"{path} is missing the '{METADATA_NAME}' tree")
 
-    ROOT.gROOT.SetBatch(True)
-    return ROOT
-
-
-def read_metadata_n_events(metadata_tree: object, path: Path) -> int:
-    if metadata_tree.GetEntries() < 1:
-        raise ValueError(f"{path} has no entry 0 in '{METADATA_NAME}'")
-
-    if not metadata_tree.GetBranch(METADATA_N_EVENTS):
+    metadata = root_file[METADATA_NAME]
+    if METADATA_N_EVENTS not in metadata.keys():
         raise KeyError(f"{path} is missing '{METADATA_NAME}/{METADATA_N_EVENTS}'")
 
-    metadata_tree.GetEntry(0)
-    value = int(getattr(metadata_tree, METADATA_N_EVENTS))
+    n_events = metadata[METADATA_N_EVENTS].array(
+        library="np",
+        entry_start=0,
+        entry_stop=1,
+    )
+    if len(n_events) != 1:
+        raise ValueError(f"{path} has no entry 0 in '{METADATA_NAME}/{METADATA_N_EVENTS}'")
+
+    value = int(n_events[0])
     if value <= 0:
         raise ValueError(f"{path} has non-positive generated event count: {value}")
     return value
@@ -223,25 +221,14 @@ def read_file_info(path: Path, tree_name: str) -> FileInfo:
     if spec is None:
         raise ValueError(f"Unknown MC sample; no cross section configured for {path}")
 
-    ROOT = root_module()
-    root_file = ROOT.TFile.Open(path.as_posix(), "READ")
-    if not root_file or root_file.IsZombie():
-        raise OSError(f"Cannot open ROOT file: {path}")
-
-    try:
-        tree = root_file.Get(tree_name)
-        if not tree:
+    with uproot.open(path, object_cache=None, array_cache=None) as root_file:
+        if tree_name not in root_file:
             raise KeyError(f"{path} does not contain tree '{tree_name}'")
 
-        metadata = root_file.Get(METADATA_NAME)
-        if not metadata:
-            raise KeyError(f"{path} is missing the '{METADATA_NAME}' tree")
-
-        branches = [branch.GetName() for branch in tree.GetListOfBranches()]
-        selected_entries = int(tree.GetEntries())
-        generated_events = read_metadata_n_events(metadata, path)
-    finally:
-        root_file.Close()
+        tree = root_file[tree_name]
+        branches = [k.decode() if isinstance(k, bytes) else str(k) for k in tree.keys()]
+        selected_entries = int(tree.num_entries)
+        generated_events = read_metadata_n_events(root_file, path)
 
     return FileInfo(
         path=path,
