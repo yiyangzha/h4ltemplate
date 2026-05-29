@@ -64,6 +64,26 @@ LEPTON_BRANCHES = [
 ]
 EVENT_BRANCHES = ["m4l", "mZ1", "mZ2", "pt4l", "eta4l", "phi4l", "y4l", "finalState", "trigBits", "nPV", "pvNdof"]
 BRANCHES = EVENT_BRANCHES + LEPTON_BRANCHES
+CUT_MOTIVATION_CUTS = [
+    {
+        "key": "trigger_bitmask_nonzero",
+        "label": "Trigger bitmask",
+        "denominator_step": "finite_core",
+        "definition": "Events with trigBits != 0 divided by finite-core candidates.",
+    },
+    {
+        "key": "flavor_matched_lepton_id",
+        "label": "Flavor-matched lepton ID",
+        "denominator_step": "valid_final_state",
+        "definition": "Events passing flavor-matched electron/muon ID divided by valid final-state candidates.",
+    },
+    {
+        "key": "z_pair_sanity",
+        "label": "Z-pair sanity",
+        "denominator_step": "flavor_matched_lepton_id",
+        "definition": "Events passing retained Z-pair charge/flavor/mass sanity divided by flavor-ID-selected candidates.",
+    },
+]
 
 
 def metadata_generated(root_file: uproot.ReadOnlyDirectory) -> float | None:
@@ -213,6 +233,68 @@ def summarize_sidebands(name: str, arrays: dict[str, np.ndarray], selected_base:
     }
 
 
+def cut_motivation_diagnostics(created: str, cutflow: dict[str, Any]) -> dict[str, Any]:
+    accumulators: dict[str, dict[str, dict[str, dict[str, float | int]]]] = {}
+
+    def ensure(process: str, channel: str, cut_key: str) -> dict[str, float | int]:
+        return accumulators.setdefault(process, {}).setdefault(channel, {}).setdefault(
+            cut_key,
+            {
+                "numerator_raw_entries": 0,
+                "denominator_raw_entries": 0,
+                "numerator_weighted_yield": 0.0,
+                "denominator_weighted_yield": 0.0,
+            },
+        )
+
+    def add(process: str, channel: str, cut_key: str, numerator: dict[str, Any], denominator: dict[str, Any]) -> None:
+        slot = ensure(process, channel, cut_key)
+        slot["numerator_raw_entries"] += int(numerator["raw_entries"])
+        slot["denominator_raw_entries"] += int(denominator["raw_entries"])
+        slot["numerator_weighted_yield"] += float(numerator["weighted_yield"])
+        slot["denominator_weighted_yield"] += float(denominator["weighted_yield"])
+
+    for sample, payload in cutflow["samples"].items():
+        process = "Open data" if sample == "cms_10fb_13TeV.root" else sample_stack(sample)
+        aggregate_processes = [process] if process == "Open data" else [process, "Open simulation total"]
+        for channel in FINAL_STATE_LABELS:
+            rows = {item["step"]: item for item in payload["by_channel"][channel]}
+            for cut in CUT_MOTIVATION_CUTS:
+                numerator = rows[cut["key"]]
+                denominator = rows[cut["denominator_step"]]
+                for aggregate_process in aggregate_processes:
+                    add(aggregate_process, channel, cut["key"], numerator, denominator)
+
+    def finalize(record: dict[str, float | int]) -> dict[str, Any]:
+        denominator = float(record["denominator_weighted_yield"])
+        efficiency = None if denominator <= 0.0 else float(record["numerator_weighted_yield"]) / denominator
+        return {
+            **record,
+            "efficiency": efficiency,
+            "undefined_reason": None if efficiency is not None else "zero denominator",
+        }
+
+    by_process = {
+        process: {
+            channel: {cut_key: finalize(record) for cut_key, record in cuts.items()}
+            for channel, cuts in channels.items()
+        }
+        for process, channels in sorted(accumulators.items())
+    }
+    return {
+        "created_utc": created,
+        "cuts": CUT_MOTIVATION_CUTS,
+        "channels": list(FINAL_STATE_LABELS),
+        "efficiency_definition": "step weighted yield divided by the predeclared denominator-step weighted yield; data weights are one",
+        "by_process": by_process,
+        "data_mc_summary": {
+            process: by_process[process]
+            for process in ("Open data", "Open simulation total")
+            if process in by_process
+        },
+    }
+
+
 def main() -> None:
     ensure_dirs()
     log = setup_logging()
@@ -297,6 +379,7 @@ def main() -> None:
         compact_meta.append({"sample": name, "group": sample_group(name), "stack": sample_stack(name), "weight": weight})
 
     sidebands["ttbar_decision"] = ttbar_decision(sidebands)
+    cut_motivation = cut_motivation_diagnostics(created, cutflow)
     category_schema = {
         "created_utc": created,
         "nominal_categories": list(FINAL_STATE_LABELS),
@@ -311,18 +394,19 @@ def main() -> None:
     write_json(OUT / "selection_provenance.json", provenance)
     write_json(OUT / "normalization.json", normalization)
     write_json(OUT / "cutflow.json", cutflow)
+    write_json(OUT / "cut_motivation_diagnostics.json", cut_motivation)
     write_json(OUT / "sideband_fake_diagnostics.json", sidebands)
     write_json(OUT / "category_schema_s1.json", category_schema)
     write_json(OUT / "fit_inputs_s1.json", fit_inputs_s1)
     append_session(
         f"{datetime.now(timezone.utc).isoformat(timespec='seconds')} selection table\n\n"
-        "- Wrote Phase 3 provenance, normalization, cutflow, sideband diagnostics, S1 category schema, "
-        "S1 fit inputs, and compact broad-window event arrays."
+        "- Wrote Phase 3 provenance, normalization, cutflow, cut-motivation diagnostics, sideband diagnostics, "
+        "S1 category schema, S1 fit inputs, and compact broad-window event arrays."
     )
     append_experiment(
         "## 2026-05-29 — Phase 3 baseline selection and provenance\n\n"
-        "- Built Phase 3 primary-path provenance, MC normalization, cutflow, sideband diagnostics, "
-        "S1 fit-ready histograms, and compact broad-window event arrays using primary prompt ROOT files only."
+        "- Built Phase 3 primary-path provenance, MC normalization, cutflow, cut-motivation diagnostics, "
+        "sideband diagnostics, S1 fit-ready histograms, and compact broad-window event arrays using primary prompt ROOT files only."
     )
 
 

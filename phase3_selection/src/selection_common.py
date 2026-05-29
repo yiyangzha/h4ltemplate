@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import logging
+import math
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -174,7 +175,7 @@ def read_json(path: Path) -> Any:
 
 def write_json(path: Path, payload: Any) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(to_jsonable(payload), indent=2, sort_keys=True) + "\n")
+    path.write_text(json.dumps(to_jsonable(payload), indent=2, sort_keys=True, allow_nan=False) + "\n")
 
 
 def to_jsonable(value: Any) -> Any:
@@ -183,9 +184,11 @@ def to_jsonable(value: Any) -> Any:
     if isinstance(value, (list, tuple)):
         return [to_jsonable(v) for v in value]
     if isinstance(value, np.ndarray):
-        return value.tolist()
+        return to_jsonable(value.tolist())
     if isinstance(value, np.generic):
-        return value.item()
+        return to_jsonable(value.item())
+    if isinstance(value, float):
+        return value if math.isfinite(value) else None
     if isinstance(value, Path):
         return str(value)
     return value
@@ -247,6 +250,14 @@ def sample_stack(name: str) -> str:
     if name == "cms_10fb_13TeV.root":
         return "Data"
     return SAMPLE_INFO[name]["stack"]
+
+
+def sample_display_name(name: str) -> str:
+    if name == "cms_10fb_13TeV.root":
+        return "Open data"
+    if name in SAMPLE_INFO:
+        return SAMPLE_INFO[name]["stack"]
+    return Path(name).stem.replace("_", " ")
 
 
 def sample_weight(name: str, generated_events: float | None) -> float:

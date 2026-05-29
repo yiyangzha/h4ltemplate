@@ -1,0 +1,753 @@
+{
+  "by_process": {
+    "DY+jets fake proxy": {
+      "2e2mu": {
+        "flavor_matched_lepton_id": {
+          "denominator_raw_entries": 210,
+          "denominator_weighted_yield": 137.43846055145892,
+          "efficiency": 0.12857142857142856,
+          "numerator_raw_entries": 27,
+          "numerator_weighted_yield": 17.670659213759002,
+          "undefined_reason": null
+        },
+        "trigger_bitmask_nonzero": {
+          "denominator_raw_entries": 235,
+          "denominator_weighted_yield": 153.8001820456802,
+          "efficiency": 0.8936170212765958,
+          "numerator_raw_entries": 210,
+          "numerator_weighted_yield": 137.43846055145892,
+          "undefined_reason": null
+        },
+        "z_pair_sanity": {
+          "denominator_raw_entries": 27,
+          "denominator_weighted_yield": 17.670659213759002,
+          "efficiency": 1.0,
+          "numerator_raw_entries": 27,
+          "numerator_weighted_yield": 17.670659213759002,
+          "undefined_reason": null
+        }
+      },
+      "4e": {
+        "flavor_matched_lepton_id": {
+          "denominator_raw_entries": 189,
+          "denominator_weighted_yield": 123.69461449631302,
+          "efficiency": 0.08465608465608465,
+          "numerator_raw_entries": 16,
+          "numerator_weighted_yield": 10.471501756301631,
+          "undefined_reason": null
+        },
+        "trigger_bitmask_nonzero": {
+          "denominator_raw_entries": 217,
+          "denominator_weighted_yield": 142.01974256984087,
+          "efficiency": 0.8709677419354839,
+          "numerator_raw_entries": 189,
+          "numerator_weighted_yield": 123.69461449631302,
+          "undefined_reason": null
+        },
+        "z_pair_sanity": {
+          "denominator_raw_entries": 16,
+          "denominator_weighted_yield": 10.471501756301631,
+          "efficiency": 1.0,
+          "numerator_raw_entries": 16,
+          "numerator_weighted_yield": 10.471501756301631,
+          "undefined_reason": null
+        }
+      },
+      "4mu": {
+        "flavor_matched_lepton_id": {
+          "denominator_raw_entries": 11,
+          "denominator_weighted_yield": 7.199157457457371,
+          "efficiency": 0.5454545454545455,
+          "numerator_raw_entries": 6,
+          "numerator_weighted_yield": 3.9268131586131116,
+          "undefined_reason": null
+        },
+        "trigger_bitmask_nonzero": {
+          "denominator_raw_entries": 11,
+          "denominator_weighted_yield": 7.199157457457371,
+          "efficiency": 1.0,
+          "numerator_raw_entries": 11,
+          "numerator_weighted_yield": 7.199157457457371,
+          "undefined_reason": null
+        },
+        "z_pair_sanity": {
+          "denominator_raw_entries": 6,
+          "denominator_weighted_yield": 3.9268131586131116,
+          "efficiency": 1.0,
+          "numerator_raw_entries": 6,
+          "numerator_weighted_yield": 3.9268131586131116,
+          "undefined_reason": null
+        }
+      }
+    },
+    "Higgs signal": {
+      "2e2mu": {
+        "flavor_matched_lepton_id": {
+          "denominator_raw_entries": 167158,
+          "denominator_weighted_yield": 4.428588915243192,
+          "efficiency": 0.8138790112025103,
+          "numerator_raw_entries": 136659,
+          "numerator_weighted_yield": 3.6043355673605264,
+          "undefined_reason": null
+        },
+        "trigger_bitmask_nonzero": {
+          "denominator_raw_entries": 170588,
+          "denominator_weighted_yield": 4.487199542866339,
+          "efficiency": 0.9869382613669755,
+          "numerator_raw_entries": 167158,
+          "numerator_weighted_yield": 4.428588915243192,
+          "undefined_reason": null
+        },
+        "z_pair_sanity": {
+          "denominator_raw_entries": 136659,
+          "denominator_weighted_yield": 3.6043355673605264,
+          "efficiency": 1.0,
+          "numerator_raw_entries": 136659,
+          "numerator_weighted_yield": 3.6043355673605264,
+          "undefined_reason": null
+        }
+      },
+      "4e": {
+        "flavor_matched_lepton_id": {
+          "denominator_raw_entries": 73155,
+          "denominator_weighted_yield": 1.9130749780502996,
+          "efficiency": 0.6835782823213975,
+          "numerator_raw_entries": 50384,
+          "numerator_weighted_yield": 1.307736507447669,
+          "undefined_reason": null
+        },
+        "trigger_bitmask_nonzero": {
+          "denominator_raw_entries": 76200,
+          "denominator_weighted_yield": 2.0020897608775368,
+          "efficiency": 0.9555390649477069,
+          "numerator_raw_entries": 73155,
+          "numerator_weighted_yield": 1.9130749780502996,
+          "undefined_reason": null
+        },
+        "z_pair_sanity": {
+          "denominator_raw_entries": 50384,
+          "denominator_weighted_yield": 1.307736507447669,
+          "efficiency": 1.0,
+          "numerator_raw_entries": 50384,
+          "numerator_weighted_yield": 1.307736507447669,
+          "undefined_reason": null
+        }
+      },
+      "4mu": {
+        "flavor_matched_lepton_id": {
+          "denominator_raw_entries": 117150,
+          "denominator_weighted_yield": 3.197107205952152,
+          "efficiency": 0.9564750104887686,
+          "numerator_raw_entries": 112360,
+          "numerator_weighted_yield": 3.0579531483468023,
+          "undefined_reason": null
+        },
+        "trigger_bitmask_nonzero": {
+          "denominator_raw_entries": 117462,
+          "denominator_weighted_yield": 3.2050044921942216,
+          "efficiency": 0.9975359515840607,
+          "numerator_raw_entries": 117150,
+          "numerator_weighted_yield": 3.197107205952152,
+          "undefined_reason": null
+        },
+        "z_pair_sanity": {
+          "denominator_raw_entries": 112360,
+          "denominator_weighted_yield": 3.0579531483468023,
+          "efficiency": 1.0,
+          "numerator_raw_entries": 112360,
+          "numerator_weighted_yield": 3.0579531483468023,
+          "undefined_reason": null
+        }
+      }
+    },
+    "Open data": {
+      "2e2mu": {
+        "flavor_matched_lepton_id": {
+          "denominator_raw_entries": 400,
+          "denominator_weighted_yield": 400.0,
+          "efficiency": 0.57,
+          "numerator_raw_entries": 228,
+          "numerator_weighted_yield": 228.0,
+          "undefined_reason": null
+        },
+        "trigger_bitmask_nonzero": {
+          "denominator_raw_entries": 428,
+          "denominator_weighted_yield": 428.0,
+          "efficiency": 0.9345794392523364,
+          "numerator_raw_entries": 400,
+          "numerator_weighted_yield": 400.0,
+          "undefined_reason": null
+        },
+        "z_pair_sanity": {
+          "denominator_raw_entries": 228,
+          "denominator_weighted_yield": 228.0,
+          "efficiency": 1.0,
+          "numerator_raw_entries": 228,
+          "numerator_weighted_yield": 228.0,
+          "undefined_reason": null
+        }
+      },
+      "4e": {
+        "flavor_matched_lepton_id": {
+          "denominator_raw_entries": 236,
+          "denominator_weighted_yield": 236.0,
+          "efficiency": 0.3644067796610169,
+          "numerator_raw_entries": 86,
+          "numerator_weighted_yield": 86.0,
+          "undefined_reason": null
+        },
+        "trigger_bitmask_nonzero": {
+          "denominator_raw_entries": 264,
+          "denominator_weighted_yield": 264.0,
+          "efficiency": 0.8939393939393939,
+          "numerator_raw_entries": 236,
+          "numerator_weighted_yield": 236.0,
+          "undefined_reason": null
+        },
+        "z_pair_sanity": {
+          "denominator_raw_entries": 86,
+          "denominator_weighted_yield": 86.0,
+          "efficiency": 1.0,
+          "numerator_raw_entries": 86,
+          "numerator_weighted_yield": 86.0,
+          "undefined_reason": null
+        }
+      },
+      "4mu": {
+        "flavor_matched_lepton_id": {
+          "denominator_raw_entries": 162,
+          "denominator_weighted_yield": 162.0,
+          "efficiency": 0.9444444444444444,
+          "numerator_raw_entries": 153,
+          "numerator_weighted_yield": 153.0,
+          "undefined_reason": null
+        },
+        "trigger_bitmask_nonzero": {
+          "denominator_raw_entries": 162,
+          "denominator_weighted_yield": 162.0,
+          "efficiency": 1.0,
+          "numerator_raw_entries": 162,
+          "numerator_weighted_yield": 162.0,
+          "undefined_reason": null
+        },
+        "z_pair_sanity": {
+          "denominator_raw_entries": 153,
+          "denominator_weighted_yield": 153.0,
+          "efficiency": 1.0,
+          "numerator_raw_entries": 153,
+          "numerator_weighted_yield": 153.0,
+          "undefined_reason": null
+        }
+      }
+    },
+    "Open simulation total": {
+      "2e2mu": {
+        "flavor_matched_lepton_id": {
+          "denominator_raw_entries": 1262428,
+          "denominator_weighted_yield": 384.6396117279288,
+          "efficiency": 0.5670734545332504,
+          "numerator_raw_entries": 1064103,
+          "numerator_weighted_yield": 218.11891337288472,
+          "undefined_reason": null
+        },
+        "trigger_bitmask_nonzero": {
+          "denominator_raw_entries": 1302607,
+          "denominator_weighted_yield": 411.0306885343384,
+          "efficiency": 0.9357929285024545,
+          "numerator_raw_entries": 1262428,
+          "numerator_weighted_yield": 384.6396117279288,
+          "undefined_reason": null
+        },
+        "z_pair_sanity": {
+          "denominator_raw_entries": 1064103,
+          "denominator_weighted_yield": 218.11891337288472,
+          "efficiency": 1.0,
+          "numerator_raw_entries": 1064103,
+          "numerator_weighted_yield": 218.11891337288472,
+          "undefined_reason": null
+        }
+      },
+      "4e": {
+        "flavor_matched_lepton_id": {
+          "denominator_raw_entries": 842566,
+          "denominator_weighted_yield": 227.90424843065168,
+          "efficiency": 0.35417062916346176,
+          "numerator_raw_entries": 632959,
+          "numerator_weighted_yield": 80.7169910557098,
+          "undefined_reason": null
+        },
+        "trigger_bitmask_nonzero": {
+          "denominator_raw_entries": 871825,
+          "denominator_weighted_yield": 252.3402158343763,
+          "efficiency": 0.9031626119406857,
+          "numerator_raw_entries": 842566,
+          "numerator_weighted_yield": 227.90424843065168,
+          "undefined_reason": null
+        },
+        "z_pair_sanity": {
+          "denominator_raw_entries": 632959,
+          "denominator_weighted_yield": 80.7169910557098,
+          "efficiency": 1.0,
+          "numerator_raw_entries": 632959,
+          "numerator_weighted_yield": 80.7169910557098,
+          "undefined_reason": null
+        }
+      },
+      "4mu": {
+        "flavor_matched_lepton_id": {
+          "denominator_raw_entries": 1337808,
+          "denominator_weighted_yield": 177.7217438925089,
+          "efficiency": 0.9434012473742699,
+          "numerator_raw_entries": 1288991,
+          "numerator_weighted_yield": 167.66291487372342,
+          "undefined_reason": null
+        },
+        "trigger_bitmask_nonzero": {
+          "denominator_raw_entries": 1342806,
+          "denominator_weighted_yield": 178.6880251765004,
+          "efficiency": 0.9945923556822734,
+          "numerator_raw_entries": 1337808,
+          "numerator_weighted_yield": 177.7217438925089,
+          "undefined_reason": null
+        },
+        "z_pair_sanity": {
+          "denominator_raw_entries": 1288991,
+          "denominator_weighted_yield": 167.66291487372342,
+          "efficiency": 1.0,
+          "numerator_raw_entries": 1288991,
+          "numerator_weighted_yield": 167.66291487372342,
+          "undefined_reason": null
+        }
+      }
+    },
+    "TTBar diagnostic": {
+      "2e2mu": {
+        "flavor_matched_lepton_id": {
+          "denominator_raw_entries": 314,
+          "denominator_weighted_yield": 11.198725435916739,
+          "efficiency": 0.16242038216560511,
+          "numerator_raw_entries": 51,
+          "numerator_weighted_yield": 1.8189012650692793,
+          "undefined_reason": null
+        },
+        "trigger_bitmask_nonzero": {
+          "denominator_raw_entries": 343,
+          "denominator_weighted_yield": 12.233002625858095,
+          "efficiency": 0.9154518950437317,
+          "numerator_raw_entries": 314,
+          "numerator_weighted_yield": 11.198725435916739,
+          "undefined_reason": null
+        },
+        "z_pair_sanity": {
+          "denominator_raw_entries": 51,
+          "denominator_weighted_yield": 1.8189012650692793,
+          "efficiency": 1.0,
+          "numerator_raw_entries": 51,
+          "numerator_weighted_yield": 1.8189012650692793,
+          "undefined_reason": null
+        }
+      },
+      "4e": {
+        "flavor_matched_lepton_id": {
+          "denominator_raw_entries": 243,
+          "denominator_weighted_yield": 8.666529557094801,
+          "efficiency": 0.06584362139917696,
+          "numerator_raw_entries": 16,
+          "numerator_weighted_yield": 0.5706356910021269,
+          "undefined_reason": null
+        },
+        "trigger_bitmask_nonzero": {
+          "denominator_raw_entries": 270,
+          "denominator_weighted_yield": 9.62947728566089,
+          "efficiency": 0.9,
+          "numerator_raw_entries": 243,
+          "numerator_weighted_yield": 8.666529557094801,
+          "undefined_reason": null
+        },
+        "z_pair_sanity": {
+          "denominator_raw_entries": 16,
+          "denominator_weighted_yield": 0.5706356910021269,
+          "efficiency": 1.0,
+          "numerator_raw_entries": 16,
+          "numerator_weighted_yield": 0.5706356910021269,
+          "undefined_reason": null
+        }
+      },
+      "4mu": {
+        "flavor_matched_lepton_id": {
+          "denominator_raw_entries": 26,
+          "denominator_weighted_yield": 0.9272829978784561,
+          "efficiency": 0.9230769230769231,
+          "numerator_raw_entries": 24,
+          "numerator_weighted_yield": 0.8559535365031903,
+          "undefined_reason": null
+        },
+        "trigger_bitmask_nonzero": {
+          "denominator_raw_entries": 26,
+          "denominator_weighted_yield": 0.9272829978784561,
+          "efficiency": 1.0,
+          "numerator_raw_entries": 26,
+          "numerator_weighted_yield": 0.9272829978784561,
+          "undefined_reason": null
+        },
+        "z_pair_sanity": {
+          "denominator_raw_entries": 24,
+          "denominator_weighted_yield": 0.8559535365031903,
+          "efficiency": 1.0,
+          "numerator_raw_entries": 24,
+          "numerator_weighted_yield": 0.8559535365031903,
+          "undefined_reason": null
+        }
+      }
+    },
+    "ggZZ": {
+      "2e2mu": {
+        "flavor_matched_lepton_id": {
+          "denominator_raw_entries": 245798,
+          "denominator_weighted_yield": 15.687129470788191,
+          "efficiency": 0.871583011872549,
+          "numerator_raw_entries": 214220,
+          "numerator_weighted_yield": 13.672635551784198,
+          "undefined_reason": null
+        },
+        "trigger_bitmask_nonzero": {
+          "denominator_raw_entries": 247872,
+          "denominator_weighted_yield": 15.81950802790242,
+          "efficiency": 0.9916319422272336,
+          "numerator_raw_entries": 245798,
+          "numerator_weighted_yield": 15.687129470788191,
+          "undefined_reason": null
+        },
+        "z_pair_sanity": {
+          "denominator_raw_entries": 214220,
+          "denominator_weighted_yield": 13.672635551784198,
+          "efficiency": 1.0,
+          "numerator_raw_entries": 214220,
+          "numerator_weighted_yield": 13.672635551784198,
+          "undefined_reason": null
+        }
+      },
+      "4e": {
+        "flavor_matched_lepton_id": {
+          "denominator_raw_entries": 428260,
+          "denominator_weighted_yield": 6.9854963499074945,
+          "efficiency": 0.782657823156752,
+          "numerator_raw_entries": 335197,
+          "numerator_weighted_yield": 5.467253366888037,
+          "undefined_reason": null
+        },
+        "trigger_bitmask_nonzero": {
+          "denominator_raw_entries": 434955,
+          "denominator_weighted_yield": 7.094695600769869,
+          "efficiency": 0.9846083247249501,
+          "numerator_raw_entries": 428260,
+          "numerator_weighted_yield": 6.9854963499074945,
+          "undefined_reason": null
+        },
+        "z_pair_sanity": {
+          "denominator_raw_entries": 335197,
+          "denominator_weighted_yield": 5.467253366888037,
+          "efficiency": 1.0,
+          "numerator_raw_entries": 335197,
+          "numerator_weighted_yield": 5.467253366888037,
+          "undefined_reason": null
+        }
+      },
+      "4mu": {
+        "flavor_matched_lepton_id": {
+          "denominator_raw_entries": 603771,
+          "denominator_weighted_yield": 9.533800023636042,
+          "efficiency": 0.9679300555393248,
+          "numerator_raw_entries": 584408,
+          "numerator_weighted_yield": 9.22805158637885,
+          "undefined_reason": null
+        },
+        "trigger_bitmask_nonzero": {
+          "denominator_raw_entries": 604749,
+          "denominator_weighted_yield": 9.549242980390549,
+          "efficiency": 0.9983828082722139,
+          "numerator_raw_entries": 603771,
+          "numerator_weighted_yield": 9.533800023636042,
+          "undefined_reason": null
+        },
+        "z_pair_sanity": {
+          "denominator_raw_entries": 584408,
+          "denominator_weighted_yield": 9.22805158637885,
+          "efficiency": 1.0,
+          "numerator_raw_entries": 584408,
+          "numerator_weighted_yield": 9.22805158637885,
+          "undefined_reason": null
+        }
+      }
+    },
+    "qqZZ": {
+      "2e2mu": {
+        "flavor_matched_lepton_id": {
+          "denominator_raw_entries": 848948,
+          "denominator_weighted_yield": 215.88670735452175,
+          "efficiency": 0.840034960916334,
+          "numerator_raw_entries": 713146,
+          "numerator_weighted_yield": 181.35238177491172,
+          "undefined_reason": null
+        },
+        "trigger_bitmask_nonzero": {
+          "denominator_raw_entries": 883569,
+          "denominator_weighted_yield": 224.69079629203134,
+          "efficiency": 0.9608168688580065,
+          "numerator_raw_entries": 848948,
+          "numerator_weighted_yield": 215.88670735452175,
+          "undefined_reason": null
+        },
+        "z_pair_sanity": {
+          "denominator_raw_entries": 713146,
+          "denominator_weighted_yield": 181.35238177491172,
+          "efficiency": 1.0,
+          "numerator_raw_entries": 713146,
+          "numerator_weighted_yield": 181.35238177491172,
+          "undefined_reason": null
+        }
+      },
+      "4e": {
+        "flavor_matched_lepton_id": {
+          "denominator_raw_entries": 340719,
+          "denominator_weighted_yield": 86.64453304928605,
+          "efficiency": 0.7259530580918587,
+          "numerator_raw_entries": 247346,
+          "numerator_weighted_yield": 62.89986373407033,
+          "undefined_reason": null
+        },
+        "trigger_bitmask_nonzero": {
+          "denominator_raw_entries": 360183,
+          "denominator_weighted_yield": 91.59421061722709,
+          "efficiency": 0.9459608032583438,
+          "numerator_raw_entries": 340719,
+          "numerator_weighted_yield": 86.64453304928605,
+          "undefined_reason": null
+        },
+        "z_pair_sanity": {
+          "denominator_raw_entries": 247346,
+          "denominator_weighted_yield": 62.89986373407033,
+          "efficiency": 1.0,
+          "numerator_raw_entries": 247346,
+          "numerator_weighted_yield": 62.89986373407033,
+          "undefined_reason": null
+        }
+      },
+      "4mu": {
+        "flavor_matched_lepton_id": {
+          "denominator_raw_entries": 616850,
+          "denominator_weighted_yield": 156.86439620758486,
+          "efficiency": 0.96002755937424,
+          "numerator_raw_entries": 592193,
+          "numerator_weighted_yield": 150.59414344388148,
+          "undefined_reason": null
+        },
+        "trigger_bitmask_nonzero": {
+          "denominator_raw_entries": 620558,
+          "denominator_weighted_yield": 157.80733724857978,
+          "efficiency": 0.9940247325793883,
+          "numerator_raw_entries": 616850,
+          "numerator_weighted_yield": 156.86439620758486,
+          "undefined_reason": null
+        },
+        "z_pair_sanity": {
+          "denominator_raw_entries": 592193,
+          "denominator_weighted_yield": 150.59414344388148,
+          "efficiency": 1.0,
+          "numerator_raw_entries": 592193,
+          "numerator_weighted_yield": 150.59414344388148,
+          "undefined_reason": null
+        }
+      }
+    }
+  },
+  "channels": [
+    "4mu",
+    "4e",
+    "2e2mu"
+  ],
+  "created_utc": "2026-05-29T23:43:40+00:00",
+  "cuts": [
+    {
+      "definition": "Events with trigBits != 0 divided by finite-core candidates.",
+      "denominator_step": "finite_core",
+      "key": "trigger_bitmask_nonzero",
+      "label": "Trigger bitmask"
+    },
+    {
+      "definition": "Events passing flavor-matched electron/muon ID divided by valid final-state candidates.",
+      "denominator_step": "valid_final_state",
+      "key": "flavor_matched_lepton_id",
+      "label": "Flavor-matched lepton ID"
+    },
+    {
+      "definition": "Events passing retained Z-pair charge/flavor/mass sanity divided by flavor-ID-selected candidates.",
+      "denominator_step": "flavor_matched_lepton_id",
+      "key": "z_pair_sanity",
+      "label": "Z-pair sanity"
+    }
+  ],
+  "data_mc_summary": {
+    "Open data": {
+      "2e2mu": {
+        "flavor_matched_lepton_id": {
+          "denominator_raw_entries": 400,
+          "denominator_weighted_yield": 400.0,
+          "efficiency": 0.57,
+          "numerator_raw_entries": 228,
+          "numerator_weighted_yield": 228.0,
+          "undefined_reason": null
+        },
+        "trigger_bitmask_nonzero": {
+          "denominator_raw_entries": 428,
+          "denominator_weighted_yield": 428.0,
+          "efficiency": 0.9345794392523364,
+          "numerator_raw_entries": 400,
+          "numerator_weighted_yield": 400.0,
+          "undefined_reason": null
+        },
+        "z_pair_sanity": {
+          "denominator_raw_entries": 228,
+          "denominator_weighted_yield": 228.0,
+          "efficiency": 1.0,
+          "numerator_raw_entries": 228,
+          "numerator_weighted_yield": 228.0,
+          "undefined_reason": null
+        }
+      },
+      "4e": {
+        "flavor_matched_lepton_id": {
+          "denominator_raw_entries": 236,
+          "denominator_weighted_yield": 236.0,
+          "efficiency": 0.3644067796610169,
+          "numerator_raw_entries": 86,
+          "numerator_weighted_yield": 86.0,
+          "undefined_reason": null
+        },
+        "trigger_bitmask_nonzero": {
+          "denominator_raw_entries": 264,
+          "denominator_weighted_yield": 264.0,
+          "efficiency": 0.8939393939393939,
+          "numerator_raw_entries": 236,
+          "numerator_weighted_yield": 236.0,
+          "undefined_reason": null
+        },
+        "z_pair_sanity": {
+          "denominator_raw_entries": 86,
+          "denominator_weighted_yield": 86.0,
+          "efficiency": 1.0,
+          "numerator_raw_entries": 86,
+          "numerator_weighted_yield": 86.0,
+          "undefined_reason": null
+        }
+      },
+      "4mu": {
+        "flavor_matched_lepton_id": {
+          "denominator_raw_entries": 162,
+          "denominator_weighted_yield": 162.0,
+          "efficiency": 0.9444444444444444,
+          "numerator_raw_entries": 153,
+          "numerator_weighted_yield": 153.0,
+          "undefined_reason": null
+        },
+        "trigger_bitmask_nonzero": {
+          "denominator_raw_entries": 162,
+          "denominator_weighted_yield": 162.0,
+          "efficiency": 1.0,
+          "numerator_raw_entries": 162,
+          "numerator_weighted_yield": 162.0,
+          "undefined_reason": null
+        },
+        "z_pair_sanity": {
+          "denominator_raw_entries": 153,
+          "denominator_weighted_yield": 153.0,
+          "efficiency": 1.0,
+          "numerator_raw_entries": 153,
+          "numerator_weighted_yield": 153.0,
+          "undefined_reason": null
+        }
+      }
+    },
+    "Open simulation total": {
+      "2e2mu": {
+        "flavor_matched_lepton_id": {
+          "denominator_raw_entries": 1262428,
+          "denominator_weighted_yield": 384.6396117279288,
+          "efficiency": 0.5670734545332504,
+          "numerator_raw_entries": 1064103,
+          "numerator_weighted_yield": 218.11891337288472,
+          "undefined_reason": null
+        },
+        "trigger_bitmask_nonzero": {
+          "denominator_raw_entries": 1302607,
+          "denominator_weighted_yield": 411.0306885343384,
+          "efficiency": 0.9357929285024545,
+          "numerator_raw_entries": 1262428,
+          "numerator_weighted_yield": 384.6396117279288,
+          "undefined_reason": null
+        },
+        "z_pair_sanity": {
+          "denominator_raw_entries": 1064103,
+          "denominator_weighted_yield": 218.11891337288472,
+          "efficiency": 1.0,
+          "numerator_raw_entries": 1064103,
+          "numerator_weighted_yield": 218.11891337288472,
+          "undefined_reason": null
+        }
+      },
+      "4e": {
+        "flavor_matched_lepton_id": {
+          "denominator_raw_entries": 842566,
+          "denominator_weighted_yield": 227.90424843065168,
+          "efficiency": 0.35417062916346176,
+          "numerator_raw_entries": 632959,
+          "numerator_weighted_yield": 80.7169910557098,
+          "undefined_reason": null
+        },
+        "trigger_bitmask_nonzero": {
+          "denominator_raw_entries": 871825,
+          "denominator_weighted_yield": 252.3402158343763,
+          "efficiency": 0.9031626119406857,
+          "numerator_raw_entries": 842566,
+          "numerator_weighted_yield": 227.90424843065168,
+          "undefined_reason": null
+        },
+        "z_pair_sanity": {
+          "denominator_raw_entries": 632959,
+          "denominator_weighted_yield": 80.7169910557098,
+          "efficiency": 1.0,
+          "numerator_raw_entries": 632959,
+          "numerator_weighted_yield": 80.7169910557098,
+          "undefined_reason": null
+        }
+      },
+      "4mu": {
+        "flavor_matched_lepton_id": {
+          "denominator_raw_entries": 1337808,
+          "denominator_weighted_yield": 177.7217438925089,
+          "efficiency": 0.9434012473742699,
+          "numerator_raw_entries": 1288991,
+          "numerator_weighted_yield": 167.66291487372342,
+          "undefined_reason": null
+        },
+        "trigger_bitmask_nonzero": {
+          "denominator_raw_entries": 1342806,
+          "denominator_weighted_yield": 178.6880251765004,
+          "efficiency": 0.9945923556822734,
+          "numerator_raw_entries": 1337808,
+          "numerator_weighted_yield": 177.7217438925089,
+          "undefined_reason": null
+        },
+        "z_pair_sanity": {
+          "denominator_raw_entries": 1288991,
+          "denominator_weighted_yield": 167.66291487372342,
+          "efficiency": 1.0,
+          "numerator_raw_entries": 1288991,
+          "numerator_weighted_yield": 167.66291487372342,
+          "undefined_reason": null
+        }
+      }
+    }
+  },
+  "efficiency_definition": "step weighted yield divided by the predeclared denominator-step weighted yield; data weights are one"
+}

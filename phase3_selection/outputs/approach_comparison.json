@@ -2,9 +2,211 @@
   "approaches": {
     "S1_reference_like_cut_and_channel_fit": {
       "asimov_mu_uncertainty_proxy": 0.9730368272006741,
-      "category_viability": "passes final-state categories; see cutflow and fit_inputs_s1.json",
+      "category_viability": "conditional low-count handoff: 17/18 final-state fit bins have S+B < 5; Phase 4 must run low-count Poisson/toy validation and MC-stat stability before reporting results",
       "expected_background": 48.877384046719186,
       "expected_signal": 7.732441263427129,
+      "final_state_bin_viability": {
+        "by_category": {
+          "2e2mu": {
+            "background_expected_by_bin": [
+              4.421740086674509,
+              2.461534895966474,
+              3.739581924923831,
+              1.7696768542018753,
+              3.840525824775266,
+              6.841930590829952
+            ],
+            "bin_edges": [
+              105.0,
+              112.0,
+              118.0,
+              122.0,
+              126.0,
+              130.0,
+              140.0
+            ],
+            "bins_below_5_expected": 5,
+            "data_observed_by_bin": [
+              7.0,
+              2.0,
+              8.0,
+              8.0,
+              5.0,
+              7.0
+            ],
+            "passes_min_expected_5_gate": false,
+            "signal_expected_by_bin": [
+              0.05435112717600407,
+              0.15465105194967935,
+              0.5113239324590947,
+              2.205073500987944,
+              0.5436574265515575,
+              0.023311927245136945
+            ],
+            "total_bins": 6,
+            "total_expected_by_bin": [
+              4.476091213850514,
+              2.6161859479161533,
+              4.250905857382926,
+              3.974750355189819,
+              4.3841832513268235,
+              6.865242518075089
+            ]
+          },
+          "4e": {
+            "background_expected_by_bin": [
+              1.8634977083724455,
+              2.523234351028525,
+              2.4406804376521642,
+              0.4672770255963231,
+              0.4898977626168518,
+              2.596278459298196
+            ],
+            "bin_edges": [
+              105.0,
+              112.0,
+              118.0,
+              122.0,
+              126.0,
+              130.0,
+              140.0
+            ],
+            "bins_below_5_expected": 6,
+            "data_observed_by_bin": [
+              2.0,
+              2.0,
+              3.0,
+              1.0,
+              1.0,
+              2.0
+            ],
+            "passes_min_expected_5_gate": false,
+            "signal_expected_by_bin": [
+              0.020076800871117777,
+              0.07357668572601336,
+              0.2551550387838759,
+              0.705851337863275,
+              0.1976978442082485,
+              0.013666378749885225
+            ],
+            "total_bins": 6,
+            "total_expected_by_bin": [
+              1.8835745092435634,
+              2.5968110367545383,
+              2.69583547643604,
+              1.1731283634595981,
+              0.6875956068251003,
+              2.609944838048081
+            ]
+          },
+          "4mu": {
+            "background_expected_by_bin": [
+              2.518213715276623,
+              2.3654460238783277,
+              2.863044859367571,
+              1.5618555172023065,
+              2.1395501088156315,
+              3.97341790024565
+            ],
+            "bin_edges": [
+              105.0,
+              112.0,
+              118.0,
+              122.0,
+              126.0,
+              130.0,
+              140.0
+            ],
+            "bins_below_5_expected": 6,
+            "data_observed_by_bin": [
+              4.0,
+              2.0,
+              2.0,
+              7.0,
+              3.0,
+              3.0
+            ],
+            "passes_min_expected_5_gate": false,
+            "signal_expected_by_bin": [
+              0.04428925932752507,
+              0.10360210251229308,
+              0.23503096373681687,
+              2.2091602590072994,
+              0.3753575328560976,
+              0.006608093417156242
+            ],
+            "total_bins": 6,
+            "total_expected_by_bin": [
+              2.5625029746041483,
+              2.469048126390621,
+              3.098075823104388,
+              3.771015776209606,
+              2.514907641671729,
+              3.980025993662806
+            ]
+          }
+        },
+        "handoff_status": "conditional_low_count_final_state_binning",
+        "inclusive_diagnostic": {
+          "background_expected_by_bin": [
+            8.80345151032353,
+            7.35021527087355,
+            9.043307221944927,
+            3.7988093970019174,
+            6.46997369620911,
+            13.411626950370241
+          ],
+          "bin_edges": [
+            105.0,
+            112.0,
+            118.0,
+            122.0,
+            126.0,
+            130.0,
+            140.0
+          ],
+          "bins_below_5_expected": 0,
+          "data_observed_by_bin": [
+            13.0,
+            6.0,
+            13.0,
+            16.0,
+            9.0,
+            12.0
+          ],
+          "passes_min_expected_5_gate": true,
+          "signal_expected_by_bin": [
+            0.11871718737464497,
+            0.3318298401880035,
+            1.001509934979996,
+            5.120085097854847,
+            1.11671280361611,
+            0.043586399412178845
+          ],
+          "total_bins": 6,
+          "total_expected_by_bin": [
+            8.922168697698176,
+            7.682045111061553,
+            10.044817156924923,
+            8.918894494856765,
+            7.586686499825221,
+            13.45521334978242
+          ]
+        },
+        "phase4_required_validation": [
+          "low-count Poisson/toy validation",
+          "MC-stat stability with sumw2 or per-bin statistical modifiers",
+          "alternative rebinning or category merge if the low-count validation fails"
+        ],
+        "summary": {
+          "final_state_bins_below_5_expected": 17,
+          "final_state_fraction_below_5_expected": 0.9444444444444444,
+          "final_state_total_bins": 18,
+          "inclusive_bins_below_5_expected": 0,
+          "inclusive_total_bins": 6
+        },
+        "threshold_expected_events": 5.0
+      },
       "observed_data": 69.0
     },
     "S2_angular_kinematic_classifier_categories": {
@@ -17,7 +219,7 @@
     }
   },
   "common_metric": "Asimov counting precision proxy sqrt(S+B)/S in 105 < m4l < 140 GeV, plus D7/GoF/category gates",
-  "created_utc": "2026-05-29T22:06:52+00:00",
+  "created_utc": "2026-05-29T23:45:19+00:00",
   "selected_configuration": "S1_reference_like_final_state_categories",
-  "selection_reason": "S1 retained because S2 did not pass all input, score-shape, low-stat, overtraining, or >10% improvement gates."
+  "selection_reason": "S1 retained because S2 did not pass all input, score-shape, low-stat, overtraining, or >10% improvement gates; final-state binning is a conditional low-count Phase 4 handoff."
 }

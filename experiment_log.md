@@ -374,6 +374,10 @@
 
 - Updated `COMMITMENTS.md` for Phase 3-resolved proof artifacts and formal VBF downscope items.
 
+## 2026-05-29 — Phase 3 review iteration fixes
+
+- Resolved review findings A1/B1/B2/B3 by replacing raw sideband legend labels, making Phase 3 JSON strict with undefined MVA score-gate reasons, marking S1 final-state binning as a conditional low-count Phase 4 handoff with per-bin evidence, and adding cut-motivation diagnostics plus a registered figure.
+
 ## 2026-05-29 — Phase 3 MVA label presentation fix
 
 - Replaced code-style classifier labels in ROC figures, registry captions, and `SELECTION.md` with presentation names (`BDT`, `small NN`, `logistic`) while preserving machine-readable model keys in metadata.
@@ -513,3 +517,43 @@
 ## 2026-05-29 — Phase 3 selection artifact
 
 - Built `phase3_selection/outputs/SELECTION.md` from Phase 3 JSON/NPZ outputs.
+
+## 2026-05-29 — Phase 3 baseline selection and provenance
+
+- Built Phase 3 primary-path provenance, MC normalization, cutflow, cut-motivation diagnostics, sideband diagnostics, S1 fit-ready histograms, and compact broad-window event arrays using primary prompt ROOT files only.
+
+## 2026-05-29 — Phase 3 VBF recovery/downscope gate
+
+- Checked primary and local branch inventories plus ntuplizer provenance for jet/VBF content. Decision: formal VBF downscope; no lepton-only category will be labeled VBF.
+
+## 2026-05-29 — Phase 3 angular reconstruction closure
+
+- Recomputed broad-window four-lepton and Z-candidate masses from retained lepton four-vectors, computed detector-level angular candidates, and wrote physical-range closure outputs.
+
+## 2026-05-29 — Phase 3 input-variable modeling gate
+
+- Computed D7 data/MC shape gates for 14 candidate S2 variables; 2 passed before classifier training.
+
+## 2026-05-29 — Phase 3 S2 classifier attempt
+
+- Trained logistic, BDT, and small NN alternatives with fixed seed; best model `small_nn` promotion decision: False.
+
+## 2026-05-29 — Phase 3 approach comparison
+
+- Compared S1 and S2 on common expected precision and validation gates; selected `S1_reference_like_final_state_categories`.
+
+## 2026-05-29 — Phase 3 input-validation figures
+
+- Produced 14 D7 input-validation figures and updated `FIGURES.json`.
+
+## 2026-05-29 — Phase 3 selection figures
+
+- Produced 16 selection/sideband/MVA diagnostic figures and updated `FIGURES.json`.
+
+## 2026-05-29 — Phase 3 selection artifact
+
+- Built `phase3_selection/outputs/SELECTION.md` from Phase 3 JSON/NPZ outputs.
+
+## 2026-05-29 — Phase 3 commitment update
+
+- Updated `COMMITMENTS.md` for Phase 3-resolved proof artifacts and formal VBF downscope items.

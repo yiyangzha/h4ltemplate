@@ -7,10 +7,13 @@ Created from machine-readable Phase 3 outputs.
 
 Phase 3 implements the reviewed Phase 2 strategy using the primary prompt
 ROOT paths only. The nominal Phase 4 handoff is `S1_reference_like_final_state_categories` with final-state
-categories `4mu`, `4e`, and `2e2mu`; no VBF category is used because the
-recovery gate found no real jet/VBF information in the allowed flat ntuples.
-The S2 angular/kinematic classifier was attempted and rejected by the input,
-score-shape, low-stat, and expected-precision gates.
+categories `4mu`, `4e`, and `2e2mu`, but this binning is conditional:
+17/18
+final-state fit bins have `S+B < 5` and require Phase 4 low-count Poisson/toy
+validation plus MC-stat stability checks before a result is reported. No VBF
+category is used because the recovery gate found no real jet/VBF information in
+the allowed flat ntuples. The S2 angular/kinematic classifier was attempted and
+rejected by the input, score-shape, low-stat, and expected-precision gates.
 
 ## Data Source Freeze And Provenance
 
@@ -68,9 +71,54 @@ retained branches:
 | broad_validation_window_70_170 | 203 | 1058285 | 210 | True |
 | fit_window_105_140 | 69 | 405145 | 56.6 | True |
 
+## Cut Motivation Diagnostics
+
+Trigger, flavor-matched lepton-ID, and Z-pair sanity efficiencies are recorded
+as step-to-previous-step ratios by final state. Data uses raw event counts, and
+MC uses prompt-normalized weighted yields. The dedicated machine-readable source
+is `cut_motivation_diagnostics.json`.
+
+| Cut | Final state | Data eff. | MC eff. | Data pass | Data denom. | MC pass | MC denom. |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Trigger bitmask | 4mu | 1 | 0.9946 | 162 | 162 | 178 | 179 |
+| Trigger bitmask | 4e | 0.8939 | 0.9032 | 236 | 264 | 228 | 252 |
+| Trigger bitmask | 2e2mu | 0.9346 | 0.9358 | 400 | 428 | 385 | 411 |
+| Flavor-matched lepton ID | 4mu | 0.9444 | 0.9434 | 153 | 162 | 168 | 178 |
+| Flavor-matched lepton ID | 4e | 0.3644 | 0.3542 | 86 | 236 | 80.7 | 228 |
+| Flavor-matched lepton ID | 2e2mu | 0.57 | 0.5671 | 228 | 400 | 218 | 385 |
+| Z-pair sanity | 4mu | 1 | 1 | 153 | 153 | 168 | 168 |
+| Z-pair sanity | 4e | 1 | 1 | 86 | 86 | 80.7 | 80.7 |
+| Z-pair sanity | 2e2mu | 1 | 1 | 228 | 228 | 218 | 218 |
+
 ## Categories And VBF Recovery/Downscope
 
-The nominal categories are the final states `4mu`, `4e`, and `2e2mu`.
+The nominal categories are the final states `4mu`, `4e`, and `2e2mu`, retained
+because the S2 classifier split fails and no real VBF category is available.
+This is not an unconditional category/bin viability pass: the selected
+final-state binning is a conditional Phase 4 handoff. The per-bin expected
+`S+B` evidence is:
+
+| Category | m4l bin [GeV] | Signal | Background | S+B | S+B < 5 |
+| --- | --- | --- | --- | --- | --- |
+| 4mu | 105-112 | 0.0443 | 2.52 | 2.56 | yes |
+| 4mu | 112-118 | 0.104 | 2.37 | 2.47 | yes |
+| 4mu | 118-122 | 0.235 | 2.86 | 3.1 | yes |
+| 4mu | 122-126 | 2.21 | 1.56 | 3.77 | yes |
+| 4mu | 126-130 | 0.375 | 2.14 | 2.51 | yes |
+| 4mu | 130-140 | 0.00661 | 3.97 | 3.98 | yes |
+| 4e | 105-112 | 0.0201 | 1.86 | 1.88 | yes |
+| 4e | 112-118 | 0.0736 | 2.52 | 2.6 | yes |
+| 4e | 118-122 | 0.255 | 2.44 | 2.7 | yes |
+| 4e | 122-126 | 0.706 | 0.467 | 1.17 | yes |
+| 4e | 126-130 | 0.198 | 0.49 | 0.688 | yes |
+| 4e | 130-140 | 0.0137 | 2.6 | 2.61 | yes |
+| 2e2mu | 105-112 | 0.0544 | 4.42 | 4.48 | yes |
+| 2e2mu | 112-118 | 0.155 | 2.46 | 2.62 | yes |
+| 2e2mu | 118-122 | 0.511 | 3.74 | 4.25 | yes |
+| 2e2mu | 122-126 | 2.21 | 1.77 | 3.97 | yes |
+| 2e2mu | 126-130 | 0.544 | 3.84 | 4.38 | yes |
+| 2e2mu | 130-140 | 0.0233 | 6.84 | 6.87 | no |
+
 The VBF recovery gate checked primary and local branch inventories, the current
 allow-list, event-key join feasibility, and `h4l_ntuplize.py` provenance.
 It found 24 checked flat ntuples,
@@ -131,7 +179,7 @@ Variables explicitly not promoted: `m4l` is excluded to avoid mass sculpting;
 
 | Approach | Metric/result |
 | --- | --- |
-| S1 reference-like final-state fit | mu uncertainty proxy = 0.973 |
+| S1 reference-like final-state fit | mu uncertainty proxy = 0.973; conditional low-count handoff |
 | S2 classifier categories | best model = small NN, relative improvement = -0.236 |
 | Nominal selection | S1_reference_like_final_state_categories |
 
@@ -153,24 +201,27 @@ trained classifier variant satisfies all S2 promotion gates.
 ## Fake And Sideband Diagnostics
 
 DY+jets remains the nominal reducible fake proxy. The signal region is excluded
-from sideband constraints. TTBar is not promoted to a nominal component because
-the TTBar/DY ratios are below the Phase 2 thresholds:
+from sideband constraints. The TTBar diagnostic is not promoted to a nominal
+component because the TTBar diagnostic / DY+jets fake-proxy ratios are below
+the Phase 2 thresholds:
 {'high_sideband_140_170': 0.16348247967166454, 'low_sideband_70_105': 0.09536477980847097, 'signal_window_105_140': 0.04440264879971137}.
 
 | Sample | 70 <= m4l < 105 | 105 < m4l < 140 | 140 < m4l <= 170 |
 | --- | --- | --- | --- |
-| DYJetsToLL.root | 2.62 | 17.7 | 4.58 |
-| TTBar.root | 0.25 | 0.785 | 0.749 |
-| cms_10fb_13TeV.root | 115 | 69 | 19 |
-| ZZTo4L.root | 123 | 29.5 | 20.3 |
+| DY+jets fake proxy | 2.62 | 17.7 | 4.58 |
+| TTBar diagnostic | 0.25 | 0.785 | 0.749 |
+| Open data | 115 | 69 | 19 |
+| qqZZ | 123 | 29.5 | 20.3 |
 
 ## Fit-Ready Handoff
 
 The fit-ready handoff for Phase 4 is `fit_inputs_s1.json`. It contains
 prompt-normalized `m4l` templates in `105 < m4l < 140 GeV`, bin edges
 `[105, 112, 118, 122, 126, 130, 140]`, sumw2 arrays for MC-stat terms, and
-final-state categories plus an inclusive diagnostic category. Phase 4 should
-use the `4mu`, `4e`, and `2e2mu` categories for the simultaneous fit; the
+final-state categories plus an inclusive diagnostic category. Phase 4 may use
+the `4mu`, `4e`, and `2e2mu` categories for the simultaneous fit only after
+low-count Poisson/toy validation and MC-stat stability checks. If those checks
+fail, Phase 4 must rebin or merge categories before reporting a result. The
 inclusive category is a diagnostic cross-check only and must not be fitted
 simultaneously with the mutually exclusive final-state categories. The
 broad-window templates are explicitly validation-only.
@@ -194,6 +245,7 @@ broad-window templates are explicitly validation-only.
 | input_validation_sublead_lepton_pt | figures/input_validation_sublead_lepton_pt.png | figures/input_validation_sublead_lepton_pt.pdf |
 | input_validation_y4l | figures/input_validation_y4l.png | figures/input_validation_y4l.pdf |
 | cutflow_summary | figures/cutflow_summary.png | figures/cutflow_summary.pdf |
+| cut_motivation_efficiencies | figures/cut_motivation_efficiencies.png | figures/cut_motivation_efficiencies.pdf |
 | m4l_broad_window_inclusive | figures/m4l_broad_window_inclusive.png | figures/m4l_broad_window_inclusive.pdf |
 | m4l_fit_window_inclusive | figures/m4l_fit_window_inclusive.png | figures/m4l_fit_window_inclusive.pdf |
 | m4l_fit_4mu | figures/m4l_fit_4mu.png | figures/m4l_fit_4mu.pdf |
@@ -212,6 +264,11 @@ broad-window templates are explicitly validation-only.
 ## Method Health And Open Issues
 
 - Cutflow monotonicity: all sample/channel cumulative cutflows are monotonic.
+- Cut motivation: trigger, lepton-ID, and Z-pair sanity efficiency diagnostics
+  are recorded in `cut_motivation_diagnostics.json` and the registered
+  `cut_motivation_efficiencies` figure.
+- S1 binning: conditional handoff; low-count final-state bins must be validated
+  in Phase 4 with toys/Poisson treatment and MC-stat stability.
 - Angular closure: passed with median mass differences far below `0.1 GeV`.
 - Classifier/NN: attempted and rejected; S2 diagnostics are preserved for the
   analysis note appendix as a serious rejected approach.

@@ -55,7 +55,7 @@ def weighted_yields(meta: dict[str, np.ndarray], mask: np.ndarray) -> dict[str, 
     }
 
 
-def score_shape_gate(score: np.ndarray, meta: dict[str, np.ndarray]) -> dict[str, float | bool | int]:
+def score_shape_gate(score: np.ndarray, meta: dict[str, np.ndarray]) -> dict[str, object]:
     is_data = meta["is_data"].astype(bool)
     weights = meta["weight"].astype(float)
     edges = np.linspace(0, 1, 7)
@@ -66,9 +66,27 @@ def score_shape_gate(score: np.ndarray, meta: dict[str, np.ndarray]) -> dict[str
     variance = data_counts + mc_sumw2 * scale * scale if np.isfinite(scale) else data_counts + mc_sumw2
     valid = variance > 0
     ndf = int(np.sum(valid) - 1)
-    stat = float(np.sum(np.square(data_counts[valid] - mc_shape[valid]) / variance[valid])) if ndf > 0 else np.nan
-    p_value = float(chi2.sf(stat, ndf)) if ndf > 0 and np.isfinite(stat) else np.nan
-    return {"chi2": stat, "ndf": ndf, "p_value": p_value, "passes": bool(ndf > 0 and stat / ndf <= 5.0)}
+    undefined_reason = None
+    stat = None
+    p_value = None
+    if np.sum(mc_counts) <= 0:
+        undefined_reason = "no MC score entries"
+    elif ndf <= 0:
+        undefined_reason = "ndf=0"
+    else:
+        candidate = float(np.sum(np.square(data_counts[valid] - mc_shape[valid]) / variance[valid]))
+        if np.isfinite(candidate):
+            stat = candidate
+            p_value = float(chi2.sf(stat, ndf))
+        else:
+            undefined_reason = "non-finite chi2 statistic"
+    return {
+        "chi2": stat,
+        "ndf": ndf,
+        "p_value": p_value,
+        "passes": bool(stat is not None and ndf > 0 and stat / ndf <= 5.0),
+        "undefined_reason": undefined_reason,
+    }
 
 
 def category_counts(score: np.ndarray, meta: dict[str, np.ndarray], threshold: float) -> dict:

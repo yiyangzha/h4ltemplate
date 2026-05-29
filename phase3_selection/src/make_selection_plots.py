@@ -15,6 +15,7 @@ from selection_common import (
     hist_counts,
     model_display_name,
     read_json,
+    sample_display_name,
     setup_logging,
 )
 
@@ -86,6 +87,60 @@ def plot_cutflow_summary() -> int:
     return 1
 
 
+def plot_cut_motivation() -> int:
+    diagnostics = read_json(OUT / "cut_motivation_diagnostics.json")
+    summary = diagnostics["data_mc_summary"]
+    rows = []
+    labels = []
+    for cut in diagnostics["cuts"]:
+        cut_key = cut["key"]
+        short_label = {
+            "trigger_bitmask_nonzero": "Trigger",
+            "flavor_matched_lepton_id": "Lepton ID",
+            "z_pair_sanity": "Z pairing",
+        }.get(cut_key, cut["label"])
+        for channel in diagnostics["channels"]:
+            labels.append(f"{short_label} {channel}")
+            rows.append(
+                (
+                    summary.get("Open data", {}).get(channel, {}).get(cut_key, {}).get("efficiency"),
+                    summary.get("Open simulation total", {}).get(channel, {}).get(cut_key, {}).get("efficiency"),
+                )
+            )
+    y = np.arange(len(rows), dtype=float)[::-1]
+    data_eff = np.asarray([np.nan if item[0] is None else item[0] for item in rows], dtype=float)
+    mc_eff = np.asarray([np.nan if item[1] is None else item[1] for item in rows], dtype=float)
+    fig, ax = plt.subplots(figsize=(10, 10))
+    ax.errorbar(data_eff, y, marker="o", linestyle="None", color="black", label="Open data")
+    ax.errorbar(mc_eff, y, marker="s", linestyle="None", color="#0072B2", label="Open simulation")
+    ax.set_yticks(y, labels)
+    ax.set_xlim(0.0, 1.08)
+    ax.set_xlabel("Step efficiency")
+    ax.set_ylabel("Cut and final state")
+    ax.legend(loc="lower left", fontsize="x-small")
+    mh.label.exp_label(
+        exp="CMS",
+        text="",
+        loc=2,
+        data=True,
+        llabel="Open Data and Open Simulation",
+        rlabel=r"$13$ TeV, 10 fb$^{-1}$",
+        ax=ax,
+    )
+    caption = (
+        "Trigger, flavor-matched lepton-ID, and Z-pair sanity efficiencies by final state. "
+        "Efficiencies are ratios to the previous predeclared selection step; data uses raw events and MC uses prompt-normalized weighted yields."
+    )
+    save_and_register(
+        fig,
+        "cut_motivation_efficiencies",
+        caption,
+        "phase3_selection/outputs/cut_motivation_diagnostics.json",
+        {"cuts": diagnostics["cuts"], "channels": diagnostics["channels"]},
+    )
+    return 1
+
+
 def mc_stack_from_fit(fit_inputs: dict, window: str, category: str) -> tuple[np.ndarray, dict[str, np.ndarray], np.ndarray]:
     data_counts = None
     stacks = {name: None for name in STACK_ORDER}
@@ -103,6 +158,8 @@ def mc_stack_from_fit(fit_inputs: dict, window: str, category: str) -> tuple[np.
 
 def plot_m4l_windows() -> int:
     fit_inputs = read_json(OUT / "fit_inputs_s1.json")
+    comparison = read_json(OUT / "approach_comparison.json")
+    s1_viability = comparison["approaches"]["S1_reference_like_cut_and_channel_fit"]["final_state_bin_viability"]
     made = 0
     for window, label in (("broad_window", "broad validation"), ("fit_window", "fit")):
         data, stacks, edges = mc_stack_from_fit(fit_inputs, window, "inclusive")
@@ -135,9 +192,16 @@ def plot_m4l_windows() -> int:
         )
         caption = (
             f"Four-lepton mass distribution for the {channel} final-state category in `105 < m4l < 140 GeV`. "
-            "These final-state categories are the nominal Phase 4 simultaneous-fit categories because the classifier split failed the promotion gates and no real VBF category is available."
+            "These final-state categories are the conditional Phase 4 simultaneous-fit handoff because the classifier split failed the promotion gates and no real VBF category is available; "
+            "Phase 4 must validate low-count Poisson/toy behavior and MC-stat stability before reporting fit results."
         )
-        save_and_register(fig, f"m4l_fit_{channel}", caption, "phase3_selection/outputs/fit_inputs_s1.json", {"window": "fit_window", "category": channel})
+        save_and_register(
+            fig,
+            f"m4l_fit_{channel}",
+            caption,
+            "phase3_selection/outputs/fit_inputs_s1.json",
+            {"window": "fit_window", "category": channel, "low_count_evidence": s1_viability["by_category"][channel]},
+        )
         made += 1
     return made
 
@@ -151,15 +215,15 @@ def plot_sidebands() -> int:
     for sample, marker in (("DYJetsToLL.root", "o"), ("TTBar.root", "s")):
         y = np.array([sidebands["samples"][sample][region]["weighted_yield"] for region in regions], dtype=float)
         err = np.sqrt(np.array([sidebands["samples"][sample][region]["sumw2"] for region in regions], dtype=float))
-        ax.errorbar(x, y, yerr=err, marker=marker, linestyle="-", label=sample.replace(".root", ""))
+        ax.errorbar(x, y, yerr=err, marker=marker, linestyle="-", label=sample_display_name(sample))
     ax.set_xticks(x, ["Low sideband", "Signal window", "High sideband"])
     ax.set_ylabel("Expected events")
     ax.set_xlabel("Region")
     ax.legend(loc="upper right", fontsize="x-small")
     __import__("mplhep").label.exp_label(exp="CMS", text="", loc=2, data=True, llabel="Open Simulation", rlabel=r"$13$ TeV, 10 fb$^{-1}$", ax=ax)
     caption = (
-        "DY+jets and TTBar reducible-background diagnostics across the predeclared sideband and signal regions. "
-        f"TTBar/DY ratios are {sidebands['ttbar_decision']['ratios_ttbar_over_dy']}, so TTBar is not promoted to the nominal fake model by the Phase 2 thresholds."
+        "DY+jets fake proxy and TTBar diagnostic reducible-background checks across the predeclared sideband and signal regions. "
+        f"TTBar diagnostic / DY+jets fake-proxy ratios are {sidebands['ttbar_decision']['ratios_ttbar_over_dy']}, so TTBar is not promoted to the nominal fake model by the Phase 2 thresholds."
     )
     save_and_register(fig, "sideband_dy_ttbar_diagnostics", caption, "phase3_selection/outputs/sideband_fake_diagnostics.json", sidebands["ttbar_decision"])
     return 1
@@ -232,6 +296,8 @@ def plot_vbf_downscope_evidence() -> int:
 
 def plot_category_viability() -> int:
     fit_inputs = read_json(OUT / "fit_inputs_s1.json")
+    comparison = read_json(OUT / "approach_comparison.json")
+    low_summary = comparison["approaches"]["S1_reference_like_cut_and_channel_fit"]["final_state_bin_viability"]["summary"]
     channels = FINAL_STATE_LABELS
     signal = []
     background = []
@@ -275,9 +341,16 @@ def plot_category_viability() -> int:
     )
     caption = (
         "S1 final-state category viability summary for the fit window. "
-        "The 4mu, 4e, and 2e2mu categories are retained as the nominal simultaneous-fit categories, while S2 classifier categories fail low-stat viability."
+        f"The categories are retained only as a conditional Phase 4 handoff: {low_summary['final_state_bins_below_5_expected']}/"
+        f"{low_summary['final_state_total_bins']} final-state bins have S+B below five expected events, while S2 classifier categories fail low-stat viability."
     )
-    save_and_register(fig, "category_viability_s1", caption, "phase3_selection/outputs/fit_inputs_s1.json", {"channels": channels})
+    save_and_register(
+        fig,
+        "category_viability_s1",
+        caption,
+        "phase3_selection/outputs/fit_inputs_s1.json",
+        {"channels": channels, "low_count_summary": low_summary},
+    )
     return 1
 
 
@@ -356,6 +429,7 @@ def plot_approach_and_mva() -> int:
 def main() -> None:
     setup_logging()
     made = plot_cutflow_summary()
+    made += plot_cut_motivation()
     made += plot_m4l_windows()
     made += plot_sidebands()
     made += plot_angular_closure()

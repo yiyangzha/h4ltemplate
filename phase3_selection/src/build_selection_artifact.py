@@ -3,7 +3,7 @@ from __future__ import annotations
 import math
 from pathlib import Path
 
-from selection_common import OUT, append_experiment, append_session, model_display_name, read_json, setup_logging
+from selection_common import FINAL_STATE_LABELS, OUT, append_experiment, append_session, model_display_name, read_json, sample_display_name, setup_logging
 
 
 def table(headers: list[str], rows: list[list[object]]) -> str:
@@ -76,13 +76,58 @@ def sideband_table(sidebands: dict) -> str:
         payload = sidebands["samples"][sample]
         rows.append(
             [
-                sample,
+                sample_display_name(sample),
                 fmt(payload["low_sideband_70_105"]["weighted_yield"]),
                 fmt(payload["signal_window_105_140"]["weighted_yield"]),
                 fmt(payload["high_sideband_140_170"]["weighted_yield"]),
             ]
         )
     return table(["Sample", "70 <= m4l < 105", "105 < m4l < 140", "140 < m4l <= 170"], rows)
+
+
+def cut_motivation_table(diagnostics: dict) -> str:
+    rows = []
+    summary = diagnostics["data_mc_summary"]
+    for cut in diagnostics["cuts"]:
+        key = cut["key"]
+        for channel in diagnostics["channels"]:
+            data = summary.get("Open data", {}).get(channel, {}).get(key, {})
+            mc = summary.get("Open simulation total", {}).get(channel, {}).get(key, {})
+            rows.append(
+                [
+                    cut["label"],
+                    channel,
+                    fmt(data.get("efficiency"), 4),
+                    fmt(mc.get("efficiency"), 4),
+                    data.get("numerator_raw_entries", "n/a"),
+                    data.get("denominator_raw_entries", "n/a"),
+                    fmt(mc.get("numerator_weighted_yield")),
+                    fmt(mc.get("denominator_weighted_yield")),
+                ]
+            )
+    return table(
+        ["Cut", "Final state", "Data eff.", "MC eff.", "Data pass", "Data denom.", "MC pass", "MC denom."],
+        rows,
+    )
+
+
+def s1_low_stat_table(viability: dict) -> str:
+    rows = []
+    for category in FINAL_STATE_LABELS:
+        item = viability["by_category"][category]
+        edges = item["bin_edges"]
+        for idx, total in enumerate(item["total_expected_by_bin"]):
+            rows.append(
+                [
+                    category,
+                    f"{edges[idx]:g}-{edges[idx + 1]:g}",
+                    fmt(item["signal_expected_by_bin"][idx]),
+                    fmt(item["background_expected_by_bin"][idx]),
+                    fmt(total),
+                    fmt(total < viability["threshold_expected_events"]),
+                ]
+            )
+    return table(["Category", "m4l bin [GeV]", "Signal", "Background", "S+B", "S+B < 5"], rows)
 
 
 def mva_gate_table(mva: dict) -> str:
@@ -131,6 +176,7 @@ def main() -> None:
     provenance = read_json(OUT / "selection_provenance.json")
     normalization = read_json(OUT / "normalization.json")
     cutflow = read_json(OUT / "cutflow.json")
+    cut_motivation = read_json(OUT / "cut_motivation_diagnostics.json")
     sidebands = read_json(OUT / "sideband_fake_diagnostics.json")
     vbf = read_json(OUT / "vbf_recovery_downscope.json")
     angular = read_json(OUT / "angular_closure.json")
@@ -139,6 +185,9 @@ def main() -> None:
     comparison = read_json(OUT / "approach_comparison.json")
     figures = read_json(OUT / "FIGURES.json")
     s2_result = comparison["approaches"]["S2_angular_kinematic_classifier_categories"]
+    s1_result = comparison["approaches"]["S1_reference_like_cut_and_channel_fit"]
+    s1_viability = s1_result["final_state_bin_viability"]
+    s1_low_summary = s1_viability["summary"]
     best_model_label = model_display_name(mva["promotion_decision"].get("best_model"))
     s2_best_model_label = model_display_name(s2_result.get("best_model"))
     norm_rows = [
@@ -156,10 +205,13 @@ Created from machine-readable Phase 3 outputs.
 
 Phase 3 implements the reviewed Phase 2 strategy using the primary prompt
 ROOT paths only. The nominal Phase 4 handoff is `{selected}` with final-state
-categories `4mu`, `4e`, and `2e2mu`; no VBF category is used because the
-recovery gate found no real jet/VBF information in the allowed flat ntuples.
-The S2 angular/kinematic classifier was attempted and rejected by the input,
-score-shape, low-stat, and expected-precision gates.
+categories `4mu`, `4e`, and `2e2mu`, but this binning is conditional:
+{s1_low_summary['final_state_bins_below_5_expected']}/{s1_low_summary['final_state_total_bins']}
+final-state fit bins have `S+B < 5` and require Phase 4 low-count Poisson/toy
+validation plus MC-stat stability checks before a result is reported. No VBF
+category is used because the recovery gate found no real jet/VBF information in
+the allowed flat ntuples. The S2 angular/kinematic classifier was attempted and
+rejected by the input, score-shape, low-stat, and expected-precision gates.
 
 ## Data Source Freeze And Provenance
 
@@ -196,9 +248,25 @@ retained branches:
 
 {cutflow_table(cutflow)}
 
+## Cut Motivation Diagnostics
+
+Trigger, flavor-matched lepton-ID, and Z-pair sanity efficiencies are recorded
+as step-to-previous-step ratios by final state. Data uses raw event counts, and
+MC uses prompt-normalized weighted yields. The dedicated machine-readable source
+is `cut_motivation_diagnostics.json`.
+
+{cut_motivation_table(cut_motivation)}
+
 ## Categories And VBF Recovery/Downscope
 
-The nominal categories are the final states `4mu`, `4e`, and `2e2mu`.
+The nominal categories are the final states `4mu`, `4e`, and `2e2mu`, retained
+because the S2 classifier split fails and no real VBF category is available.
+This is not an unconditional category/bin viability pass: the selected
+final-state binning is a conditional Phase 4 handoff. The per-bin expected
+`S+B` evidence is:
+
+{s1_low_stat_table(s1_viability)}
+
 The VBF recovery gate checked primary and local branch inventories, the current
 allow-list, event-key join feasibility, and `h4l_ntuplize.py` provenance.
 It found {len(vbf['primary_and_local_branch_checks'])} checked flat ntuples,
@@ -230,7 +298,7 @@ Variables explicitly not promoted: `m4l` is excluded to avoid mass sculpting;
 ## S1 Versus S2 Approach Comparison
 
 {table(["Approach", "Metric/result"], [
-    ["S1 reference-like final-state fit", "mu uncertainty proxy = " + fmt(comparison["approaches"]["S1_reference_like_cut_and_channel_fit"]["asimov_mu_uncertainty_proxy"])],
+    ["S1 reference-like final-state fit", "mu uncertainty proxy = " + fmt(s1_result["asimov_mu_uncertainty_proxy"]) + "; conditional low-count handoff"],
     ["S2 classifier categories", "best model = " + s2_best_model_label + ", relative improvement = " + fmt(s2_result.get("relative_improvement"))],
     ["Nominal selection", selected],
 ])}
@@ -249,8 +317,9 @@ trained classifier variant satisfies all S2 promotion gates.
 ## Fake And Sideband Diagnostics
 
 DY+jets remains the nominal reducible fake proxy. The signal region is excluded
-from sideband constraints. TTBar is not promoted to a nominal component because
-the TTBar/DY ratios are below the Phase 2 thresholds:
+from sideband constraints. The TTBar diagnostic is not promoted to a nominal
+component because the TTBar diagnostic / DY+jets fake-proxy ratios are below
+the Phase 2 thresholds:
 {sidebands['ttbar_decision']['ratios_ttbar_over_dy']}.
 
 {sideband_table(sidebands)}
@@ -260,8 +329,10 @@ the TTBar/DY ratios are below the Phase 2 thresholds:
 The fit-ready handoff for Phase 4 is `fit_inputs_s1.json`. It contains
 prompt-normalized `m4l` templates in `105 < m4l < 140 GeV`, bin edges
 `[105, 112, 118, 122, 126, 130, 140]`, sumw2 arrays for MC-stat terms, and
-final-state categories plus an inclusive diagnostic category. Phase 4 should
-use the `4mu`, `4e`, and `2e2mu` categories for the simultaneous fit; the
+final-state categories plus an inclusive diagnostic category. Phase 4 may use
+the `4mu`, `4e`, and `2e2mu` categories for the simultaneous fit only after
+low-count Poisson/toy validation and MC-stat stability checks. If those checks
+fail, Phase 4 must rebin or merge categories before reporting a result. The
 inclusive category is a diagnostic cross-check only and must not be fitted
 simultaneously with the mutually exclusive final-state categories. The
 broad-window templates are explicitly validation-only.
@@ -273,6 +344,11 @@ broad-window templates are explicitly validation-only.
 ## Method Health And Open Issues
 
 - Cutflow monotonicity: all sample/channel cumulative cutflows are monotonic.
+- Cut motivation: trigger, lepton-ID, and Z-pair sanity efficiency diagnostics
+  are recorded in `cut_motivation_diagnostics.json` and the registered
+  `cut_motivation_efficiencies` figure.
+- S1 binning: conditional handoff; low-count final-state bins must be validated
+  in Phase 4 with toys/Poisson treatment and MC-stat stability.
 - Angular closure: passed with median mass differences far below `0.1 GeV`.
 - Classifier/NN: attempted and rejected; S2 diagnostics are preserved for the
   analysis note appendix as a serious rejected approach.
