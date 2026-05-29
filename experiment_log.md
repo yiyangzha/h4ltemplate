@@ -9,3 +9,145 @@
 - `experiment_log.md` and `COMMITMENTS.md` contained no completed phase evidence.
 - Required phase artifacts are absent except empty `FIGURES.json` placeholders, so the lifecycle is at Phase 1 EXECUTE.
 - MCP verification failed because the manifest tools are not exposed in this Codex session (`alphaxiv.full_text_papers_search`, `lep-corpus.search_lep_corpus` unavailable via tool discovery). Set `MCP_ALPHAXIV=false` and `MCP_LEP_CORPUS=false`; agents must use documented web/fallback literature routes.
+
+## 2026-05-29T18:59:13Z — Phase 1 review ITERATE
+
+- Phase 1 executor `albert_0f97` produced required artifacts and passed VERIFY follow-ups after self-critique fixes.
+- Per-figure validators passed all six Phase 1 PNGs.
+- Independent Phase 1 review `odette_a6bb` returned ITERATE.
+- Blocking findings: all six figures label a bin-width-normalized density as `Normalized entries`; important integer/flag codes are listed but not decoded; `LITERATURE_SURVEY.md` includes uncited numeric results for a later CMS publication.
+- B findings: data-quality prose needs outlier/extreme interpretation; preselection/content boundary needs tighter characterization; literature survey is thin for Phase 2 strategy.
+- Next step: spawn a fixer agent for all A/B findings, then run verification arbiter before fresh review.
+
+## 2026-05-29T18:18:33Z — Phase 1 executor plan
+
+- Phase 1 executor session `albert_0f97` read the required runtime,
+  phase, methodology, prompt, path, and executor files before loading ROOT
+  data or searching literature.
+- Confirmed MCP literature tools are disabled; Phase 1 will use public
+  web/INSPIRE/arXiv/CMS/PDG fallback routes and record search trails.
+- Created `phase1_exploration/plan.md` and
+  `phase1_exploration/logs/executor_albert_0f97_20260529T181833Z.md`.
+
+## 2026-05-29 — Phase 1 metadata inventory
+
+- Inspected 24 ROOT files structurally with uproot and wrote `phase1_exploration/outputs/root_metadata.json`.
+
+## 2026-05-29 — Phase 1 small-slice reconnaissance
+
+- Surveyed branch ranges, NaN/inf counts, and integer/flag unique values on at most 1000 entries per primary tree.
+
+## 2026-05-29 — Phase 1 coverage check
+
+- Summed MC Metadata generated-event counts where available and computed prompt-luminosity nominal MC weights for downstream validation.
+
+## 2026-05-29 — Phase 1 histogram summaries
+
+- Produced small-slice histogram summaries for available 4l mass, Z mass, jet, and discriminant candidate branches.
+
+## 2026-05-29 — Phase 1 coverage check
+
+- Summed MC Metadata generated-event counts where available and computed prompt-luminosity nominal MC weights for downstream validation.
+
+## 2026-05-29 — Phase 1 histogram summaries
+
+- Produced small-slice histogram summaries for available 4l mass, Z mass, jet, and discriminant candidate branches.
+
+## 2026-05-29 — Phase 1 histogram summaries
+
+- Produced small-slice histogram summaries for available 4l mass, Z mass, jet, and discriminant candidate branches.
+
+## 2026-05-29 — Phase 1 exploration figures
+
+- Produced 6 small-slice exploration figures and updated `phase1_exploration/outputs/FIGURES.json`.
+
+## 2026-05-29 — Phase 1 PDF toolchain test
+
+- Ran `pixi run build-pdf /sandbox/work/jfc/analyses/higgs_4lep_mass/analysis_note/test_build.tex`; passed=True; temporary stub removed.
+
+## 2026-05-29 — Phase 1 artifacts built
+
+- Built Phase 1 markdown artifacts from metadata, small-slice surveys, coverage checks, figure registry, and public literature source notes.
+
+## 2026-05-29T18:35:00Z — Phase 1 self-check
+
+- Final Phase 1 pixi chain passed:
+  `p1-metadata`, `p1-recon-slice`, `p1-preselection`, `p1-hists`,
+  `p1-plots`, `p1-pdf-test`, `p1-artifacts`, and `lint-plots`.
+- Figure registry smoke test found 6 figures with no missing, empty,
+  stale, or orphan PNG/PDF entries.
+- Self-critique fixed an overlapping plot label and added explicit
+  documentation that jet/VBF, truth, and precomputed angular/MELA branches
+  are absent in the primary ntuples.
+
+## 2026-05-29T18:43:00Z — Phase 1 VERIFY self-critique fixes
+
+- Re-read Phase 1 figures and artifacts in critic mode for VERIFY Follow-up 2.
+- Regenerated all six exploration figures with marker-only error bars; connected
+  lines were removed because they over-interpreted sparse small-slice
+  histograms.
+- Updated figure labeling from `CMS Open Data` to `CMS Open Data+Sim` because
+  the figures overlay data and MC.
+- Regenerated `DATA_RECONNAISSANCE.md` to add a primary-vs-local copy table
+  and to separate angular primitives from absent precomputed MELA/angular
+  discriminants.
+
+## 2026-05-29 — Phase 1 exploration figures
+
+- Produced 6 small-slice exploration figures and updated `phase1_exploration/outputs/FIGURES.json`.
+
+## 2026-05-29 — Phase 1 artifacts built
+
+- Built Phase 1 markdown artifacts from metadata, small-slice surveys, coverage checks, figure registry, and public literature source notes.
+
+## 2026-05-29 — Phase 1 artifacts built
+
+- Built Phase 1 markdown artifacts from metadata, small-slice surveys, coverage checks, figure registry, and public literature source notes.
+
+## 2026-05-29 — Phase 1 exploration figures
+
+- Produced 6 small-slice exploration figures and updated `phase1_exploration/outputs/FIGURES.json`.
+
+## 2026-05-29 — Phase 1 artifacts built
+
+- Built Phase 1 markdown artifacts from metadata, small-slice surveys, coverage checks, figure registry, and public literature source notes.
+
+## 2026-05-29 — Phase 1 artifacts built
+
+- Built Phase 1 markdown artifacts from metadata, small-slice surveys, coverage checks, figure registry, and public literature source notes.
+
+## 2026-05-29 — Phase 1 metadata inventory
+
+- Inspected 24 ROOT files structurally with uproot and wrote `phase1_exploration/outputs/root_metadata.json`.
+
+## 2026-05-29 — Phase 1 small-slice reconnaissance
+
+- Surveyed branch ranges, NaN/inf counts, and integer/flag unique values on at most 1000 entries per primary tree.
+
+## 2026-05-29 — Phase 1 coverage check
+
+- Summed MC Metadata generated-event counts where available and computed prompt-luminosity nominal MC weights for downstream validation.
+
+## 2026-05-29 — Phase 1 histogram summaries
+
+- Produced small-slice histogram summaries for available 4l mass, Z mass, jet, and discriminant candidate branches.
+
+## 2026-05-29 — Phase 1 exploration figures
+
+- Produced 6 small-slice exploration figures and updated `phase1_exploration/outputs/FIGURES.json`.
+
+## 2026-05-29 — Phase 1 PDF toolchain test
+
+- Ran `pixi run build-pdf /sandbox/work/jfc/analyses/higgs_4lep_mass/analysis_note/test_build.tex`; passed=True; temporary stub removed.
+
+## 2026-05-29 — Phase 1 artifacts built
+
+- Built Phase 1 markdown artifacts from metadata, small-slice surveys, coverage checks, figure registry, and public literature source notes.
+
+## 2026-05-29 — Phase 1 exploration figures
+
+- Produced 6 small-slice exploration figures and updated `phase1_exploration/outputs/FIGURES.json`.
+
+## 2026-05-29 — Phase 1 artifacts built
+
+- Built Phase 1 markdown artifacts from metadata, small-slice surveys, coverage checks, figure registry, and public literature source notes.
