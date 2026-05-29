@@ -11,9 +11,11 @@ For every known process, this script computes the expected selected yield as
 
     xsec(pb) * lumi(fb^-1) * 1000 * n_selected / n_generated
 
-then randomly takes that many h4lTree entries without replacement.  The chosen
-entries from all processes are shuffled into a fake data file, and all entries
-not used in fake data are written as the new MC samples.
+then randomly takes that many h4lTree entries without replacement, unless a
+process needs more fake-data entries than it has selected MC entries.  In that
+case only that process is sampled with replacement.  The chosen entries from
+all processes are shuffled into a fake data file, and all entries not used in
+fake data are written as the new MC samples.
 """
 
 from __future__ import annotations
@@ -60,14 +62,14 @@ SAMPLES = [
             "VBF_HToZZTo4L_M125_TuneCP5_13TeV_powheg2_JHUGenV7011_pythia8",
         ],
     },
-    #{
-    #    "label": "ZHToZZ",
-    #    "xsec_pb": 2.458e-04,
-    #    "aliases": [
-    #        "ZHToZZ.root",
-    #        "ZH_HToZZ_4LFilter_M125_TuneCP5_13TeV_powheg2-minlo-HZJ_JHUGenV7011_pythia8",
-    #    ],
-    #},
+    {
+        "label": "ZHToZZ",
+        "xsec_pb": 2.458e-04,
+        "aliases": [
+            "ZHToZZ.root",
+            "ZH_HToZZ_4LFilter_M125_TuneCP5_13TeV_powheg2-minlo-HZJ_JHUGenV7011_pythia8",
+        ],
+    },
     {
         "label": "WPHToZZ",
         "xsec_pb": 2.305562e-04,
@@ -289,11 +291,11 @@ def print_sample_plan(plans: Sequence[SamplePlan], lumi_fb: float) -> None:
 
 
 def validate_plans(plans: Sequence[SamplePlan]) -> None:
-    bad = [plan for plan in plans if plan.target_entries > plan.selected_entries]
+    bad = [plan for plan in plans if plan.target_entries > 0 and plan.selected_entries <= 0]
     if not bad:
         return
 
-    print("\nERROR: at least one sample does not have enough selected entries.")
+    print("\nERROR: at least one sample needs fake-data entries but has no selected MC entries.")
     for plan in bad:
         print(
             f"  {plan.label}: need {plan.target_entries}, "
@@ -318,11 +320,13 @@ def choose_entries(
     plans: Sequence[SamplePlan],
     rng: np.random.Generator,
 ) -> Dict[Path, np.ndarray]:
-    """Choose fake-data entry indices for each input file without replacement."""
+    """Choose fake-data entry indices for each input file."""
     chosen_by_file: Dict[Path, np.ndarray] = {}
 
     for plan in plans:
-        print(f"Selecting {plan.target_entries} events for {plan.label}")
+        replace = plan.target_entries > plan.selected_entries
+        mode = "with replacement" if replace else "without replacement"
+        print(f"Selecting {plan.target_entries} events for {plan.label} ({mode})")
         counts = [info.selected_entries for info in plan.files]
         offsets = np.cumsum([0, *counts])
 
@@ -330,7 +334,7 @@ def choose_entries(
             chosen_global = rng.choice(
                 plan.selected_entries,
                 size=plan.target_entries,
-                replace=False,
+                replace=replace,
             )
         else:
             chosen_global = np.array([], dtype=np.int64)
@@ -340,8 +344,9 @@ def choose_entries(
             stop = offsets[index + 1]
             in_file = chosen_global[(chosen_global >= start) & (chosen_global < stop)]
             chosen_by_file[info.path] = (in_file - start).astype(np.int64, copy=False)
+            used_for_mc = np.unique(chosen_by_file[info.path])
             print(f"  {info.path.name}: fake data {len(chosen_by_file[info.path])}, "
-                  f"new MC {info.selected_entries - len(chosen_by_file[info.path])}")
+                  f"new MC {info.selected_entries - len(used_for_mc)}")
 
     return chosen_by_file
 
@@ -447,7 +452,8 @@ def write_outputs(
         for info in plan.files:
             selected = np.sort(chosen_by_file.get(info.path, np.array([], dtype=np.int64)))
             all_indices = np.arange(info.selected_entries, dtype=np.int64)
-            remaining = np.setdiff1d(all_indices, selected, assume_unique=True)
+            used_for_mc = np.unique(selected)
+            remaining = np.setdiff1d(all_indices, used_for_mc, assume_unique=True)
 
             arrays = load_arrays(info.path, tree_name, info.branches)
 
