@@ -68,6 +68,7 @@ def data_mc_comparison(
     centers = 0.5 * (edges[:-1] + edges[1:])
     widths = np.diff(edges)
     stacks = [name for name in STACK_ORDER if name in mc_by_stack and np.sum(mc_by_stack[name]) > 0]
+    stacks.extend(name for name in mc_by_stack if name not in stacks and np.sum(mc_by_stack[name]) > 0)
     hists = [make_hist(edges, mc_by_stack[name]) for name in stacks]
     colors = [STACK_COLORS.get(name) for name in stacks]
     if hists:

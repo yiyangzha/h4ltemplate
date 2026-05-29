@@ -359,6 +359,10 @@
 
 - Updated `COMMITMENTS.md` for Phase 3-resolved proof artifacts and formal VBF downscope items.
 
+## 2026-05-29 — Phase 3 VERIFY self-critique fixes
+
+- Re-read Phase 3 selection artifacts and figures as Follow-up 2. Fixed MC stack omissions in validation plots, aligned D7 plot normalization with the shape gate, added per-model S2 gate evidence, quantified VBF downscope evidence, and clarified Phase 4 category handoff boundaries.
+
 ## 2026-05-29 — Phase 3 selection artifact
 
 - Built `phase3_selection/outputs/SELECTION.md` from Phase 3 JSON/NPZ outputs.

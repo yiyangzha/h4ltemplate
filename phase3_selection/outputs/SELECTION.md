@@ -73,6 +73,9 @@ retained branches:
 The nominal categories are the final states `4mu`, `4e`, and `2e2mu`.
 The VBF recovery gate checked primary and local branch inventories, the current
 allow-list, event-key join feasibility, and `h4l_ntuplize.py` provenance.
+It found 24 checked flat ntuples,
+zero files with jet/VBF-like branches, zero allowed upstream join sources, and
+`safe_event_key_join_possible = False`.
 Decision: Formal downscope: no real jet or VBF discriminator branches are available in allowed flat ntuples. No lepton-only category is labeled VBF.
 
 ## Angular Reconstruction And NN Gate
@@ -135,8 +138,17 @@ Variables explicitly not promoted: `m4l` is excluded to avoid mass sculpting;
 S2 was not promoted. The best classifier is
 `small_nn` with a relative proxy change of
 -0.236; this is worse
-than S1, not a >10 percent improvement. All trained classifier variants also
-failed the score-shape/category-viability promotion gates.
+than S1, not a >10 percent improvement. The detailed S2 gate table is:
+
+| Model | AUC | overtrain gap | score chi2 | score ndf | score p | score gate | low-stat bin fraction | category gate | all S2 gates |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| bdt | 0.548 | 2.726e-05 | 4.945 | 2 | 0.08436 | True | 1 | False | False |
+| logistic | 0.5496 | 1.516e-05 | n/a | 0 | n/a | False | 0.9722 | False | False |
+| small_nn | 0.5505 | 1.216e-05 | n/a | 0 | n/a | False | 1 | False | False |
+
+The BDT score-shape gate passes, but its category-viability gate fails; the
+logistic and small-NN score-shape and category-viability gates both fail. No
+trained classifier variant satisfies all S2 promotion gates.
 
 ## Fake And Sideband Diagnostics
 
@@ -157,8 +169,11 @@ the TTBar/DY ratios are below the Phase 2 thresholds:
 The fit-ready handoff for Phase 4 is `fit_inputs_s1.json`. It contains
 prompt-normalized `m4l` templates in `105 < m4l < 140 GeV`, bin edges
 `[105, 112, 118, 122, 126, 130, 140]`, sumw2 arrays for MC-stat terms, and
-final-state categories plus an inclusive diagnostic category. The broad-window
-templates are explicitly validation-only.
+final-state categories plus an inclusive diagnostic category. Phase 4 should
+use the `4mu`, `4e`, and `2e2mu` categories for the simultaneous fit; the
+inclusive category is a diagnostic cross-check only and must not be fitted
+simultaneously with the mutually exclusive final-state categories. The
+broad-window templates are explicitly validation-only.
 
 ## Figures
 

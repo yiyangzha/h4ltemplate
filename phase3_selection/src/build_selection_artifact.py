@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import math
 from pathlib import Path
 
 from selection_common import OUT, append_experiment, append_session, read_json, setup_logging
@@ -20,7 +21,10 @@ def fmt(value: object, digits: int = 3) -> str:
     if isinstance(value, (int, str)):
         return str(value)
     try:
-        return f"{float(value):.{digits}g}"
+        numeric = float(value)
+        if not math.isfinite(numeric):
+            return "n/a"
+        return f"{numeric:.{digits}g}"
     except Exception:
         return str(value)
 
@@ -79,6 +83,42 @@ def sideband_table(sidebands: dict) -> str:
             ]
         )
     return table(["Sample", "70 <= m4l < 105", "105 < m4l < 140", "140 < m4l <= 170"], rows)
+
+
+def mva_gate_table(mva: dict) -> str:
+    rows = []
+    for name, item in sorted(mva.get("models", {}).items()):
+        gate = item["score_data_mc_gate"]
+        viability = item["category_counts"]["viability"]
+        rows.append(
+            [
+                name,
+                fmt(item["auc"], 4),
+                fmt(item["overtraining_signal_mean_gap"], 4),
+                fmt(gate["chi2"], 4),
+                gate["ndf"],
+                fmt(gate["p_value"], 4),
+                gate["passes"],
+                fmt(viability["low_stat_bin_fraction"], 4),
+                viability["passes"],
+                item["passes"],
+            ]
+        )
+    return table(
+        [
+            "Model",
+            "AUC",
+            "overtrain gap",
+            "score chi2",
+            "score ndf",
+            "score p",
+            "score gate",
+            "low-stat bin fraction",
+            "category gate",
+            "all S2 gates",
+        ],
+        rows,
+    )
 
 
 def figure_table(figures: list[dict]) -> str:
@@ -158,6 +198,9 @@ retained branches:
 The nominal categories are the final states `4mu`, `4e`, and `2e2mu`.
 The VBF recovery gate checked primary and local branch inventories, the current
 allow-list, event-key join feasibility, and `h4l_ntuplize.py` provenance.
+It found {len(vbf['primary_and_local_branch_checks'])} checked flat ntuples,
+zero files with jet/VBF-like branches, zero allowed upstream join sources, and
+`safe_event_key_join_possible = {vbf['join_check']['safe_event_key_join_possible']}`.
 Decision: {vbf['decision']} No lepton-only category is labeled VBF.
 
 ## Angular Reconstruction And NN Gate
@@ -192,8 +235,13 @@ Variables explicitly not promoted: `m4l` is excluded to avoid mass sculpting;
 S2 was not promoted. The best classifier is
 `{mva['promotion_decision'].get('best_model')}` with a relative proxy change of
 {fmt(mva['promotion_decision'].get('relative_improvement'))}; this is worse
-than S1, not a >10 percent improvement. All trained classifier variants also
-failed the score-shape/category-viability promotion gates.
+than S1, not a >10 percent improvement. The detailed S2 gate table is:
+
+{mva_gate_table(mva)}
+
+The BDT score-shape gate passes, but its category-viability gate fails; the
+logistic and small-NN score-shape and category-viability gates both fail. No
+trained classifier variant satisfies all S2 promotion gates.
 
 ## Fake And Sideband Diagnostics
 
@@ -209,8 +257,11 @@ the TTBar/DY ratios are below the Phase 2 thresholds:
 The fit-ready handoff for Phase 4 is `fit_inputs_s1.json`. It contains
 prompt-normalized `m4l` templates in `105 < m4l < 140 GeV`, bin edges
 `[105, 112, 118, 122, 126, 130, 140]`, sumw2 arrays for MC-stat terms, and
-final-state categories plus an inclusive diagnostic category. The broad-window
-templates are explicitly validation-only.
+final-state categories plus an inclusive diagnostic category. Phase 4 should
+use the `4mu`, `4e`, and `2e2mu` categories for the simultaneous fit; the
+inclusive category is a diagnostic cross-check only and must not be fitted
+simultaneously with the mutually exclusive final-state categories. The
+broad-window templates are explicitly validation-only.
 
 ## Figures
 
