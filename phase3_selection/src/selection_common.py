@@ -139,6 +139,16 @@ VARIABLE_LABELS = {
     "classifier_score": "Classifier score",
 }
 
+MODEL_DISPLAY_NAMES = {
+    "bdt": "BDT",
+    "logistic": "logistic",
+    "small_nn": "small NN",
+}
+
+
+def model_display_name(model_key: object) -> str:
+    return MODEL_DISPLAY_NAMES.get(str(model_key), str(model_key).replace("_", " "))
+
 
 def setup_logging(name: str = "phase3") -> logging.Logger:
     logging.basicConfig(

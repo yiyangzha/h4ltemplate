@@ -132,22 +132,22 @@ Variables explicitly not promoted: `m4l` is excluded to avoid mass sculpting;
 | Approach | Metric/result |
 | --- | --- |
 | S1 reference-like final-state fit | mu uncertainty proxy = 0.973 |
-| S2 classifier categories | best model = small_nn, relative improvement = -0.236 |
+| S2 classifier categories | best model = small NN, relative improvement = -0.236 |
 | Nominal selection | S1_reference_like_final_state_categories |
 
 S2 was not promoted. The best classifier is
-`small_nn` with a relative proxy change of
+small NN with a relative proxy change of
 -0.236; this is worse
 than S1, not a >10 percent improvement. The detailed S2 gate table is:
 
 | Model | AUC | overtrain gap | score chi2 | score ndf | score p | score gate | low-stat bin fraction | category gate | all S2 gates |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| bdt | 0.548 | 2.726e-05 | 4.945 | 2 | 0.08436 | True | 1 | False | False |
+| BDT | 0.548 | 2.726e-05 | 4.945 | 2 | 0.08436 | True | 1 | False | False |
 | logistic | 0.5496 | 1.516e-05 | n/a | 0 | n/a | False | 0.9722 | False | False |
-| small_nn | 0.5505 | 1.216e-05 | n/a | 0 | n/a | False | 1 | False | False |
+| small NN | 0.5505 | 1.216e-05 | n/a | 0 | n/a | False | 1 | False | False |
 
 The BDT score-shape gate passes, but its category-viability gate fails; the
-logistic and small-NN score-shape and category-viability gates both fail. No
+logistic and small NN score-shape and category-viability gates both fail. No
 trained classifier variant satisfies all S2 promotion gates.
 
 ## Fake And Sideband Diagnostics
@@ -193,6 +193,12 @@ broad-window templates are explicitly validation-only.
 | input_validation_sublead_abs_eta | figures/input_validation_sublead_abs_eta.png | figures/input_validation_sublead_abs_eta.pdf |
 | input_validation_sublead_lepton_pt | figures/input_validation_sublead_lepton_pt.png | figures/input_validation_sublead_lepton_pt.pdf |
 | input_validation_y4l | figures/input_validation_y4l.png | figures/input_validation_y4l.pdf |
+| cutflow_summary | figures/cutflow_summary.png | figures/cutflow_summary.pdf |
+| m4l_broad_window_inclusive | figures/m4l_broad_window_inclusive.png | figures/m4l_broad_window_inclusive.pdf |
+| m4l_fit_window_inclusive | figures/m4l_fit_window_inclusive.png | figures/m4l_fit_window_inclusive.pdf |
+| m4l_fit_4mu | figures/m4l_fit_4mu.png | figures/m4l_fit_4mu.pdf |
+| m4l_fit_4e | figures/m4l_fit_4e.png | figures/m4l_fit_4e.pdf |
+| m4l_fit_2e2mu | figures/m4l_fit_2e2mu.png | figures/m4l_fit_2e2mu.pdf |
 | sideband_dy_ttbar_diagnostics | figures/sideband_dy_ttbar_diagnostics.png | figures/sideband_dy_ttbar_diagnostics.pdf |
 | angular_closure_median_deltas | figures/angular_closure_median_deltas.png | figures/angular_closure_median_deltas.pdf |
 | vbf_downscope_evidence | figures/vbf_downscope_evidence.png | figures/vbf_downscope_evidence.pdf |
@@ -202,12 +208,6 @@ broad-window templates are explicitly validation-only.
 | mva_roc_logistic | figures/mva_roc_logistic.png | figures/mva_roc_logistic.pdf |
 | mva_roc_small_nn | figures/mva_roc_small_nn.png | figures/mva_roc_small_nn.pdf |
 | mva_best_score_datamc | figures/mva_best_score_datamc.png | figures/mva_best_score_datamc.pdf |
-| cutflow_summary | figures/cutflow_summary.png | figures/cutflow_summary.pdf |
-| m4l_broad_window_inclusive | figures/m4l_broad_window_inclusive.png | figures/m4l_broad_window_inclusive.pdf |
-| m4l_fit_window_inclusive | figures/m4l_fit_window_inclusive.png | figures/m4l_fit_window_inclusive.pdf |
-| m4l_fit_4mu | figures/m4l_fit_4mu.png | figures/m4l_fit_4mu.pdf |
-| m4l_fit_4e | figures/m4l_fit_4e.png | figures/m4l_fit_4e.pdf |
-| m4l_fit_2e2mu | figures/m4l_fit_2e2mu.png | figures/m4l_fit_2e2mu.pdf |
 
 ## Method Health And Open Issues
 

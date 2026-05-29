@@ -13,6 +13,7 @@ from selection_common import (
     append_experiment,
     append_session,
     hist_counts,
+    model_display_name,
     read_json,
     setup_logging,
 )
@@ -306,7 +307,7 @@ def plot_approach_and_mva() -> int:
         fig = __import__("matplotlib.pyplot").pyplot.subplots(figsize=(10, 10))[0]
         ax = fig.axes[0]
         roc = model["roc"]
-        label_name = model_name.replace("_", " ")
+        label_name = model_display_name(model_name)
         roc_label = "{} AUC={:.3f}".format(label_name, model["auc"])
         ax.plot(roc["fpr"], roc["tpr"], label=roc_label)
         ax.plot([0, 1], [0, 1], linestyle="--", color="gray", label="Random")
@@ -315,10 +316,16 @@ def plot_approach_and_mva() -> int:
         ax.legend(loc="lower right", fontsize="x-small")
         __import__("mplhep").label.exp_label(exp="CMS", text="", loc=2, data=True, llabel="Open Simulation", rlabel=r"$13$ TeV", ax=ax)
         caption = (
-            f"{model_name} classifier ROC curve for the S2 attempt. "
+            f"{label_name} classifier ROC curve for the S2 attempt. "
             "The weak separation and failed category-viability gates prevent promotion to nominal Phase 4 categories."
         )
-        save_and_register(fig, f"mva_roc_{model_name}", caption, "phase3_selection/outputs/mva_metrics.json", {"model": model_name})
+        save_and_register(
+            fig,
+            f"mva_roc_{model_name}",
+            caption,
+            "phase3_selection/outputs/mva_metrics.json",
+            {"model": model_name, "model_label": label_name},
+        )
         made += 1
     if (OUT / "mva_scores.npz").exists():
         scores = np.load(OUT / "mva_scores.npz", allow_pickle=True)
@@ -334,7 +341,14 @@ def plot_approach_and_mva() -> int:
             "Best S2 classifier score data/MC comparison in the broad validation window. "
             "The score-shape gate and low-stat category viability failed, so this diagnostic is preserved as rejected-approach evidence rather than used in the nominal fit."
         )
-        save_and_register(fig, "mva_best_score_datamc", caption, "phase3_selection/outputs/mva_scores.npz", {"best_model": str(scores["best_model"][0])})
+        best_model = str(scores["best_model"][0])
+        save_and_register(
+            fig,
+            "mva_best_score_datamc",
+            caption,
+            "phase3_selection/outputs/mva_scores.npz",
+            {"best_model": best_model, "best_model_label": model_display_name(best_model)},
+        )
         made += 1
     return made
 

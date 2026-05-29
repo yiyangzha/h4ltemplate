@@ -359,6 +359,10 @@
 
 - Updated `COMMITMENTS.md` for Phase 3-resolved proof artifacts and formal VBF downscope items.
 
+## 2026-05-29 — Phase 3 MVA label presentation fix
+
+- Replaced code-style classifier labels in ROC figures, registry captions, and `SELECTION.md` with presentation names (`BDT`, `small NN`, `logistic`) while preserving machine-readable model keys in metadata.
+
 ## 2026-05-29 — Phase 3 mass-plot legend layout fix
 
 - Moved mass-stack data/MC legends out of the experiment-label region and regenerated the m4l stack figures plus the Phase 3 figure registry/artifact.
@@ -486,3 +490,11 @@
 ## 2026-05-29 — Phase 3 commitment update
 
 - Updated `COMMITMENTS.md` for Phase 3-resolved proof artifacts and formal VBF downscope items.
+
+## 2026-05-29 — Phase 3 selection figures
+
+- Produced 15 selection/sideband/MVA diagnostic figures and updated `FIGURES.json`.
+
+## 2026-05-29 — Phase 3 selection artifact
+
+- Built `phase3_selection/outputs/SELECTION.md` from Phase 3 JSON/NPZ outputs.

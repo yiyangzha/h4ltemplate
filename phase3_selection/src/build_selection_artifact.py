@@ -3,7 +3,7 @@ from __future__ import annotations
 import math
 from pathlib import Path
 
-from selection_common import OUT, append_experiment, append_session, read_json, setup_logging
+from selection_common import OUT, append_experiment, append_session, model_display_name, read_json, setup_logging
 
 
 def table(headers: list[str], rows: list[list[object]]) -> str:
@@ -92,7 +92,7 @@ def mva_gate_table(mva: dict) -> str:
         viability = item["category_counts"]["viability"]
         rows.append(
             [
-                name,
+                model_display_name(name),
                 fmt(item["auc"], 4),
                 fmt(item["overtraining_signal_mean_gap"], 4),
                 fmt(gate["chi2"], 4),
@@ -138,6 +138,9 @@ def main() -> None:
     mva = read_json(OUT / "mva_metrics.json")
     comparison = read_json(OUT / "approach_comparison.json")
     figures = read_json(OUT / "FIGURES.json")
+    s2_result = comparison["approaches"]["S2_angular_kinematic_classifier_categories"]
+    best_model_label = model_display_name(mva["promotion_decision"].get("best_model"))
+    s2_best_model_label = model_display_name(s2_result.get("best_model"))
     norm_rows = [
         [item["sample"], item["group"], fmt(item["metadata_generated_events"]), fmt(item["xsec_pb_user_prompt"], 6), fmt(item["nominal_weight"], 6)]
         for item in normalization["records"]
@@ -228,19 +231,19 @@ Variables explicitly not promoted: `m4l` is excluded to avoid mass sculpting;
 
 {table(["Approach", "Metric/result"], [
     ["S1 reference-like final-state fit", "mu uncertainty proxy = " + fmt(comparison["approaches"]["S1_reference_like_cut_and_channel_fit"]["asimov_mu_uncertainty_proxy"])],
-    ["S2 classifier categories", "best model = " + str(comparison["approaches"]["S2_angular_kinematic_classifier_categories"].get("best_model")) + ", relative improvement = " + fmt(comparison["approaches"]["S2_angular_kinematic_classifier_categories"].get("relative_improvement"))],
+    ["S2 classifier categories", "best model = " + s2_best_model_label + ", relative improvement = " + fmt(s2_result.get("relative_improvement"))],
     ["Nominal selection", selected],
 ])}
 
 S2 was not promoted. The best classifier is
-`{mva['promotion_decision'].get('best_model')}` with a relative proxy change of
+{best_model_label} with a relative proxy change of
 {fmt(mva['promotion_decision'].get('relative_improvement'))}; this is worse
 than S1, not a >10 percent improvement. The detailed S2 gate table is:
 
 {mva_gate_table(mva)}
 
 The BDT score-shape gate passes, but its category-viability gate fails; the
-logistic and small-NN score-shape and category-viability gates both fail. No
+logistic and small NN score-shape and category-viability gates both fail. No
 trained classifier variant satisfies all S2 promotion gates.
 
 ## Fake And Sideband Diagnostics
