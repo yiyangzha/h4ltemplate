@@ -60,14 +60,14 @@ SAMPLES = [
             "VBF_HToZZTo4L_M125_TuneCP5_13TeV_powheg2_JHUGenV7011_pythia8",
         ],
     },
-    {
-        "label": "ZHToZZ",
-        "xsec_pb": 7.935e-01,
-        "aliases": [
-            "ZHToZZ.root",
-            "ZH_HToZZ_4LFilter_M125_TuneCP5_13TeV_powheg2-minlo-HZJ_JHUGenV7011_pythia8",
-        ],
-    },
+    #{
+    #    "label": "ZHToZZ",
+    #    "xsec_pb": 7.935e-01,
+    #    "aliases": [
+    #        "ZHToZZ.root",
+    #        "ZH_HToZZ_4LFilter_M125_TuneCP5_13TeV_powheg2-minlo-HZJ_JHUGenV7011_pythia8",
+    #    ],
+    #},
     {
         "label": "WPHToZZ",
         "xsec_pb": 8.648e-01,
