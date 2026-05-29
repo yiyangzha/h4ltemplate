@@ -10,11 +10,11 @@ Data and MC are flat ntuples produced with the script h4l_ntuplize.py.
 Data: /sandbox/work/jfc/analyses/h4ltemplate/data (10 fb^-1)
 MC: /sandbox/work/jfc/analyses/h4ltemplate/mc
 
-#GluGluToHToZZ.root cross-section:1.333521e-02 pb  fullname:GluGluHToZZTo4L_M125_TuneCP5_13TeV_powheg2_minloHJJ_JHUGenV7011_pythia8
-#VBF_HToZZ.root   cross-section:1.038159e-03 pb  fullname:VBF_HToZZTo4L_M125_TuneCP5_13TeV_powheg2_JHUGenV7011_pythia8
-#ZHToZZ.root      cross-section:2.458e-04 pb     fullname:ZH_HToZZ_4LFilter_M125_TuneCP5_13TeV_powheg2-minlo-HZJ_JHUGenV7011_pythia8
-#WPHToZZ.root     cross-section:2.305562e-04 pb  fullname:WplusH_HToZZTo4L_M125_TuneCP5_13TeV_powheg2-minlo-HWJ_JHUGenV7011_pythia8
-#WMHToZZ.root     cross-section:1.469e-04 pb     fullname:WminusH_HToZZTo4L_M125_TuneCP5_13TeV_powheg2-minlo-HWJ_JHUGenV7011_pythia8/NANOAODSIM/106X_mc2017_realistic_v9-v2
+#GluGluToHToZZ.root cross-section:6.024e-03 pb     fullname:GluGluHToZZTo4L_M125_TuneCP5_13TeV_powheg2_minloHJJ_JHUGenV7011_pythia8
+#VBF_HToZZ.root   cross-section:4.8794e-04 pb    fullname:VBF_HToZZTo4L_M125_TuneCP5_13TeV_powheg2_JHUGenV7011_pythia8
+#ZHToZZ.root      cross-section:9.8394e-05 pb    fullname:ZH_HToZZ_4LFilter_M125_TuneCP5_13TeV_powheg2-minlo-HZJ_JHUGenV7011_pythia8
+#WPHToZZ.root     cross-section:1.072352e-04 pb  fullname:WplusH_HToZZTo4L_M125_TuneCP5_13TeV_powheg2-minlo-HWJ_JHUGenV7011_pythia8
+#WMHToZZ.root     cross-section:6.706e-05 pb     fullname:WminusH_HToZZTo4L_M125_TuneCP5_13TeV_powheg2-minlo-HWJ_JHUGenV7011_pythia8/NANOAODSIM/106X_mc2017_realistic_v9-v2
 #ZZTo4L.root      cross-section:1.325e+00 pb     fullname:ZZTo4L_TuneCP5_13TeV_powheg_pythia8
 #DYJetsToLL.root  cross-section:5.396e+03 pb     fullname:DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8
 #TTBar.root       cross-section:5.270e+01 pb     fullname:TTJets_DiLept_TuneCP5_13TeV-madgraphMLM-pythia8
