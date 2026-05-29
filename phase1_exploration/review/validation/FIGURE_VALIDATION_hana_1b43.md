@@ -8,6 +8,7 @@
 - The figure is readable at rendered size: axis labels, tick labels, and legend text are all legible.
 - The experiment label is present and correctly placed: `CMS Open Data+Sim` on the main panel.
 - The x-axis label includes units: `$m_{4\ell}$ [GeV]`.
+- The regenerated y-axis label is the correct density form: `(1/N) dN/dm_{4\ell} [GeV^{-1}]`.
 - The figure matches the caption intent: it is a small-slice, area-normalized shape comparison with multiple physics categories overlaid for reconnaissance.
 - The legend is complete for the plotted series: background ZZ, background ggZZ, background reducible, background top, data, signal VBF, signal VH, and signal ggH.
 - No visible text-text collisions, clipped labels, or legend/data overlaps are present.
@@ -16,4 +17,4 @@
 
 ## Notes
 
-- The y-axis label `Normalized entities` is generic, but it is not misleading in context and does not prevent interpretation of the figure.
+- Refreshed by fixer session `petra_11e2` after regenerating the figure with a density-form y-axis label.

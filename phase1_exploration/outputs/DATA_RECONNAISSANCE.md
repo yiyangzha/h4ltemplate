@@ -1,7 +1,7 @@
 # Data Reconnaissance
 
 Session: `albert_0f97`
-Created: 2026-05-29T18:42:39.939318+00:00
+Created: 2026-05-29T19:11:36.196314+00:00
 
 ## Summary
 
@@ -3898,6 +3898,43 @@ Phase 1 finds the core four-lepton variables (`m4l`, `mZ1`, `mZ2`, `pt4l`, `eta4
 | ZZTo4L.root | h4lTree | trigBits | 32 | 0.0 | 1843.0 | 653.985 | 0(37), 1(5), 3(38), 16(9), 32(28), 48(137), 256(20), 257(5), 259(300), 512(6), 528(11), 544(30) |
 
 
+### Integer/Flag Interpretation and Residual Ambiguities
+
+Targeted decoding attempts:
+
+- Read the local ntuplizer `h4l_ntuplize.py` in this analysis root. It defines the custom `finalState`, `zId`, and `trigBits` encodings and copies NanoAOD lepton-ID branches into the flat ntuple.
+- Checked the branch inventory and small-slice unique-value survey for every primary ROOT file. The observed values are consistent with the local ntuplizer definitions.
+- Checked public NanoAOD branch context for `Electron_cutBased` using the CMS NanoAOD workbook (https://twiki.cern.ch/twiki/bin/view/CMSPublic/WorkBookNanoAOD). The local ntuplizer copies `Electron_cutBased` for electrons, sets it to `0` for muon rows, and in generator-dressed-lepton fallback sets generated electrons to `4`.
+
+Decoded codes needed by Phase 2:
+
+| Branch family | Observed values | Interpretation | Phase 2 handling |
+| --- | --- | --- | --- |
+| `finalState` | `0`, `1`, `2` | Local ntuplizer sets `0` for four-muon candidates, `1` for four-electron candidates, and `2` for mixed two-electron/two-muon candidates. | Use for channel splitting only after confirming the file provenance remains this ntuplizer. |
+| `l1zId` ... `l4zId` | `1`, `2` | Local ntuplizer stores the selected candidate as Z1 leptons first and Z2 leptons second, then writes `zId=[1, 1, 2, 2]`; `l1/l2` are Z1 and `l3/l4` are Z2. | Safe for reconstructing which selected leptons belong to Z1 vs Z2; it is not an external truth label. |
+| `l1elCutBased` ... `l4elCutBased` | `0`, `1`, `2`, `3`, `4` | For electron rows this is the NanoAOD `Electron_cutBased` working-point integer (`0` fail/no WP, `1` veto, `2` loose, `3` medium, `4` tight). For muon rows the local ntuplizer writes `0`, so `0` is not automatically a failed electron. | Apply electron WP logic only where `abs(lNpdgId)==11`; do not treat all zeros as failed electrons. |
+| `lNmuMedium`, `lNmuTight`, `lNmuGlobal`, `lNmuPF`, `lNelMvaWP80`, `lNelMvaWP90` | `0`, `1` | Boolean object-ID/pass flags copied from NanoAOD or assigned by the local generator-dressed-lepton fallback. | Use as boolean flags; Phase 2 should require object flavor consistency before applying an electron or muon flag. |
+| `trigBits` | Bitmask values, including `0`, `1`, `3`, `16`, `32`, `48`, `259`, `1843` | Local ntuplizer ORs one bit per HLT path; `trigBits=0` means none of the listed HLT paths fired in the stored event. | Decode by bit operations; do not compare only to a single integer value. |
+
+Trigger bit map from `h4l_ntuplize.py`:
+
+| Bit | Mask value | HLT path suffix |
+| --- | --- | --- |
+| 0 | 1 | HLT_IsoMu24 |
+| 1 | 2 | HLT_IsoMu27 |
+| 2 | 4 | HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_Mass3p8 |
+| 3 | 8 | HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_Mass8 |
+| 4 | 16 | HLT_Ele32_WPTight_Gsf |
+| 5 | 32 | HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL |
+| 6 | 64 | HLT_Mu8_DiEle12_CaloIdL_TrackIdL_DZ |
+| 7 | 128 | HLT_DiMu9_Ele9_CaloIdL_TrackIdL_DZ |
+| 8 | 256 | HLT_TripleMu_12_10_5 |
+| 9 | 512 | HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ |
+| 10 | 1024 | HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_DZ |
+
+Residual ambiguity: Phase 1 did not prove that every provided ROOT file was produced by this exact local `h4l_ntuplize.py` revision. The custom branch names and observed values match the script, so the interpretation is the working Phase 2 assumption. If Phase 2 changes data source or finds provenance metadata that contradicts this script, it must revise the code map before using channel, ID, or trigger categories.
+
+
 ## Data Quality Assessment
 
 | File | Tree | Entries loaded | Numeric branches | NaN count | Inf count |
@@ -3929,6 +3966,16 @@ Phase 1 finds the core four-lepton variables (`m4l`, `mZ1`, `mZ2`, `pt4l`, `eta4
 
 No full-event production processing was performed in Phase 1. The quality survey loaded at most 1000 entries per primary tree and counted NaN/inf values after flattening numeric branches.
 
+### Visible Extremes and Outlier Assessment
+
+The NaN/inf check is clean in the 1000-entry slices, but the integer/range survey shows expected tails that Phase 2 should not ignore:
+
+- Lepton `pfRelIso03` values are bounded just below the local ntuplizer threshold of `0.35`, which is consistent with the object selection. This is acceptable and supports the inference that the ntuples are already object-selected.
+- Lepton `miniRelIso` has long tails in the same slices: the largest observed values are about `6.04` in `TTBar.root`, `5.33` in `TTBar.root`, and `4.78` in both the data and DY slices. This is not immediately a NaN/inf pathology because the stored selection cut is on `pfRelIso03`, not `miniRelIso`. Treat these tails as acceptable for Phase 1, but Phase 2 should avoid using `miniRelIso` as a tight modeling observable without a dedicated data/MC tail check.
+- Very small `pvNdof` values appear in several slices, with a minimum about `0.296` in `TTBar.root` and values below `1` in data, DY, VBF, and ZH samples. Because `pvNdof` is copied from the input PV branch and no PV-quality cut is apparent in the local ntuplizer, these values are unresolved rather than automatically suspicious. Phase 2 should either avoid using `pvNdof` in selections or add an explicit PV-quality validation if it becomes an input variable.
+- The stored `nPV` ranges are broad but finite and plausible for 13 TeV pileup-like content in these small slices; no discontinuity or sentinel value is visible.
+
+
 ## Truth-Level Information
 
 Truth-level support is assessed from branch names and tree content in the metadata inventory. The only `pdgId`-like branches found in the primary files are reconstructed lepton flavor identifiers (`l1pdgId` through `l4pdgId`); no primary branches matching generator/truth tokens (`gen`, `truth`, `lhe`, `mother`, `status`) were found. Phase 2 must not assume truth matching or particle-level closure is available from these ntuples without adding an external method or source.
@@ -3936,6 +3983,17 @@ Truth-level support is assessed from branch names and tree content in the metada
 ## Pre-Applied Selections
 
 The ntuples are not raw CMS MiniAOD/NanoAOD; they are flat ntuples produced by `h4l_ntuplize.py`. Therefore the `Events` tree entries are already after ntuplizer-level object/event construction. MC files include `Metadata` generated-event counts for normalization denominators; the ratio of `Events` rows to generated metadata rows is a first diagnostic of preselection/skimming. Data do not include a public inclusive denominator in Phase 1, so no data preselection efficiency is inferred from the target observable.
+
+### Likely Content Boundary From Branches and Ntuplizer Code
+
+The available branch content and the local `h4l_ntuplize.py` code imply that the flat `h4lTree` is a selected-candidate ntuple, not an event record with all reconstructed objects:
+
+- Candidate boundary: each row contains one best four-lepton candidate with `m4l`, `mZ1`, `mZ2`, four selected leptons, and Z assignment labels. Alternate candidates and unselected leptons are not retained.
+- Object boundary: selected muons/electrons have already passed pT/eta, impact-parameter, SIP3D, and `pfRelIso03` requirements in the ntuplizer. The stored ID/isolation variables are post-object-selection diagnostics, not raw object collections.
+- Pairing boundary: the ntuplizer requires two same-flavor opposite-sign Z candidates, applies Z-mass and low-mass opposite-sign-pair requirements, chooses the Z1/Z2 pairing internally, and writes only that choice.
+- Trigger boundary: `trigBits` records the listed HLT path decisions, but the local ntuplizer records the bitmask after candidate construction and does not itself reject rows solely because `trigBits==0`. Phase 2 must decide whether and how to impose trigger requirements.
+- Missing-content boundary: no jet collections, MET, all-object collections, generator/truth records, or precomputed MELA/angular discriminants are present in the primary branch inventory. VBF categorization, truth-level closure, and matrix-element discriminants therefore require external recovery, recomputation from available lepton four-vectors, or formal downscoping.
+
 
 ## Exploration Figures
 

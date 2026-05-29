@@ -1,13 +1,13 @@
 # Literature Survey
 
 Session: `albert_0f97`
-Created: 2026-05-29T18:42:39.946563+00:00
+Created: 2026-05-29T19:11:36.203686+00:00
 
 ## Search Trail
 
 - MCP status: `MCP_ALPHAXIV=false`, `MCP_LEP_CORPUS=false`; no MCP tools called.
-- Public searches: `CMS-HIG-16-041 JHEP 11 2017 047`, `arXiv 1706.09936 mass window`, `HEPData CMS-HIG-16-041`, `CMS luminosity 2017 13 TeV`, and `PDG 2024 Gauge and Higgs Bosons Summary Table`.
-- Primary public sources retained: CMS-HIG-16-041 public publication page, CMS-PAS-HIG-16-041 public preliminary page, HEPData record DOI 10.17182/hepdata.80189, CMS-PAS-LUM-20-001 luminosity page, and PDG 2024 summary table.
+- Public searches: `CMS-HIG-16-041 JHEP 11 2017 047`, `arXiv 1706.09936 mass window`, `HEPData CMS-HIG-16-041`, `CMS HIG-19-001 137 fb-1 HZZ4l fiducial cross section`, `CMS luminosity 2017 13 TeV`, and `PDG 2024 Gauge and Higgs Bosons Summary Table`.
+- Primary public sources retained: CMS-HIG-16-041 public publication page, CMS-PAS-HIG-16-041 public preliminary page, HEPData record DOI 10.17182/hepdata.80189, CMS-HIG-19-001 public publication page, CMS-PAS-LUM-20-001 luminosity page, and PDG 2024 summary table.
 
 ## Reference Analysis: CMS-HIG-16-041 / JHEP 11 (2017) 047
 
@@ -21,7 +21,9 @@ The public figure descriptions for CMS-HIG-16-041 state that the observed mass/w
 
 ## Modern/Public Comparable Results
 
-The HEPData record for the same paper provides public numerical tables for integrated and differential fiducial cross sections and correlations. A later CMS H->4l production cross-section publication using 137 fb^-1 reports mu = 0.94 +/- 0.07 (stat) +0.09/-0.08 (syst) and an inclusive fiducial cross section of 2.84 +0.23/-0.22 (stat) +0.26/-0.21 (syst) fb at mH = 125.38 GeV. This is useful as context but less directly comparable because it uses the full Run 2 dataset and a later analysis configuration.
+The HEPData record for the same paper provides public numerical tables for integrated and differential fiducial cross sections and correlations. A later CMS H->4l production cross-section publication, CMS-HIG-19-001 / EPJC 81 (2021) 488, uses 137 fb^-1 at 13 TeV. Its abstract reports mu = 0.94 +/- 0.07 (stat) +0.09/-0.08 (syst) and an inclusive fiducial cross section of 2.84 +0.23/-0.22 (stat) +0.26/-0.21 (syst) fb at mH = 125.38 GeV. Search trail: public web query `CMS HIG-19-001 137 fb-1 HZZ4l fiducial cross section`, retained CMS public publication page and arXiv:2103.04956.
+
+CMS-HIG-19-001 is the most useful additional Phase 2 comparison because it keeps the same H->ZZ->4l final-state family while moving to full Run 2 statistics and a more differential production cross-section program. The methodological differences Phase 2 should care about are: full Run 2 luminosity rather than the 10 fb^-1 open-data subset; more mature lepton calibration and systematic treatment; official data-driven reducible-background estimates rather than the DY+jets MC proxy; and production-mode/differential categorization that depends on object content absent from the current flat ntuples, especially jets and dedicated discriminants.
 
 ## PDG and World-Average Inputs
 
@@ -39,6 +41,8 @@ The PDG 2024 Gauge and Higgs Bosons Summary Table gives mZ = 91.1880 +/- 0.0020 
 | Source | Use |
 | --- | --- |
 | CMS-HIG-16-041 | CMS-HIG-16-041 / JHEP 11 (2017) 047 public page, arXiv:1706.09936, DOI 10.1007/JHEP11(2017)047: https://cms-results.web.cern.ch/cms-results/public-results/publications/HIG-16-041/ |
+| CMS-HIG-19-001 | CMS-HIG-19-001 public page / EPJC 81 (2021) 488, arXiv:2103.04956, DOI 10.1140/epjc/s10052-021-09200-x: https://cms-results.web.cern.ch/cms-results/public-results/publications/HIG-19-001/ |
 | HEPData-80189 | HEPData record for CMS-HIG-16-041, DOI 10.17182/hepdata.80189: https://www.hepdata.net/record/ins1608166 |
 | CMS-LUM-20-001 | CMS-PAS-LUM-20-001 public page for CMS 2017 luminosity: https://cms-results.web.cern.ch/cms-results/public-results/preliminary-results/LUM-20-001/ |
+| CMS-NanoAOD | CMS public NanoAOD workbook for branch-level object content context: https://twiki.cern.ch/twiki/bin/view/CMSPublic/WorkBookNanoAOD |
 | PDG-2024 | PDG 2024 Gauge and Higgs Bosons Summary Table, Phys. Rev. D 110, 030001 (2024): https://pdg.lbl.gov/2024/tables/rpp2024-sum-gauge-higgs-bosons.pdf |

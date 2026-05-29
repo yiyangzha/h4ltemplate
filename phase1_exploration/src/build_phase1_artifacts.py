@@ -19,8 +19,10 @@ from phase1_utils import (
 
 SOURCES = {
     "CMS-HIG-16-041": "CMS-HIG-16-041 / JHEP 11 (2017) 047 public page, arXiv:1706.09936, DOI 10.1007/JHEP11(2017)047: https://cms-results.web.cern.ch/cms-results/public-results/publications/HIG-16-041/",
+    "CMS-HIG-19-001": "CMS-HIG-19-001 public page / EPJC 81 (2021) 488, arXiv:2103.04956, DOI 10.1140/epjc/s10052-021-09200-x: https://cms-results.web.cern.ch/cms-results/public-results/publications/HIG-19-001/",
     "HEPData-80189": "HEPData record for CMS-HIG-16-041, DOI 10.17182/hepdata.80189: https://www.hepdata.net/record/ins1608166",
     "CMS-LUM-20-001": "CMS-PAS-LUM-20-001 public page for CMS 2017 luminosity: https://cms-results.web.cern.ch/cms-results/public-results/preliminary-results/LUM-20-001/",
+    "CMS-NanoAOD": "CMS public NanoAOD workbook for branch-level object content context: https://twiki.cern.ch/twiki/bin/view/CMSPublic/WorkBookNanoAOD",
     "PDG-2024": "PDG 2024 Gauge and Higgs Bosons Summary Table, Phys. Rev. D 110, 030001 (2024): https://pdg.lbl.gov/2024/tables/rpp2024-sum-gauge-higgs-bosons.pdf",
 }
 
@@ -91,6 +93,46 @@ def unique_survey(slice_recon: dict) -> str:
     return "\n".join(lines) if lines else "No integer/flag-like branches were found in the small-slice survey.\n"
 
 
+def integer_flag_interpretation() -> str:
+    trigger_rows = [
+        [0, "1", "HLT_IsoMu24"],
+        [1, "2", "HLT_IsoMu27"],
+        [2, "4", "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_Mass3p8"],
+        [3, "8", "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_Mass8"],
+        [4, "16", "HLT_Ele32_WPTight_Gsf"],
+        [5, "32", "HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL"],
+        [6, "64", "HLT_Mu8_DiEle12_CaloIdL_TrackIdL_DZ"],
+        [7, "128", "HLT_DiMu9_Ele9_CaloIdL_TrackIdL_DZ"],
+        [8, "256", "HLT_TripleMu_12_10_5"],
+        [9, "512", "HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ"],
+        [10, "1024", "HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_DZ"],
+    ]
+    return f"""### Integer/Flag Interpretation and Residual Ambiguities
+
+Targeted decoding attempts:
+
+- Read the local ntuplizer `h4l_ntuplize.py` in this analysis root. It defines the custom `finalState`, `zId`, and `trigBits` encodings and copies NanoAOD lepton-ID branches into the flat ntuple.
+- Checked the branch inventory and small-slice unique-value survey for every primary ROOT file. The observed values are consistent with the local ntuplizer definitions.
+- Checked public NanoAOD branch context for `Electron_cutBased` using the CMS NanoAOD workbook (https://twiki.cern.ch/twiki/bin/view/CMSPublic/WorkBookNanoAOD). The local ntuplizer copies `Electron_cutBased` for electrons, sets it to `0` for muon rows, and in generator-dressed-lepton fallback sets generated electrons to `4`.
+
+Decoded codes needed by Phase 2:
+
+| Branch family | Observed values | Interpretation | Phase 2 handling |
+| --- | --- | --- | --- |
+| `finalState` | `0`, `1`, `2` | Local ntuplizer sets `0` for four-muon candidates, `1` for four-electron candidates, and `2` for mixed two-electron/two-muon candidates. | Use for channel splitting only after confirming the file provenance remains this ntuplizer. |
+| `l1zId` ... `l4zId` | `1`, `2` | Local ntuplizer stores the selected candidate as Z1 leptons first and Z2 leptons second, then writes `zId=[1, 1, 2, 2]`; `l1/l2` are Z1 and `l3/l4` are Z2. | Safe for reconstructing which selected leptons belong to Z1 vs Z2; it is not an external truth label. |
+| `l1elCutBased` ... `l4elCutBased` | `0`, `1`, `2`, `3`, `4` | For electron rows this is the NanoAOD `Electron_cutBased` working-point integer (`0` fail/no WP, `1` veto, `2` loose, `3` medium, `4` tight). For muon rows the local ntuplizer writes `0`, so `0` is not automatically a failed electron. | Apply electron WP logic only where `abs(lNpdgId)==11`; do not treat all zeros as failed electrons. |
+| `lNmuMedium`, `lNmuTight`, `lNmuGlobal`, `lNmuPF`, `lNelMvaWP80`, `lNelMvaWP90` | `0`, `1` | Boolean object-ID/pass flags copied from NanoAOD or assigned by the local generator-dressed-lepton fallback. | Use as boolean flags; Phase 2 should require object flavor consistency before applying an electron or muon flag. |
+| `trigBits` | Bitmask values, including `0`, `1`, `3`, `16`, `32`, `48`, `259`, `1843` | Local ntuplizer ORs one bit per HLT path; `trigBits=0` means none of the listed HLT paths fired in the stored event. | Decode by bit operations; do not compare only to a single integer value. |
+
+Trigger bit map from `h4l_ntuplize.py`:
+
+{md_table(["Bit", "Mask value", "HLT path suffix"], trigger_rows)}
+
+Residual ambiguity: Phase 1 did not prove that every provided ROOT file was produced by this exact local `h4l_ntuplize.py` revision. The custom branch names and observed values match the script, so the interpretation is the working Phase 2 assumption. If Phase 2 changes data source or finds provenance metadata that contradicts this script, it must revise the code map before using channel, ID, or trigger categories.
+"""
+
+
 def data_quality(slice_recon: dict) -> str:
     rows = []
     for file_record in slice_recon.get("files", []):
@@ -105,6 +147,18 @@ def data_quality(slice_recon: dict) -> str:
                     inf += int(summary.get("inf_count", 0))
             rows.append([file_record["name"], tree_name, tree["entries_loaded"], numeric, nan, inf])
     return md_table(["File", "Tree", "Entries loaded", "Numeric branches", "NaN count", "Inf count"], rows)
+
+
+def data_quality_prose() -> str:
+    return """### Visible Extremes and Outlier Assessment
+
+The NaN/inf check is clean in the 1000-entry slices, but the integer/range survey shows expected tails that Phase 2 should not ignore:
+
+- Lepton `pfRelIso03` values are bounded just below the local ntuplizer threshold of `0.35`, which is consistent with the object selection. This is acceptable and supports the inference that the ntuples are already object-selected.
+- Lepton `miniRelIso` has long tails in the same slices: the largest observed values are about `6.04` in `TTBar.root`, `5.33` in `TTBar.root`, and `4.78` in both the data and DY slices. This is not immediately a NaN/inf pathology because the stored selection cut is on `pfRelIso03`, not `miniRelIso`. Treat these tails as acceptable for Phase 1, but Phase 2 should avoid using `miniRelIso` as a tight modeling observable without a dedicated data/MC tail check.
+- Very small `pvNdof` values appear in several slices, with a minimum about `0.296` in `TTBar.root` and values below `1` in data, DY, VBF, and ZH samples. Because `pvNdof` is copied from the input PV branch and no PV-quality cut is apparent in the local ntuplizer, these values are unresolved rather than automatically suspicious. Phase 2 should either avoid using `pvNdof` in selections or add an explicit PV-quality validation if it becomes an input variable.
+- The stored `nPV` ranges are broad but finite and plausible for 13 TeV pileup-like content in these small slices; no discontinuity or sentinel value is visible.
+"""
 
 
 def branch_availability(metadata: dict) -> str:
@@ -134,6 +188,19 @@ def branch_availability(metadata: dict) -> str:
         )
         rows.append([topic, "FOUND" if matches else "NOT FOUND", ", ".join(matches[:20]) if matches else "none in primary h4lTree/Metadata branches"])
     return md_table(["Capability", "Status", "Matching branches"], rows)
+
+
+def content_boundary_summary() -> str:
+    return """### Likely Content Boundary From Branches and Ntuplizer Code
+
+The available branch content and the local `h4l_ntuplize.py` code imply that the flat `h4lTree` is a selected-candidate ntuple, not an event record with all reconstructed objects:
+
+- Candidate boundary: each row contains one best four-lepton candidate with `m4l`, `mZ1`, `mZ2`, four selected leptons, and Z assignment labels. Alternate candidates and unselected leptons are not retained.
+- Object boundary: selected muons/electrons have already passed pT/eta, impact-parameter, SIP3D, and `pfRelIso03` requirements in the ntuplizer. The stored ID/isolation variables are post-object-selection diagnostics, not raw object collections.
+- Pairing boundary: the ntuplizer requires two same-flavor opposite-sign Z candidates, applies Z-mass and low-mass opposite-sign-pair requirements, chooses the Z1/Z2 pairing internally, and writes only that choice.
+- Trigger boundary: `trigBits` records the listed HLT path decisions, but the local ntuplizer records the bitmask after candidate construction and does not itself reject rows solely because `trigBits==0`. Phase 2 must decide whether and how to impose trigger requirements.
+- Missing-content boundary: no jet collections, MET, all-object collections, generator/truth records, or precomputed MELA/angular discriminants are present in the primary branch inventory. VBF categorization, truth-level closure, and matrix-element discriminants therefore require external recovery, recomputation from available lepton four-vectors, or formal downscoping.
+"""
 
 
 def primary_local_comparison(metadata: dict) -> str:
@@ -212,11 +279,15 @@ Phase 1 finds the core four-lepton variables (`m4l`, `mZ1`, `mZ2`, `pt4l`, `eta4
 
 {unique_survey(slice_recon)}
 
+{integer_flag_interpretation()}
+
 ## Data Quality Assessment
 
 {data_quality(slice_recon)}
 
 No full-event production processing was performed in Phase 1. The quality survey loaded at most 1000 entries per primary tree and counted NaN/inf values after flattening numeric branches.
+
+{data_quality_prose()}
 
 ## Truth-Level Information
 
@@ -225,6 +296,8 @@ Truth-level support is assessed from branch names and tree content in the metada
 ## Pre-Applied Selections
 
 The ntuples are not raw CMS MiniAOD/NanoAOD; they are flat ntuples produced by `h4l_ntuplize.py`. Therefore the `Events` tree entries are already after ntuplizer-level object/event construction. MC files include `Metadata` generated-event counts for normalization denominators; the ratio of `Events` rows to generated metadata rows is a first diagnostic of preselection/skimming. Data do not include a public inclusive denominator in Phase 1, so no data preselection efficiency is inferred from the target observable.
+
+{content_boundary_summary()}
 
 ## Exploration Figures
 
@@ -257,6 +330,8 @@ def write_input_inventory(coverage: dict) -> None:
         ["Published HIG-16-041 fiducial cross section", "FOUND_REFERENCE", "2.92 +0.48/-0.44 (stat) +0.28/-0.24 (syst) fb; SM 2.76 +/- 0.14 fb", "CMS-HIG-16-041 abstract / HEPData record, https://www.hepdata.net/record/ins1608166", "web search: HEPData CMS-HIG-16-041"],
         ["Published HIG-16-041 Higgs mass", "FOUND_REFERENCE", "125.26 +/- 0.21 GeV", "CMS-HIG-16-041 abstract / HEPData record, https://www.hepdata.net/record/ins1608166", "web search: CMS-HIG-16-041 Table 7"],
         ["Published HIG-16-041 width constraint", "FOUND_REFERENCE", "Gamma_H < 1.10 GeV at 95% CL", "CMS-HIG-16-041 abstract / HEPData record, https://www.hepdata.net/record/ins1608166", "web search: CMS-HIG-16-041 width"],
+        ["Published HIG-19-001 full Run 2 signal strength", "FOUND_REFERENCE", "mu = 0.94 +/- 0.07 (stat) +0.09/-0.08 (syst) at mH=125.38 GeV", "CMS-HIG-19-001 abstract, https://cms-results.web.cern.ch/cms-results/public-results/publications/HIG-19-001/", "web search: CMS HIG-19-001 137 fb-1 HZZ4l fiducial cross section"],
+        ["Published HIG-19-001 full Run 2 fiducial cross section", "FOUND_REFERENCE", "2.84 +0.23/-0.22 (stat) +0.26/-0.21 (syst) fb", "CMS-HIG-19-001 abstract, https://cms-results.web.cern.ch/cms-results/public-results/publications/HIG-19-001/", "web search: CMS HIG-19-001 137 fb-1 HZZ4l fiducial cross section"],
         ["PDG 2024 Z mass", "FOUND_REFERENCE", "91.1880 +/- 0.0020 GeV", "PDG 2024 Gauge and Higgs Bosons Summary Table, page 2, https://pdg.lbl.gov/2024/tables/rpp2024-sum-gauge-higgs-bosons.pdf", "web search/open: PDG 2024 summary tables"],
         ["PDG 2024 Z width", "FOUND_REFERENCE", "2.4955 +/- 0.0023 GeV", "PDG 2024 Gauge and Higgs Bosons Summary Table, page 2, https://pdg.lbl.gov/2024/tables/rpp2024-sum-gauge-higgs-bosons.pdf", "web search/open: PDG 2024 summary tables"],
         ["PDG 2024 Higgs mass", "FOUND_REFERENCE", "125.20 +/- 0.11 GeV", "PDG 2024 Gauge and Higgs Bosons Summary Table, page 4, https://pdg.lbl.gov/2024/tables/rpp2024-sum-gauge-higgs-bosons.pdf", "web search/open: PDG 2024 summary tables"],
@@ -295,8 +370,8 @@ Created: {datetime.now(timezone.utc).isoformat()}
 ## Search Trail
 
 - MCP status: `MCP_ALPHAXIV=false`, `MCP_LEP_CORPUS=false`; no MCP tools called.
-- Public searches: `CMS-HIG-16-041 JHEP 11 2017 047`, `arXiv 1706.09936 mass window`, `HEPData CMS-HIG-16-041`, `CMS luminosity 2017 13 TeV`, and `PDG 2024 Gauge and Higgs Bosons Summary Table`.
-- Primary public sources retained: CMS-HIG-16-041 public publication page, CMS-PAS-HIG-16-041 public preliminary page, HEPData record DOI 10.17182/hepdata.80189, CMS-PAS-LUM-20-001 luminosity page, and PDG 2024 summary table.
+- Public searches: `CMS-HIG-16-041 JHEP 11 2017 047`, `arXiv 1706.09936 mass window`, `HEPData CMS-HIG-16-041`, `CMS HIG-19-001 137 fb-1 HZZ4l fiducial cross section`, `CMS luminosity 2017 13 TeV`, and `PDG 2024 Gauge and Higgs Bosons Summary Table`.
+- Primary public sources retained: CMS-HIG-16-041 public publication page, CMS-PAS-HIG-16-041 public preliminary page, HEPData record DOI 10.17182/hepdata.80189, CMS-HIG-19-001 public publication page, CMS-PAS-LUM-20-001 luminosity page, and PDG 2024 summary table.
 
 ## Reference Analysis: CMS-HIG-16-041 / JHEP 11 (2017) 047
 
@@ -310,7 +385,9 @@ The public figure descriptions for CMS-HIG-16-041 state that the observed mass/w
 
 ## Modern/Public Comparable Results
 
-The HEPData record for the same paper provides public numerical tables for integrated and differential fiducial cross sections and correlations. A later CMS H->4l production cross-section publication using 137 fb^-1 reports mu = 0.94 +/- 0.07 (stat) +0.09/-0.08 (syst) and an inclusive fiducial cross section of 2.84 +0.23/-0.22 (stat) +0.26/-0.21 (syst) fb at mH = 125.38 GeV. This is useful as context but less directly comparable because it uses the full Run 2 dataset and a later analysis configuration.
+The HEPData record for the same paper provides public numerical tables for integrated and differential fiducial cross sections and correlations. A later CMS H->4l production cross-section publication, CMS-HIG-19-001 / EPJC 81 (2021) 488, uses 137 fb^-1 at 13 TeV. Its abstract reports mu = 0.94 +/- 0.07 (stat) +0.09/-0.08 (syst) and an inclusive fiducial cross section of 2.84 +0.23/-0.22 (stat) +0.26/-0.21 (syst) fb at mH = 125.38 GeV. Search trail: public web query `CMS HIG-19-001 137 fb-1 HZZ4l fiducial cross section`, retained CMS public publication page and arXiv:2103.04956.
+
+CMS-HIG-19-001 is the most useful additional Phase 2 comparison because it keeps the same H->ZZ->4l final-state family while moving to full Run 2 statistics and a more differential production cross-section program. The methodological differences Phase 2 should care about are: full Run 2 luminosity rather than the 10 fb^-1 open-data subset; more mature lepton calibration and systematic treatment; official data-driven reducible-background estimates rather than the DY+jets MC proxy; and production-mode/differential categorization that depends on object content absent from the current flat ntuples, especially jets and dedicated discriminants.
 
 ## PDG and World-Average Inputs
 
@@ -331,10 +408,12 @@ The PDG 2024 Gauge and Higgs Bosons Summary Table gives mZ = 91.1880 +/- 0.0020 
     RETRIEVAL_LOG.write_text(
         "# Phase 1 Retrieval Log\n\n"
         "- MCP_ALPHAXIV=false and MCP_LEP_CORPUS=false; no MCP calls made.\n"
-        "- Queried public web for CMS-HIG-16-041/JHEP 11 (2017) 047, HEPData DOI 10.17182/hepdata.80189, CMS 2017 luminosity, and PDG 2024 summary tables.\n"
+        "- Queried public web for CMS-HIG-16-041/JHEP 11 (2017) 047, HEPData DOI 10.17182/hepdata.80189, CMS-HIG-19-001/EPJC 81 (2021) 488, CMS 2017 luminosity, CMS NanoAOD branch context, and PDG 2024 summary tables.\n"
         "- Retained CMS public page: https://cms-results.web.cern.ch/cms-results/public-results/publications/HIG-16-041/\n"
+        "- Retained CMS full Run 2 H->4l public page: https://cms-results.web.cern.ch/cms-results/public-results/publications/HIG-19-001/\n"
         "- Retained HEPData record: https://www.hepdata.net/record/ins1608166\n"
         "- Retained CMS luminosity page: https://cms-results.web.cern.ch/cms-results/public-results/preliminary-results/LUM-20-001/\n"
+        "- Retained CMS NanoAOD workbook: https://twiki.cern.ch/twiki/bin/view/CMSPublic/WorkBookNanoAOD\n"
         "- Retained PDG summary table: https://pdg.lbl.gov/2024/tables/rpp2024-sum-gauge-higgs-bosons.pdf\n"
     )
 

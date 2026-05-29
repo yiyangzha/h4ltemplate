@@ -28,6 +28,18 @@ def pretty_label(label: str) -> str:
     return label.replace("_", " ")
 
 
+def density_ylabel(name: str) -> str:
+    labels = {
+        "m4l": r"$(1/N)\,dN/dm_{4\ell}$ [GeV$^{-1}$]",
+        "z1_mass": r"$(1/N)\,dN/dm_{Z1}$ [GeV$^{-1}$]",
+        "z2_mass": r"$(1/N)\,dN/dm_{Z2}$ [GeV$^{-1}$]",
+        "pt4l": r"$(1/N)\,dN/dp_T^{4\ell}$ [GeV$^{-1}$]",
+        "eta4l": r"$(1/N)\,dN/d\eta_{4\ell}$",
+        "leading_lepton_pt": r"$(1/N)\,dN/dp_T^\mathrm{lead}$ [GeV$^{-1}$]",
+    }
+    return labels.get(name, r"$(1/N)\,dN/dx$")
+
+
 def grouped_samples(samples: list[dict]) -> dict[str, dict]:
     groups: dict[str, dict] = {}
     for sample in samples:
@@ -79,7 +91,7 @@ def plot_observable(name: str, payload: dict) -> dict | None:
             label=pretty_label(label),
         )
     ax.set_xlabel(cfg["xlabel"])
-    ax.set_ylabel("Normalized entries")
+    ax.set_ylabel(density_ylabel(name))
     ax.legend(loc="upper right", fontsize="x-small")
     mpl_magic(ax)
     mh.label.exp_label(

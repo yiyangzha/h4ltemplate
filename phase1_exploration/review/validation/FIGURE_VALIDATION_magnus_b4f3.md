@@ -8,7 +8,7 @@
 ## Evidence
 
 - The plot renders cleanly at near-square size, which matches the intended single-panel comparison layout.
-- Axis labels are legible and use appropriate units: `Leading lepton p_T [GeV]` on x and `Normalized entries` on y.
+- Axis labels are legible and use appropriate units: `Leading lepton p_T [GeV]` on x and the density label `(1/N) dN/dp_T^lead [GeV^{-1}]` on y.
 - The CMS open-data/simulation experiment label is present and readable at the top left, with the energy note `13 TeV, small slices` placed cleanly at the top right.
 - The legend is complete for the plotted series: background ZZ, background ggZZ, background reducible, background top, data, signal VBF, signal VH, and signal ggH.
 - Legend placement is acceptable for this peaked distribution; it sits in an essentially empty upper-right region and does not visibly cover data points or error bars.
@@ -18,3 +18,4 @@
 ## Notes
 
 - The many overlaid error-bar series are visually busy, but still readable; no series appears to have malformed or suspiciously uniform error bars.
+- Refreshed by fixer session `petra_11e2` after regenerating the figure with a density-form y-axis label.

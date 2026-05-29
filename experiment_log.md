@@ -69,6 +69,15 @@
 
 - Built Phase 1 markdown artifacts from metadata, small-slice surveys, coverage checks, figure registry, and public literature source notes.
 
+## 2026-05-29T19:08:32Z — Phase 1 fixer petra_11e2
+
+- Resolved A1 by relabeling all six bin-width-normalized exploration plots as densities and regenerating PNG/PDF figures plus `FIGURES.json`.
+- Resolved A2 by adding an integer/flag interpretation section for `finalState`, electron cut-based WP integers, `zId`, and `trigBits`, with a provenance caveat for Phase 2.
+- Resolved A3/B3 by citing CMS-HIG-19-001 / EPJC 81 (2021) 488 for the 137 fb^-1 CMS H->4l comparison values and expanding the Phase 2 methodology caveats.
+- Resolved B1/B2 by adding data-quality prose for isolation/PV extremes and a preselection/content-boundary summary derived from branch availability and the local ntuplizer code.
+- Resolved C1 by refreshing all six per-figure validation notes after figure regeneration.
+- Verification: `pixi run py -m py_compile ...`, `pixi run p1-plots`, `pixi run p1-artifacts`, `pixi run lint-plots`, and the FIGURES registry smoke test all passed.
+
 ## 2026-05-29T18:35:00Z — Phase 1 self-check
 
 - Final Phase 1 pixi chain passed:
@@ -147,6 +156,18 @@
 ## 2026-05-29 — Phase 1 exploration figures
 
 - Produced 6 small-slice exploration figures and updated `phase1_exploration/outputs/FIGURES.json`.
+
+## 2026-05-29 — Phase 1 artifacts built
+
+- Built Phase 1 markdown artifacts from metadata, small-slice surveys, coverage checks, figure registry, and public literature source notes.
+
+## 2026-05-29 — Phase 1 exploration figures
+
+- Produced 6 small-slice exploration figures and updated `phase1_exploration/outputs/FIGURES.json`.
+
+## 2026-05-29 — Phase 1 artifacts built
+
+- Built Phase 1 markdown artifacts from metadata, small-slice surveys, coverage checks, figure registry, and public literature source notes.
 
 ## 2026-05-29 — Phase 1 artifacts built
 

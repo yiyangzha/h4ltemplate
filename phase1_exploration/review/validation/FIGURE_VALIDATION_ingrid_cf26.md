@@ -11,7 +11,7 @@ PASS
 
 - The rendered image is readable at publication size: axis labels, tick labels, legend text, and the CMS label are all legible.
 - The figure is close to square and the content fits cleanly in the frame (`1797 x 1829` px).
-- The x-axis label includes units (`m_{Z2} [GeV]`), and the y-axis label clearly indicates normalized entries.
+- The x-axis label includes units (`m_{Z2} [GeV]`), and the y-axis label uses the correct density form `(1/N) dN/dm_{Z2} [GeV^{-1}]`.
 - The legend is complete for the registered samples: background ZZ, background ggZZ, background reducible, background top, data, signal VBF, signal VH, signal ggH.
 - The legend sits in an empty upper-right region and does not overlap points or error bars.
 - The experiment label is present and correctly placed on the main panel; there is no visible text collision or spurious annotation artifact.
@@ -19,4 +19,4 @@ PASS
 
 ## Notes
 
-- No visual fixes were needed.
+- Refreshed by fixer session `petra_11e2` after regenerating the figure with a density-form y-axis label.
