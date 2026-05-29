@@ -369,24 +369,26 @@ Required validation before use:
 ## Systematic Plan
 
 Every row marked "Will implement" is binding for Phase 4a unless a later
-review accepts a formal downscope.
+review accepts a formal downscope. The bracketed `[SP#]` labels are
+traceability anchors for `COMMITMENTS.md`; `[SP*]` denotes this full
+systematic-plan anchor family.
 
 | Source | Status | Treatment |
 | --- | --- | --- |
-| Integrated luminosity | Will implement | Normalization nuisance for all MC templates. Use the user target luminosity for central value and public CMS 2017 luminosity uncertainty as a scale reference if applicable. |
-| Prompt effective cross sections | Will implement | Normalization nuisance per process group; Phase 3 validates search trail and propagates uncertainty or flags as user-provided if no public match is found. |
-| MC statistical uncertainty | Will implement | Bin-by-bin template statistical terms, required because selected DY/TT samples are small and some signal modes have low effective yields. |
-| Lepton reconstruction/ID/trigger efficiency | Will implement | Data/MC validation using channel and object-ID distributions; assign rate/shape variations from public CMS references or conservative closure-derived envelopes if scale factors are unavailable. |
-| Lepton momentum scale/resolution | Will implement | Shift/smear lepton four-vectors, recompute `m4l`, `mZ1`, `mZ2`, angular variables, and templates; validate against Z peak comparisons. |
-| Pileup/PV modeling | Will implement with caution | Use `nPV`/PV variables only for validation or reweighting. Do not use `pvNdof` as a classifier input unless [A6] is resolved. |
-| Signal theory normalization | Will implement | Nuisances for ggH, VBF, WH, ZH relative normalizations where used. For inclusive `mu`, keep these as acceptance/composition uncertainties, not as post-hoc tuning. |
-| Higgs branching fraction | Will implement if converting to cross section | Needed for comparison to fiducial/inclusive cross-section references; not needed for pure detector-level `mu` if templates already include effective H->4l rates. |
-| qqZZ and ggZZ background normalization/shape | Will implement | Independent normalization and shape variations; compare sideband agreement and, if possible, float dominant background normalizations in sidebands. |
-| DY+jets fake proxy normalization/shape | Will implement | Large normalization/shape nuisance or sideband-constrained parameter. Explicitly covers the approximation of using DY MC instead of data-driven Z+X. |
-| TTBar omission | Will implement as cross-check | Evaluate TTBar template impact on sidebands and signal window; if non-negligible, either include as separate reducible component or assign an omission systematic. |
-| Classifier/NN input modeling | Will implement if MVA used | Input validation gate [D7], score-shape closure, calibration/discard rules, and mass-sculpting checks. |
-| Angular reconstruction | Will implement if angular inputs used | Four-vector reconstruction, Z-pairing consistency, physical-range checks, and angle-definition source citation. |
-| Category migration | Will implement if categories beyond final state are used | Vary classifier score/calibration or jet recovery inputs and propagate migration across categories. |
+| [SP1] Integrated luminosity | Will implement | Normalization nuisance for all MC templates. Use the user target luminosity for central value and public CMS 2017 luminosity uncertainty as a scale reference if applicable. |
+| [SP2] Prompt effective cross sections | Will implement | Normalization nuisance per process group; Phase 3 validates search trail and propagates uncertainty or flags as user-provided if no public match is found. |
+| [SP3] MC statistical uncertainty | Will implement | Bin-by-bin template statistical terms, required because selected DY/TT samples are small and some signal modes have low effective yields. |
+| [SP4] Lepton reconstruction/ID/trigger efficiency | Will implement | Data/MC validation using channel and object-ID distributions; assign rate/shape variations from public CMS references or conservative closure-derived envelopes if scale factors are unavailable. |
+| [SP5] Lepton momentum scale/resolution | Will implement | Shift/smear lepton four-vectors, recompute `m4l`, `mZ1`, `mZ2`, angular variables, and templates; validate against Z peak comparisons. |
+| [SP6] Pileup/PV modeling | Will implement with caution | Use `nPV`/PV variables only for validation or reweighting. Do not use `pvNdof` as a classifier input unless [A6] is resolved. |
+| [SP7] Signal theory normalization | Will implement | Nuisances for ggH, VBF, WH, ZH relative normalizations where used. For inclusive `mu`, keep these as acceptance/composition uncertainties, not as post-hoc tuning. |
+| [SP8] Higgs branching fraction | Will implement if converting to cross section | Needed for comparison to fiducial/inclusive cross-section references; not needed for pure detector-level `mu` if templates already include effective H->4l rates. |
+| [SP9] qqZZ and ggZZ background normalization/shape | Will implement | Independent normalization and shape variations; compare sideband agreement and, if possible, float dominant background normalizations in sidebands. |
+| [SP10] DY+jets fake proxy normalization/shape | Will implement | Large normalization/shape nuisance or sideband-constrained parameter. Explicitly covers the approximation of using DY MC instead of data-driven Z+X. |
+| [SP11] TTBar omission | Will implement as cross-check | Evaluate TTBar template impact on sidebands and signal window; if non-negligible, either include as separate reducible component or assign an omission systematic. |
+| [SP12] Classifier/NN input modeling | Will implement if MVA used | Input validation gate [D7], score-shape closure, calibration/discard rules, and mass-sculpting checks. |
+| [SP13] Angular reconstruction | Will implement if angular inputs used | Four-vector reconstruction, Z-pairing consistency, physical-range checks, and angle-definition source citation. |
+| [SP12] Category migration | Will implement if categories beyond final state are used | Vary classifier score/calibration or jet recovery inputs and propagate migration across categories. |
 | Jet/VBF systematics | Not applicable unless [A3] is resolved | No jet branches exist in primary ntuples. If jets are recovered, add jet energy scale/resolution and VBF category migration systematics before review. |
 | Unfolding response/model dependence | Not applicable | No particle-level result or response matrix is defined. |
 | Closed-form extraction efficiency correlations | Not applicable | `conventions/extraction.md` does not govern this template fit. |
@@ -450,33 +452,34 @@ metric used, fallback flag, and affected templates.
 
 ## Validation Tests
 
-Phase 3 and Phase 4 must make these machine-readable where practical.
+Phase 3 and Phase 4 must make these machine-readable where practical. The
+bracketed `[VT#]` labels are traceability anchors for `COMMITMENTS.md`.
 
-1. File provenance check: primary paths, file sizes, tree entries, metadata
+1. [VT1] File provenance check: primary paths, file sizes, tree entries, metadata
    denominators, and no mixing with local copies.
-2. MC normalization check: `sigma_eff * L / nEvents` weights, expected yields
+2. [VT2] MC normalization check: `sigma_eff * L / nEvents` weights, expected yields
    per sample, and sideband yield comparison.
-3. Selection cutflow: monotonic counts and weighted yields per sample/channel.
-4. Candidate-variable data/MC validation: chi2/ndf and p-values for every
+3. [VT3] Selection cutflow: monotonic counts and weighted yields per sample/channel.
+4. [VT4] Candidate-variable data/MC validation: chi2/ndf and p-values for every
    selection or classifier input; [D7] discard/calibrate rule enforced.
-5. Angular reconstruction closure: stored-vs-recomputed `m4l`, `mZ1`, `mZ2`;
+5. [VT5] Angular reconstruction closure: stored-vs-recomputed `m4l`, `mZ1`, `mZ2`;
    physical angular ranges.
-6. Approach comparison: S1 versus S2 expected precision, GoF, stability, and
+6. [VT6] Approach comparison: S1 versus S2 expected precision, GoF, stability, and
    background closure on the same datasets.
-7. Method-parity and mass-fit cross-check: execute the binding simultaneous
+7. [VT7] Method-parity and mass-fit cross-check: execute the binding simultaneous
    category mass extraction or document the three-attempt infeasibility rule,
    and compare the nominal binned `pyhf` signal-strength fit to the mass-shape
    result when feasible.
-8. Signal injection/recovery: inject `mu = 0`, `1`, `2`, and `5` into MC/Asimov
+8. [VT8] Signal injection/recovery: inject `mu = 0`, `1`, `2`, and `5` into MC/Asimov
    pseudo-data; fitted `mu` bias must be below 20 percent or investigated.
-9. Goodness of fit: category and combined chi2/ndf with p-value; toys if
+9. [VT9] Goodness of fit: category and combined chi2/ndf with p-value; toys if
    asymptotic approximations are questionable due to low bin counts.
-10. Nuisance pulls/constraints and impact ranking after Phase 4 fits.
-11. 10 percent data stability: fixed-seed subsample, compare to expected
+10. [VT10] Nuisance pulls/constraints and impact ranking after Phase 4 fits.
+11. [VT11] 10 percent data stability: fixed-seed subsample, compare to expected
     results with statistical scaling.
-12. Mass-template closure: if a mass estimator or morphing scan is reported,
+12. [VT12] Mass-template closure: if a mass estimator or morphing scan is reported,
     demonstrate bias and uncertainty on MC pseudo-data.
-13. Category viability: prefit expected total/signal/background counts per
+13. [VT13] Category viability: prefit expected total/signal/background counts per
     proposed category and `m4l` bin, low-stat bin counts, MC-stat stability,
     overtraining, category-boundary stability, and GoF veto outcomes.
 
@@ -518,26 +521,37 @@ Phase 4a closure tests quantify it.
 
 ## Flagship Figures
 
-1. Inclusive `m4l` stacked data/MC distribution over broad and signal windows,
+The bracketed `[FIG#]` labels are traceability anchors for `COMMITMENTS.md`.
+
+1. [FIG1] Inclusive `m4l` stacked data/MC distribution over broad and signal windows,
    with ratio panel and clear DY fake proxy caveat.
-2. Simultaneous-fit `m4l` distribution in final-state categories and any
+2. [FIG2] Simultaneous-fit `m4l` distribution in final-state categories and any
    validated classifier categories, including prefit and postfit overlays.
-3. Signal-strength likelihood scan for `mu` and, if validated, mass estimator
+3. [FIG3] Signal-strength likelihood scan for `mu` and, if validated, mass estimator
    scan/profile.
-4. Input validation grid for candidate classifier/angular variables, with
+4. [FIG4] Input validation grid for candidate classifier/angular variables, with
    chi2/ndf labels and discard/calibrate verdicts.
-5. Systematic impact ranking and uncertainty breakdown on `mu`.
-6. Comparison summary table/figure against CMS-HIG-16-041, CMS-HIG-19-001,
+5. [FIG5] Systematic impact ranking and uncertainty breakdown on `mu`.
+6. [FIG6] Comparison summary table/figure against CMS-HIG-16-041, CMS-HIG-19-001,
    and PDG/world-average mass values, with explicit non-comparable rows.
 
-The final AN must include a comparability matrix before extracting numerical
-pulls from reference values. Required rows are inclusive `mu`, mass, fiducial
-cross section, width, production-sensitive categories, VBF categories, and
-reducible-background treatment. Each row is classified as matched,
-approximated/not directly comparable, or unavailable/not measured; pulls are
-reported only for matched quantitative observables. The matrix must also keep
-the HEPData `ins1608162` versus `ins1608166` ambiguity as a cleanup item until
-the record identity is resolved before numerical table extraction.
+[REF-MATRIX] The final AN must include a comparability matrix before
+extracting numerical pulls from reference values. Each row is classified as
+matched, approximated/not directly comparable, or unavailable/not measured;
+pulls are reported only for matched quantitative observables. Required
+`[REF-MATRIX]` rows are:
+
+- [REF-MATRIX] Inclusive `mu`.
+- [REF-MATRIX] Mass.
+- [REF-MATRIX] Fiducial cross section.
+- [REF-MATRIX] Width.
+- [REF-MATRIX] Production-sensitive categories.
+- [REF-MATRIX] VBF categories.
+- [REF-MATRIX] Reducible-background treatment.
+
+The matrix must also keep the HEPData `ins1608162` versus `ins1608166`
+ambiguity as a cleanup item until the record identity is resolved before
+numerical table extraction.
 
 Methodology diagrams planned for the analysis note:
 

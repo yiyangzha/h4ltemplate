@@ -113,6 +113,17 @@
 
 - Built Phase 1 markdown artifacts from metadata, small-slice surveys, coverage checks, figure registry, and public literature source notes.
 
+## 2026-05-29 — Phase 2 traceability anchor fix
+
+- Session `nora_fec7` resolved the remaining Category B traceability finding
+  from arbiter `zelda_7b85` by adding explicit `[SP#]`, `[SP*]`, `[VT#]`,
+  `[FIG#]`, and `[REF-MATRIX]` anchors to
+  `phase2_strategy/outputs/STRATEGY.md`.
+- Verification scan found every non-decision tag used in `COMMITMENTS.md`
+  explicitly present in `STRATEGY.md`; `git diff --check` passed.
+- No substantive physics strategy content changed beyond traceability labels
+  and namespace notes.
+
 ## 2026-05-29 — Phase 2 strategy fixes (fiona_8d6e)
 
 - Resolved the Phase 2 arbiter Required Fix List in scoped strategy files.
