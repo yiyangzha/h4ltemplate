@@ -1,5 +1,39 @@
 # Experiment Log
 
+## 2026-05-29T19:40:45Z — Phase 2 strategy executor viktor_dfa6
+
+- Read required Phase 2 context, Phase 1 artifacts, Phase 1 review trail,
+  applicable conventions, and methodology files.
+- Confirmed MCP literature tools are disabled and used public web/CMS/arXiv/
+  HEPData/PDG fallback routes only.
+- Created `phase2_strategy/plan.md` before writing strategy prose.
+- Public fallback searches run: CMS-HIG-16-041 mass window/signal strength,
+  CMS-HIG-16-041 HEPData, CMS-HIG-19-001 signal strength/fiducial cross
+  section, PDG Higgs/gauge summary, H->4l systematics, and H->ZZ->4l angular
+  variable definitions.
+- Wrote `phase2_strategy/outputs/STRATEGY.md` as a detector-level binned
+  simultaneous template-likelihood strategy, not a closed-form extraction.
+- Binding decisions: use primary prompt ROOT paths; fit `105 < m4l < 140 GeV`;
+  require VBF jet recovery or formal downscope; attempt angular variables only
+  through validated lepton-four-vector reconstruction; require data/MC
+  validation before any MVA/NN training.
+- Updated `COMMITMENTS.md` with Phase 2 binding systematics, validation tests,
+  flagship figures, cross-checks, and `[REF]` entries.
+
+## 2026-05-29 — Phase 2 VERIFY self-critique fixes
+
+- Re-read `STRATEGY.md` and `COMMITMENTS.md` in critic mode for VERIFY
+  Follow-up 2.
+- Strengthened fit-window source evidence by citing the exact CMS public-page
+  figure descriptions for `105 < m4l < 140 GeV`.
+- Added method-parity limitation [L5] and decision [D9] requiring a Phase 4a
+  parametric mass-shape cross-check or documented infeasibility.
+- Strengthened VBF recovery/downscope gates and angular-NN promotion gates.
+- Fixed `COMMITMENTS.md` so Jet/VBF is an unresolved decision gate, not a
+  prematurely marked formal downscope.
+- Added a HEPData source-ID note because Phase 1 artifacts and the CMS public
+  page use different record identifiers/trails.
+
 ## 2026-05-29T18:13:30Z — Orchestrator resume
 
 - Resumed from disk following `CLAUDE.md` recovery protocol.
