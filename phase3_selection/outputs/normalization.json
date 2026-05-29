@@ -1,0 +1,138 @@
+{
+  "created_utc": "2026-05-29T21:16:04+00:00",
+  "lumi_pb_user_prompt": 10000.0,
+  "records": [
+    {
+      "expected_yield_before_detector_acceptance": null,
+      "group": "data",
+      "kind": "data",
+      "lumi_pb_user_prompt": 10000.0,
+      "metadata_generated_events": 854.0,
+      "nominal_weight": 1.0,
+      "sample": "cms_10fb_13TeV.root",
+      "weight_formula": "sigma_eff_pb * L_pb / sum_Metadata_nEvents for MC; 1 for data",
+      "xsec_pb_user_prompt": null
+    },
+    {
+      "expected_yield_before_detector_acceptance": 53960000.0,
+      "group": "background_reducible",
+      "kind": "mc",
+      "lumi_pb_user_prompt": 10000.0,
+      "metadata_generated_events": 82448537.0,
+      "nominal_weight": 0.6544688597688519,
+      "sample": "DYJetsToLL.root",
+      "weight_formula": "sigma_eff_pb * L_pb / sum_Metadata_nEvents for MC; 1 for data",
+      "xsec_pb_user_prompt": 5396.0
+    },
+    {
+      "expected_yield_before_detector_acceptance": 31.849999999999998,
+      "group": "background_ggZZ",
+      "kind": "mc",
+      "lumi_pb_user_prompt": 10000.0,
+      "metadata_generated_events": 499000.0,
+      "nominal_weight": 6.382765531062123e-05,
+      "sample": "GGZZ2E2Mu.root",
+      "weight_formula": "sigma_eff_pb * L_pb / sum_Metadata_nEvents for MC; 1 for data",
+      "xsec_pb_user_prompt": 0.003185
+    },
+    {
+      "expected_yield_before_detector_acceptance": 16.19,
+      "group": "background_ggZZ",
+      "kind": "mc",
+      "lumi_pb_user_prompt": 10000.0,
+      "metadata_generated_events": 992608.0,
+      "nominal_weight": 1.631056771656082e-05,
+      "sample": "GGZZ4E.root",
+      "weight_formula": "sigma_eff_pb * L_pb / sum_Metadata_nEvents for MC; 1 for data",
+      "xsec_pb_user_prompt": 0.001619
+    },
+    {
+      "expected_yield_before_detector_acceptance": 15.75,
+      "group": "background_ggZZ",
+      "kind": "mc",
+      "lumi_pb_user_prompt": 10000.0,
+      "metadata_generated_events": 997445.0,
+      "nominal_weight": 1.5790344329762544e-05,
+      "sample": "GGZZ4Mu.root",
+      "weight_formula": "sigma_eff_pb * L_pb / sum_Metadata_nEvents for MC; 1 for data",
+      "xsec_pb_user_prompt": 0.001575
+    },
+    {
+      "expected_yield_before_detector_acceptance": 60.239999999999995,
+      "group": "signal_ggH",
+      "kind": "mc",
+      "lumi_pb_user_prompt": 10000.0,
+      "metadata_generated_events": 983914.0,
+      "nominal_weight": 6.122486314860852e-05,
+      "sample": "GluGluToHToZZ.root",
+      "weight_formula": "sigma_eff_pb * L_pb / sum_Metadata_nEvents for MC; 1 for data",
+      "xsec_pb_user_prompt": 0.006024
+    },
+    {
+      "expected_yield_before_detector_acceptance": 527000.0,
+      "group": "background_top",
+      "kind": "mc",
+      "lumi_pb_user_prompt": 10000.0,
+      "metadata_generated_events": 14776503.0,
+      "nominal_weight": 0.03566473068763293,
+      "sample": "TTBar.root",
+      "weight_formula": "sigma_eff_pb * L_pb / sum_Metadata_nEvents for MC; 1 for data",
+      "xsec_pb_user_prompt": 52.7
+    },
+    {
+      "expected_yield_before_detector_acceptance": 4.8794,
+      "group": "signal_VBF",
+      "kind": "mc",
+      "lumi_pb_user_prompt": 10000.0,
+      "metadata_generated_events": 498000.0,
+      "nominal_weight": 9.797991967871486e-06,
+      "sample": "VBF_HToZZ.root",
+      "weight_formula": "sigma_eff_pb * L_pb / sum_Metadata_nEvents for MC; 1 for data",
+      "xsec_pb_user_prompt": 0.00048794
+    },
+    {
+      "expected_yield_before_detector_acceptance": 0.6706,
+      "group": "signal_VH",
+      "kind": "mc",
+      "lumi_pb_user_prompt": 10000.0,
+      "metadata_generated_events": 193088.0,
+      "nominal_weight": 3.473027842227378e-06,
+      "sample": "WMHToZZ.root",
+      "weight_formula": "sigma_eff_pb * L_pb / sum_Metadata_nEvents for MC; 1 for data",
+      "xsec_pb_user_prompt": 6.706e-05
+    },
+    {
+      "expected_yield_before_detector_acceptance": 1.072352,
+      "group": "signal_VH",
+      "kind": "mc",
+      "lumi_pb_user_prompt": 10000.0,
+      "metadata_generated_events": 294744.0,
+      "nominal_weight": 3.6382487853866405e-06,
+      "sample": "WPHToZZ.root",
+      "weight_formula": "sigma_eff_pb * L_pb / sum_Metadata_nEvents for MC; 1 for data",
+      "xsec_pb_user_prompt": 0.0001072352
+    },
+    {
+      "expected_yield_before_detector_acceptance": 0.9839399999999999,
+      "group": "signal_VH",
+      "kind": "mc",
+      "lumi_pb_user_prompt": 10000.0,
+      "metadata_generated_events": 486281.0,
+      "nominal_weight": 2.023397994163868e-06,
+      "sample": "ZHToZZ.root",
+      "weight_formula": "sigma_eff_pb * L_pb / sum_Metadata_nEvents for MC; 1 for data",
+      "xsec_pb_user_prompt": 9.8394e-05
+    },
+    {
+      "expected_yield_before_detector_acceptance": 13250.0,
+      "group": "background_ZZ",
+      "kind": "mc",
+      "lumi_pb_user_prompt": 10000.0,
+      "metadata_generated_events": 52104000.0,
+      "nominal_weight": 0.00025429909411945343,
+      "sample": "ZZTo4L.root",
+      "weight_formula": "sigma_eff_pb * L_pb / sum_Metadata_nEvents for MC; 1 for data",
+      "xsec_pb_user_prompt": 1.325
+    }
+  ]
+}

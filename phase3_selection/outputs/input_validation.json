@@ -1,0 +1,655 @@
+{
+  "created_utc": "2026-05-29T21:16:45+00:00",
+  "discarded_without_gate": {
+    "m4l": "Excluded from classifier inputs to avoid mass sculpting in the mass-shape fit.",
+    "max_pf_rel_iso03": "Not a Phase 2 default classifier input; miniRelIso tails were flagged in Phase 1 and isolation is kept out of S2.",
+    "max_sip3d": "Not used in S2 after baseline object selection; retained only as diagnostic if Phase 4 needs lepton efficiency envelopes.",
+    "pvNdof": "Excluded by Phase 2 [A6] unless calibrated; not promoted to classifier input."
+  },
+  "variables": {
+    "cos_theta1": {
+      "bin_edges": [
+        -1.0,
+        -0.6666666666666667,
+        -0.33333333333333337,
+        0.0,
+        0.33333333333333326,
+        0.6666666666666665,
+        1.0
+      ],
+      "chi2": 8.000746130124842,
+      "chi2_per_ndf": 1.6001492260249683,
+      "coherent_ratio_trend_above_20pct": true,
+      "data_counts": [
+        14,
+        19,
+        19,
+        32,
+        32,
+        87
+      ],
+      "label": "$\\cos\\theta_1$",
+      "max_abs_shape_ratio_deviation": 0.5568207678768473,
+      "mc_sumw2": [
+        0.43644710196371267,
+        0.4323984007137321,
+        2.582987182180069,
+        3.01727169781959,
+        5.596498114618095,
+        4.318869444744031
+      ],
+      "mc_weighted_counts": [
+        13.230741918723654,
+        12.598506845345009,
+        21.680986365851364,
+        31.27792245925672,
+        46.95589044204661,
+        83.81196625917464
+      ],
+      "ndf": 5,
+      "normalization_note": "D7 shape gate uses MC scaled to data integral for shape comparison only; nominal yields remain prompt-luminosity normalized.",
+      "p_value": 0.15619451167710663,
+      "passes_d7_gate": false,
+      "shape_normalization_scale_data_over_mc": 0.9687147404831206,
+      "source": "angular_variables.npz"
+    },
+    "cos_theta2": {
+      "bin_edges": [
+        -1.0,
+        -0.6666666666666667,
+        -0.33333333333333337,
+        0.0,
+        0.33333333333333326,
+        0.6666666666666665,
+        1.0
+      ],
+      "chi2": 6.443113394407669,
+      "chi2_per_ndf": 1.2886226788815338,
+      "coherent_ratio_trend_above_20pct": true,
+      "data_counts": [
+        3,
+        15,
+        37,
+        45,
+        69,
+        34
+      ],
+      "label": "$\\cos\\theta_2$",
+      "max_abs_shape_ratio_deviation": 0.45911197899849665,
+      "mc_sumw2": [
+        0.8589667510030338,
+        3.008046527907275,
+        0.8755008142562537,
+        3.0260964681876015,
+        6.455061435294789,
+        2.1607999453888027
+      ],
+      "mc_weighted_counts": [
+        5.725560172253908,
+        18.79364140176669,
+        32.061065345910194,
+        56.293896191373385,
+        60.95517707636111,
+        35.72667410272635
+      ],
+      "ndf": 5,
+      "normalization_note": "D7 shape gate uses MC scaled to data integral for shape comparison only; nominal yields remain prompt-luminosity normalized.",
+      "p_value": 0.26545662085594524,
+      "passes_d7_gate": false,
+      "shape_normalization_scale_data_over_mc": 0.96871474048315,
+      "source": "angular_variables.npz"
+    },
+    "cos_theta_star": {
+      "bin_edges": [
+        -1.0,
+        -0.6666666666666667,
+        -0.33333333333333337,
+        0.0,
+        0.33333333333333326,
+        0.6666666666666665,
+        1.0
+      ],
+      "chi2": 5.035685036819854,
+      "chi2_per_ndf": 1.0071370073639707,
+      "coherent_ratio_trend_above_20pct": true,
+      "data_counts": [
+        25,
+        31,
+        39,
+        33,
+        47,
+        28
+      ],
+      "label": "$\\cos\\theta^*$",
+      "max_abs_shape_ratio_deviation": 0.36371831921649256,
+      "mc_sumw2": [
+        3.4486437853731644,
+        2.155804618149376,
+        5.156511668882266,
+        1.3028251625928444,
+        2.1583384950356326,
+        2.1623482120032502
+      ],
+      "mc_weighted_counts": [
+        28.557094721359316,
+        35.53227609944952,
+        44.645579287209515,
+        38.822327349920556,
+        35.57765137459148,
+        26.421085457859647
+      ],
+      "ndf": 5,
+      "normalization_note": "D7 shape gate uses MC scaled to data integral for shape comparison only; nominal yields remain prompt-luminosity normalized.",
+      "p_value": 0.41154068990600756,
+      "passes_d7_gate": false,
+      "shape_normalization_scale_data_over_mc": 0.9687147404831573,
+      "source": "angular_variables.npz"
+    },
+    "eta4l": {
+      "bin_edges": [
+        -3.0,
+        -2.0,
+        -1.0,
+        0.0,
+        1.0,
+        2.0,
+        3.0
+      ],
+      "chi2": 2.01953335178347,
+      "chi2_per_ndf": 0.403906670356694,
+      "coherent_ratio_trend_above_20pct": true,
+      "data_counts": [
+        28,
+        27,
+        17,
+        16,
+        29,
+        30
+      ],
+      "label": "$\\eta_{4\\ell}$",
+      "max_abs_shape_ratio_deviation": 0.2204241775477105,
+      "mc_sumw2": [
+        0.866556052793333,
+        0.8747387506256328,
+        2.1606431406467994,
+        2.586441833095945,
+        2.582942766633419,
+        1.728190872493439
+      ],
+      "mc_weighted_counts": [
+        26.43682478440998,
+        24.06840779402787,
+        19.462409975339625,
+        20.093265145523233,
+        26.42999929423381,
+        27.424148264669242
+      ],
+      "ndf": 5,
+      "normalization_note": "D7 shape gate uses MC scaled to data integral for shape comparison only; nominal yields remain prompt-luminosity normalized.",
+      "p_value": 0.8464356767363523,
+      "passes_d7_gate": false,
+      "shape_normalization_scale_data_over_mc": 1.0214358722668828,
+      "source": "selection_events.npz"
+    },
+    "lead_abs_eta": {
+      "bin_edges": [
+        0.0,
+        0.5,
+        1.0,
+        1.5,
+        2.0,
+        2.5
+      ],
+      "chi2": 1.8935875615286077,
+      "chi2_per_ndf": 0.47339689038215194,
+      "coherent_ratio_trend_above_20pct": false,
+      "data_counts": [
+        4,
+        30,
+        50,
+        68,
+        51
+      ],
+      "label": "Leading lepton $|\\eta|$",
+      "max_abs_shape_ratio_deviation": 0.1930351123623143,
+      "mc_sumw2": [
+        0.002508433180020969,
+        0.44036962891892084,
+        2.1669928555791422,
+        5.610244141213151,
+        8.16435688314997
+      ],
+      "mc_weighted_counts": [
+        5.116929634549695,
+        34.71045969332009,
+        55.83890663136628,
+        61.78390317342121,
+        52.105815157755444
+      ],
+      "ndf": 4,
+      "normalization_note": "D7 shape gate uses MC scaled to data integral for shape comparison only; nominal yields remain prompt-luminosity normalized.",
+      "p_value": 0.7553228717943874,
+      "passes_d7_gate": true,
+      "shape_normalization_scale_data_over_mc": 0.9687147404830525,
+      "source": "selection_events.npz"
+    },
+    "lead_lepton_pt": {
+      "bin_edges": [
+        0.0,
+        20.0,
+        30.0,
+        45.0,
+        70.0,
+        110.0,
+        200.0
+      ],
+      "chi2": 16.22546152023245,
+      "chi2_per_ndf": 4.0563653800581125,
+      "coherent_ratio_trend_above_20pct": true,
+      "data_counts": [
+        0,
+        31,
+        101,
+        56,
+        14,
+        0
+      ],
+      "label": "Leading lepton $p_T$ [GeV]",
+      "max_abs_shape_ratio_deviation": 1.0,
+      "mc_sumw2": [
+        0.0,
+        0.8660231428017574,
+        6.457812188990022,
+        6.899910925251231,
+        1.7294113313484107,
+        0.4312709957427483
+      ],
+      "mc_weighted_counts": [
+        0.0,
+        28.83011890734957,
+        102.07708212917336,
+        63.6783170826354,
+        12.210987726433984,
+        2.548420629612309
+      ],
+      "ndf": 4,
+      "normalization_note": "D7 shape gate uses MC scaled to data integral for shape comparison only; nominal yields remain prompt-luminosity normalized.",
+      "p_value": 0.0027310794646753646,
+      "passes_d7_gate": false,
+      "shape_normalization_scale_data_over_mc": 0.9649147146822563,
+      "source": "selection_events.npz"
+    },
+    "mZ1": {
+      "bin_edges": [
+        40.0,
+        60.0,
+        70.0,
+        80.0,
+        90.0,
+        100.0,
+        110.0,
+        120.0
+      ],
+      "chi2": 732.3823276591511,
+      "chi2_per_ndf": 122.06372127652519,
+      "coherent_ratio_trend_above_20pct": true,
+      "data_counts": [
+        56,
+        40,
+        32,
+        26,
+        39,
+        1,
+        0
+      ],
+      "label": "$m_{Z1}$ [GeV]",
+      "max_abs_shape_ratio_deviation": 1.0,
+      "mc_sumw2": [
+        1.7402688223428338,
+        1.7389962159687302,
+        1.7305711699191826,
+        3.8649287702071975,
+        7.29544937963127,
+        0.004388517284994009,
+        0.0015238324540653991
+      ],
+      "mc_weighted_counts": [
+        59.82760521203693,
+        44.76869679482054,
+        26.68541951410961,
+        28.0092832538663,
+        38.47264443752354,
+        2.4365697599648684,
+        1.053977830397912
+      ],
+      "ndf": 6,
+      "normalization_note": "D7 shape gate uses MC scaled to data integral for shape comparison only; nominal yields remain prompt-luminosity normalized.",
+      "p_value": 6.222370915955571e-155,
+      "passes_d7_gate": false,
+      "shape_normalization_scale_data_over_mc": 0.9639550532711093,
+      "source": "selection_events.npz"
+    },
+    "mZ2": {
+      "bin_edges": [
+        4.0,
+        12.0,
+        20.0,
+        30.0,
+        45.0,
+        60.0,
+        80.0,
+        120.0
+      ],
+      "chi2": 192.49734235379475,
+      "chi2_per_ndf": 32.08289039229913,
+      "coherent_ratio_trend_above_20pct": true,
+      "data_counts": [
+        89,
+        50,
+        40,
+        18,
+        4,
+        2,
+        0
+      ],
+      "label": "$m_{Z2}$ [GeV]",
+      "max_abs_shape_ratio_deviation": 1.0,
+      "mc_sumw2": [
+        3.8862270135296173,
+        2.5923157358365145,
+        4.727522104851594,
+        3.878261130469868,
+        0.8714301736567549,
+        0.42870666100019683,
+        9.122691256635562e-06
+      ],
+      "mc_weighted_counts": [
+        105.09069145021309,
+        43.60352502934791,
+        32.90186744274442,
+        20.18866036360555,
+        5.4148313094089815,
+        2.3150656254000523,
+        0.041373069669958795
+      ],
+      "ndf": 6,
+      "normalization_note": "D7 shape gate uses MC scaled to data integral for shape comparison only; nominal yields remain prompt-luminosity normalized.",
+      "p_value": 7.490598035954748e-39,
+      "passes_d7_gate": false,
+      "shape_normalization_scale_data_over_mc": 0.9687147404831578,
+      "source": "selection_events.npz"
+    },
+    "phi": {
+      "bin_edges": [
+        -3.141592653589793,
+        -2.0943951023931957,
+        -1.0471975511965979,
+        0.0,
+        1.0471975511965974,
+        2.094395102393195,
+        3.141592653589793
+      ],
+      "chi2": 3.901219456194683,
+      "chi2_per_ndf": 0.7802438912389367,
+      "coherent_ratio_trend_above_20pct": true,
+      "data_counts": [
+        39,
+        39,
+        23,
+        26,
+        43,
+        33
+      ],
+      "label": "$\\Phi$ [rad]",
+      "max_abs_shape_ratio_deviation": 0.25089401715100423,
+      "mc_sumw2": [
+        3.447611385417766,
+        2.1605605637714693,
+        3.014937704507724,
+        2.1608298914196453,
+        2.5838361765263222,
+        3.0166962203935928
+      ],
+      "mc_weighted_counts": [
+        34.642098702544196,
+        39.1703457515242,
+        31.694847180858275,
+        30.47590304638291,
+        39.82528191848829,
+        33.747537690598165
+      ],
+      "ndf": 5,
+      "normalization_note": "D7 shape gate uses MC scaled to data integral for shape comparison only; nominal yields remain prompt-luminosity normalized.",
+      "p_value": 0.5637239206428847,
+      "passes_d7_gate": false,
+      "shape_normalization_scale_data_over_mc": 0.9687147404831297,
+      "source": "angular_variables.npz"
+    },
+    "phi1": {
+      "bin_edges": [
+        -3.141592653589793,
+        -2.0943951023931957,
+        -1.0471975511965979,
+        0.0,
+        1.0471975511965974,
+        2.094395102393195,
+        3.141592653589793
+      ],
+      "chi2": 0.7762008982002744,
+      "chi2_per_ndf": 0.15524017964005488,
+      "coherent_ratio_trend_above_20pct": false,
+      "data_counts": [
+        29,
+        43,
+        35,
+        27,
+        38,
+        31
+      ],
+      "label": "$\\Phi_1$ [rad]",
+      "max_abs_shape_ratio_deviation": 0.08262081924412334,
+      "mc_sumw2": [
+        2.1638393561953304,
+        4.733966465318386,
+        3.012876279396319,
+        0.8750189119024263,
+        2.1588530280938443,
+        3.4399179011303485
+      ],
+      "mc_weighted_counts": [
+        32.24882986591396,
+        42.073400139055636,
+        33.37303943283936,
+        30.111293258024816,
+        37.80629106798088,
+        33.943160526577884
+      ],
+      "ndf": 5,
+      "normalization_note": "D7 shape gate uses MC scaled to data integral for shape comparison only; nominal yields remain prompt-luminosity normalized.",
+      "p_value": 0.9785264246350153,
+      "passes_d7_gate": true,
+      "shape_normalization_scale_data_over_mc": 0.9687147404831458,
+      "source": "angular_variables.npz"
+    },
+    "pt4l": {
+      "bin_edges": [
+        0.0,
+        10.0,
+        20.0,
+        35.0,
+        60.0,
+        100.0,
+        200.0
+      ],
+      "chi2": 1.6639962026363708,
+      "chi2_per_ndf": 0.33279924052727416,
+      "coherent_ratio_trend_above_20pct": true,
+      "data_counts": [
+        64,
+        48,
+        37,
+        31,
+        17,
+        5
+      ],
+      "label": "$p_T^{4\\ell}$ [GeV]",
+      "max_abs_shape_ratio_deviation": 0.347801610141241,
+      "mc_sumw2": [
+        3.871770094753453,
+        3.8677704215132476,
+        3.870326523924538,
+        3.0256596351677256,
+        1.3098943613300555,
+        0.4375374831455048
+      ],
+      "mc_weighted_counts": [
+        68.26059159065755,
+        47.9574849055808,
+        38.25385089669987,
+        29.344043040460207,
+        16.609942495484603,
+        7.906717269501371
+      ],
+      "ndf": 5,
+      "normalization_note": "D7 shape gate uses MC scaled to data integral for shape comparison only; nominal yields remain prompt-luminosity normalized.",
+      "p_value": 0.8934040385469844,
+      "passes_d7_gate": false,
+      "shape_normalization_scale_data_over_mc": 0.9696032724573478,
+      "source": "selection_events.npz"
+    },
+    "sublead_abs_eta": {
+      "bin_edges": [
+        0.0,
+        0.5,
+        1.0,
+        1.5,
+        2.0,
+        2.5
+      ],
+      "chi2": 4.303986462943444,
+      "chi2_per_ndf": 1.075996615735861,
+      "coherent_ratio_trend_above_20pct": true,
+      "data_counts": [
+        35,
+        71,
+        46,
+        37,
+        14
+      ],
+      "label": "Subleading lepton $|\\eta|$",
+      "max_abs_shape_ratio_deviation": 0.24326218881117057,
+      "mc_sumw2": [
+        1.294104795010061,
+        3.036658107113709,
+        5.169896791452378,
+        5.1669421700103,
+        1.71687007845334
+      ],
+      "mc_weighted_counts": [
+        29.060923445277865,
+        69.16455462717047,
+        58.53911207126751,
+        40.85162367456962,
+        11.939800472124631
+      ],
+      "ndf": 4,
+      "normalization_note": "D7 shape gate uses MC scaled to data integral for shape comparison only; nominal yields remain prompt-luminosity normalized.",
+      "p_value": 0.366426176304793,
+      "passes_d7_gate": false,
+      "shape_normalization_scale_data_over_mc": 0.9687147404830646,
+      "source": "selection_events.npz"
+    },
+    "sublead_lepton_pt": {
+      "bin_edges": [
+        0.0,
+        10.0,
+        15.0,
+        25.0,
+        40.0,
+        70.0,
+        150.0
+      ],
+      "chi2": 3397.9042903788823,
+      "chi2_per_ndf": 849.4760725947206,
+      "coherent_ratio_trend_above_20pct": true,
+      "data_counts": [
+        0,
+        7,
+        86,
+        93,
+        17,
+        0
+      ],
+      "label": "Subleading lepton $p_T$ [GeV]",
+      "max_abs_shape_ratio_deviation": 1.0,
+      "mc_sumw2": [
+        0.0,
+        0.8599449637028547,
+        3.035211004034921,
+        9.472981696456603,
+        3.0161933943799966,
+        0.00013707564763976166
+      ],
+      "mc_weighted_counts": [
+        0.0,
+        9.371543501372958,
+        81.78593136459743,
+        95.59227604470519,
+        22.100391902559977,
+        0.6822673358830968
+      ],
+      "ndf": 4,
+      "normalization_note": "D7 shape gate uses MC scaled to data integral for shape comparison only; nominal yields remain prompt-luminosity normalized.",
+      "p_value": 0.0,
+      "passes_d7_gate": false,
+      "shape_normalization_scale_data_over_mc": 0.968823867656227,
+      "source": "selection_events.npz"
+    },
+    "y4l": {
+      "bin_edges": [
+        -3.0,
+        -2.0,
+        -1.0,
+        0.0,
+        1.0,
+        2.0,
+        3.0
+      ],
+      "chi2": 4983.397328708228,
+      "chi2_per_ndf": 996.6794657416456,
+      "coherent_ratio_trend_above_20pct": true,
+      "data_counts": [
+        0,
+        28,
+        69,
+        67,
+        37,
+        2
+      ],
+      "label": "$y_{4\\ell}$",
+      "max_abs_shape_ratio_deviation": 1.0,
+      "mc_sumw2": [
+        0.00030633249957380407,
+        0.8720592927777852,
+        3.8958505671460992,
+        5.600212564605724,
+        4.730757475284435,
+        1.2852857097260362
+      ],
+      "mc_weighted_counts": [
+        1.2353618232683075,
+        33.345384292381624,
+        65.34271894027472,
+        67.47949369532367,
+        38.989648933110146,
+        3.1634066060467774
+      ],
+      "ndf": 5,
+      "normalization_note": "D7 shape gate uses MC scaled to data integral for shape comparison only; nominal yields remain prompt-luminosity normalized.",
+      "p_value": 0.0,
+      "passes_d7_gate": false,
+      "shape_normalization_scale_data_over_mc": 0.968714740483087,
+      "source": "selection_events.npz"
+    }
+  }
+}

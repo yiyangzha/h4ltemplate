@@ -1,0 +1,2463 @@
+{
+  "created_utc": "2026-05-29T21:16:04+00:00",
+  "samples": {
+    "DYJetsToLL.root": {
+      "all_channels": [
+        {
+          "monotonic": true,
+          "raw_entries": 463,
+          "step": "all",
+          "weighted_yield": 303.01908207297845
+        },
+        {
+          "monotonic": true,
+          "raw_entries": 463,
+          "step": "finite_core",
+          "weighted_yield": 303.01908207297845
+        },
+        {
+          "monotonic": true,
+          "raw_entries": 410,
+          "step": "trigger_bitmask_nonzero",
+          "weighted_yield": 268.3322325052293
+        },
+        {
+          "monotonic": true,
+          "raw_entries": 410,
+          "step": "valid_final_state",
+          "weighted_yield": 268.3322325052293
+        },
+        {
+          "monotonic": true,
+          "raw_entries": 49,
+          "step": "flavor_matched_lepton_id",
+          "weighted_yield": 32.068974128673744
+        },
+        {
+          "monotonic": true,
+          "raw_entries": 49,
+          "step": "z_pair_sanity",
+          "weighted_yield": 32.068974128673744
+        },
+        {
+          "monotonic": true,
+          "raw_entries": 38,
+          "step": "broad_validation_window_70_170",
+          "weighted_yield": 24.869816671216373
+        },
+        {
+          "monotonic": true,
+          "raw_entries": 27,
+          "step": "fit_window_105_140",
+          "weighted_yield": 17.670659213759002
+        }
+      ],
+      "by_channel": {
+        "2e2mu": [
+          {
+            "monotonic": true,
+            "raw_entries": 235,
+            "step": "all",
+            "weighted_yield": 153.8001820456802
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 235,
+            "step": "finite_core",
+            "weighted_yield": 153.8001820456802
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 210,
+            "step": "trigger_bitmask_nonzero",
+            "weighted_yield": 137.43846055145892
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 210,
+            "step": "valid_final_state",
+            "weighted_yield": 137.43846055145892
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 27,
+            "step": "flavor_matched_lepton_id",
+            "weighted_yield": 17.670659213759002
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 27,
+            "step": "z_pair_sanity",
+            "weighted_yield": 17.670659213759002
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 20,
+            "step": "broad_validation_window_70_170",
+            "weighted_yield": 13.08937719537704
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 13,
+            "step": "fit_window_105_140",
+            "weighted_yield": 8.508095176995075
+          }
+        ],
+        "4e": [
+          {
+            "monotonic": true,
+            "raw_entries": 217,
+            "step": "all",
+            "weighted_yield": 142.01974256984087
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 217,
+            "step": "finite_core",
+            "weighted_yield": 142.01974256984087
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 189,
+            "step": "trigger_bitmask_nonzero",
+            "weighted_yield": 123.69461449631302
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 189,
+            "step": "valid_final_state",
+            "weighted_yield": 123.69461449631302
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 16,
+            "step": "flavor_matched_lepton_id",
+            "weighted_yield": 10.471501756301631
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 16,
+            "step": "z_pair_sanity",
+            "weighted_yield": 10.471501756301631
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 14,
+            "step": "broad_validation_window_70_170",
+            "weighted_yield": 9.162564036763927
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 10,
+            "step": "fit_window_105_140",
+            "weighted_yield": 6.54468859768852
+          }
+        ],
+        "4mu": [
+          {
+            "monotonic": true,
+            "raw_entries": 11,
+            "step": "all",
+            "weighted_yield": 7.199157457457371
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 11,
+            "step": "finite_core",
+            "weighted_yield": 7.199157457457371
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 11,
+            "step": "trigger_bitmask_nonzero",
+            "weighted_yield": 7.199157457457371
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 11,
+            "step": "valid_final_state",
+            "weighted_yield": 7.199157457457371
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 6,
+            "step": "flavor_matched_lepton_id",
+            "weighted_yield": 3.9268131586131116
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 6,
+            "step": "z_pair_sanity",
+            "weighted_yield": 3.9268131586131116
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 4,
+            "step": "broad_validation_window_70_170",
+            "weighted_yield": 2.6178754390754078
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 4,
+            "step": "fit_window_105_140",
+            "weighted_yield": 2.6178754390754078
+          }
+        ]
+      }
+    },
+    "GGZZ2E2Mu.root": {
+      "all_channels": [
+        {
+          "monotonic": true,
+          "raw_entries": 247847,
+          "step": "all",
+          "weighted_yield": 15.819492885771542
+        },
+        {
+          "monotonic": true,
+          "raw_entries": 247847,
+          "step": "finite_core",
+          "weighted_yield": 15.819492885771542
+        },
+        {
+          "monotonic": true,
+          "raw_entries": 245773,
+          "step": "trigger_bitmask_nonzero",
+          "weighted_yield": 15.687114328657312
+        },
+        {
+          "monotonic": true,
+          "raw_entries": 245773,
+          "step": "valid_final_state",
+          "weighted_yield": 15.687114328657312
+        },
+        {
+          "monotonic": true,
+          "raw_entries": 214210,
+          "step": "flavor_matched_lepton_id",
+          "weighted_yield": 13.672522044088174
+        },
+        {
+          "monotonic": true,
+          "raw_entries": 214210,
+          "step": "z_pair_sanity",
+          "weighted_yield": 13.672522044088174
+        },
+        {
+          "monotonic": true,
+          "raw_entries": 17694,
+          "step": "broad_validation_window_70_170",
+          "weighted_yield": 1.1293665330661322
+        },
+        {
+          "monotonic": true,
+          "raw_entries": 6287,
+          "step": "fit_window_105_140",
+          "weighted_yield": 0.4012844689378757
+        }
+      ],
+      "by_channel": {
+        "2e2mu": [
+          {
+            "monotonic": true,
+            "raw_entries": 247839,
+            "step": "all",
+            "weighted_yield": 15.818982264529057
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 247839,
+            "step": "finite_core",
+            "weighted_yield": 15.818982264529057
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 245765,
+            "step": "trigger_bitmask_nonzero",
+            "weighted_yield": 15.686603707414827
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 245765,
+            "step": "valid_final_state",
+            "weighted_yield": 15.686603707414827
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 214209,
+            "step": "flavor_matched_lepton_id",
+            "weighted_yield": 13.672458216432863
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 214209,
+            "step": "z_pair_sanity",
+            "weighted_yield": 13.672458216432863
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 17693,
+            "step": "broad_validation_window_70_170",
+            "weighted_yield": 1.1293027054108216
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 6286,
+            "step": "fit_window_105_140",
+            "weighted_yield": 0.40122064128256507
+          }
+        ],
+        "4e": [
+          {
+            "monotonic": true,
+            "raw_entries": 7,
+            "step": "all",
+            "weighted_yield": 0.00044679358717434866
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 7,
+            "step": "finite_core",
+            "weighted_yield": 0.00044679358717434866
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 7,
+            "step": "trigger_bitmask_nonzero",
+            "weighted_yield": 0.00044679358717434866
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 7,
+            "step": "valid_final_state",
+            "weighted_yield": 0.00044679358717434866
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 0,
+            "step": "flavor_matched_lepton_id",
+            "weighted_yield": 0.0
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 0,
+            "step": "z_pair_sanity",
+            "weighted_yield": 0.0
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 0,
+            "step": "broad_validation_window_70_170",
+            "weighted_yield": 0.0
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 0,
+            "step": "fit_window_105_140",
+            "weighted_yield": 0.0
+          }
+        ],
+        "4mu": [
+          {
+            "monotonic": true,
+            "raw_entries": 1,
+            "step": "all",
+            "weighted_yield": 6.382765531062123e-05
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 1,
+            "step": "finite_core",
+            "weighted_yield": 6.382765531062123e-05
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 1,
+            "step": "trigger_bitmask_nonzero",
+            "weighted_yield": 6.382765531062123e-05
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 1,
+            "step": "valid_final_state",
+            "weighted_yield": 6.382765531062123e-05
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 1,
+            "step": "flavor_matched_lepton_id",
+            "weighted_yield": 6.382765531062123e-05
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 1,
+            "step": "z_pair_sanity",
+            "weighted_yield": 6.382765531062123e-05
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 1,
+            "step": "broad_validation_window_70_170",
+            "weighted_yield": 6.382765531062123e-05
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 1,
+            "step": "fit_window_105_140",
+            "weighted_yield": 6.382765531062123e-05
+          }
+        ]
+      }
+    },
+    "GGZZ4E.root": {
+      "all_channels": [
+        {
+          "monotonic": true,
+          "raw_entries": 434957,
+          "step": "all",
+          "weighted_yield": 7.094395602292145
+        },
+        {
+          "monotonic": true,
+          "raw_entries": 434957,
+          "step": "finite_core",
+          "weighted_yield": 7.094395602292145
+        },
+        {
+          "monotonic": true,
+          "raw_entries": 428262,
+          "step": "trigger_bitmask_nonzero",
+          "weighted_yield": 6.98519635142977
+        },
+        {
+          "monotonic": true,
+          "raw_entries": 428262,
+          "step": "valid_final_state",
+          "weighted_yield": 6.98519635142977
+        },
+        {
+          "monotonic": true,
+          "raw_entries": 335204,
+          "step": "flavor_matched_lepton_id",
+          "weighted_yield": 5.467367540862053
+        },
+        {
+          "monotonic": true,
+          "raw_entries": 335204,
+          "step": "z_pair_sanity",
+          "weighted_yield": 5.467367540862053
+        },
+        {
+          "monotonic": true,
+          "raw_entries": 25309,
+          "step": "broad_validation_window_70_170",
+          "weighted_yield": 0.41280415833843775
+        },
+        {
+          "monotonic": true,
+          "raw_entries": 8119,
+          "step": "fit_window_105_140",
+          "weighted_yield": 0.13242549929075728
+        }
+      ],
+      "by_channel": {
+        "2e2mu": [
+          {
+            "monotonic": true,
+            "raw_entries": 9,
+            "step": "all",
+            "weighted_yield": 0.00014679510944904737
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 9,
+            "step": "finite_core",
+            "weighted_yield": 0.00014679510944904737
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 9,
+            "step": "trigger_bitmask_nonzero",
+            "weighted_yield": 0.00014679510944904737
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 9,
+            "step": "valid_final_state",
+            "weighted_yield": 0.00014679510944904737
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 7,
+            "step": "flavor_matched_lepton_id",
+            "weighted_yield": 0.00011417397401592574
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 7,
+            "step": "z_pair_sanity",
+            "weighted_yield": 0.00011417397401592574
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 7,
+            "step": "broad_validation_window_70_170",
+            "weighted_yield": 0.00011417397401592574
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 3,
+            "step": "fit_window_105_140",
+            "weighted_yield": 4.893170314968246e-05
+          }
+        ],
+        "4e": [
+          {
+            "monotonic": true,
+            "raw_entries": 434948,
+            "step": "all",
+            "weighted_yield": 7.094248807182695
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 434948,
+            "step": "finite_core",
+            "weighted_yield": 7.094248807182695
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 428253,
+            "step": "trigger_bitmask_nonzero",
+            "weighted_yield": 6.9850495563203205
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 428253,
+            "step": "valid_final_state",
+            "weighted_yield": 6.9850495563203205
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 335197,
+            "step": "flavor_matched_lepton_id",
+            "weighted_yield": 5.467253366888037
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 335197,
+            "step": "z_pair_sanity",
+            "weighted_yield": 5.467253366888037
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 25302,
+            "step": "broad_validation_window_70_170",
+            "weighted_yield": 0.41268998436442184
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 8116,
+            "step": "fit_window_105_140",
+            "weighted_yield": 0.1323765675876076
+          }
+        ],
+        "4mu": [
+          {
+            "monotonic": true,
+            "raw_entries": 0,
+            "step": "all",
+            "weighted_yield": 0.0
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 0,
+            "step": "finite_core",
+            "weighted_yield": 0.0
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 0,
+            "step": "trigger_bitmask_nonzero",
+            "weighted_yield": 0.0
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 0,
+            "step": "valid_final_state",
+            "weighted_yield": 0.0
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 0,
+            "step": "flavor_matched_lepton_id",
+            "weighted_yield": 0.0
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 0,
+            "step": "z_pair_sanity",
+            "weighted_yield": 0.0
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 0,
+            "step": "broad_validation_window_70_170",
+            "weighted_yield": 0.0
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 0,
+            "step": "fit_window_105_140",
+            "weighted_yield": 0.0
+          }
+        ]
+      }
+    },
+    "GGZZ4Mu.root": {
+      "all_channels": [
+        {
+          "monotonic": true,
+          "raw_entries": 604772,
+          "step": "all",
+          "weighted_yield": 9.549558120999153
+        },
+        {
+          "monotonic": true,
+          "raw_entries": 604772,
+          "step": "finite_core",
+          "weighted_yield": 9.549558120999153
+        },
+        {
+          "monotonic": true,
+          "raw_entries": 603794,
+          "step": "trigger_bitmask_nonzero",
+          "weighted_yield": 9.534115164244646
+        },
+        {
+          "monotonic": true,
+          "raw_entries": 603794,
+          "step": "valid_final_state",
+          "weighted_yield": 9.534115164244646
+        },
+        {
+          "monotonic": true,
+          "raw_entries": 584411,
+          "step": "flavor_matched_lepton_id",
+          "weighted_yield": 9.22805092010086
+        },
+        {
+          "monotonic": true,
+          "raw_entries": 584411,
+          "step": "z_pair_sanity",
+          "weighted_yield": 9.22805092010086
+        },
+        {
+          "monotonic": true,
+          "raw_entries": 72541,
+          "step": "broad_validation_window_70_170",
+          "weighted_yield": 1.1454473680253048
+        },
+        {
+          "monotonic": true,
+          "raw_entries": 23391,
+          "step": "fit_window_105_140",
+          "weighted_yield": 0.3693519442174757
+        }
+      ],
+      "by_channel": {
+        "2e2mu": [
+          {
+            "monotonic": true,
+            "raw_entries": 24,
+            "step": "all",
+            "weighted_yield": 0.00037896826391430104
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 24,
+            "step": "finite_core",
+            "weighted_yield": 0.00037896826391430104
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 24,
+            "step": "trigger_bitmask_nonzero",
+            "weighted_yield": 0.00037896826391430104
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 24,
+            "step": "valid_final_state",
+            "weighted_yield": 0.00037896826391430104
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 4,
+            "step": "flavor_matched_lepton_id",
+            "weighted_yield": 6.316137731905018e-05
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 4,
+            "step": "z_pair_sanity",
+            "weighted_yield": 6.316137731905018e-05
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 2,
+            "step": "broad_validation_window_70_170",
+            "weighted_yield": 3.158068865952509e-05
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 2,
+            "step": "fit_window_105_140",
+            "weighted_yield": 3.158068865952509e-05
+          }
+        ],
+        "4e": [
+          {
+            "monotonic": true,
+            "raw_entries": 0,
+            "step": "all",
+            "weighted_yield": 0.0
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 0,
+            "step": "finite_core",
+            "weighted_yield": 0.0
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 0,
+            "step": "trigger_bitmask_nonzero",
+            "weighted_yield": 0.0
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 0,
+            "step": "valid_final_state",
+            "weighted_yield": 0.0
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 0,
+            "step": "flavor_matched_lepton_id",
+            "weighted_yield": 0.0
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 0,
+            "step": "z_pair_sanity",
+            "weighted_yield": 0.0
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 0,
+            "step": "broad_validation_window_70_170",
+            "weighted_yield": 0.0
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 0,
+            "step": "fit_window_105_140",
+            "weighted_yield": 0.0
+          }
+        ],
+        "4mu": [
+          {
+            "monotonic": true,
+            "raw_entries": 604748,
+            "step": "all",
+            "weighted_yield": 9.549179152735238
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 604748,
+            "step": "finite_core",
+            "weighted_yield": 9.549179152735238
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 603770,
+            "step": "trigger_bitmask_nonzero",
+            "weighted_yield": 9.533736195980731
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 603770,
+            "step": "valid_final_state",
+            "weighted_yield": 9.533736195980731
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 584407,
+            "step": "flavor_matched_lepton_id",
+            "weighted_yield": 9.22798775872354
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 584407,
+            "step": "z_pair_sanity",
+            "weighted_yield": 9.22798775872354
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 72539,
+            "step": "broad_validation_window_70_170",
+            "weighted_yield": 1.1454157873366453
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 23389,
+            "step": "fit_window_105_140",
+            "weighted_yield": 0.36932036352881614
+          }
+        ]
+      }
+    },
+    "GluGluToHToZZ.root": {
+      "all_channels": [
+        {
+          "monotonic": true,
+          "raw_entries": 138479,
+          "step": "all",
+          "weighted_yield": 8.47835782395616
+        },
+        {
+          "monotonic": true,
+          "raw_entries": 138479,
+          "step": "finite_core",
+          "weighted_yield": 8.47835782395616
+        },
+        {
+          "monotonic": true,
+          "raw_entries": 136421,
+          "step": "trigger_bitmask_nonzero",
+          "weighted_yield": 8.352357055596322
+        },
+        {
+          "monotonic": true,
+          "raw_entries": 136421,
+          "step": "valid_final_state",
+          "weighted_yield": 8.352357055596322
+        },
+        {
+          "monotonic": true,
+          "raw_entries": 113852,
+          "step": "flavor_matched_lepton_id",
+          "weighted_yield": 6.970573119195377
+        },
+        {
+          "monotonic": true,
+          "raw_entries": 113852,
+          "step": "z_pair_sanity",
+          "weighted_yield": 6.970573119195377
+        },
+        {
+          "monotonic": true,
+          "raw_entries": 113819,
+          "step": "broad_validation_window_70_170",
+          "weighted_yield": 6.9685526987114725
+        },
+        {
+          "monotonic": true,
+          "raw_entries": 111878,
+          "step": "fit_window_105_140",
+          "weighted_yield": 6.849715239340024
+        }
+      ],
+      "by_channel": {
+        "2e2mu": [
+          {
+            "monotonic": true,
+            "raw_entries": 64006,
+            "step": "all",
+            "weighted_yield": 3.918758590689837
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 64006,
+            "step": "finite_core",
+            "weighted_yield": 3.918758590689837
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 63329,
+            "step": "trigger_bitmask_nonzero",
+            "weighted_yield": 3.8773093583382288
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 63329,
+            "step": "valid_final_state",
+            "weighted_yield": 3.8773093583382288
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 51458,
+            "step": "flavor_matched_lepton_id",
+            "weighted_yield": 3.150509007901097
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 51458,
+            "step": "z_pair_sanity",
+            "weighted_yield": 3.150509007901097
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 51436,
+            "step": "broad_validation_window_70_170",
+            "weighted_yield": 3.1491620609118276
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 50544,
+            "step": "fit_window_105_140",
+            "weighted_yield": 3.094549482983269
+          }
+        ],
+        "4e": [
+          {
+            "monotonic": true,
+            "raw_entries": 28532,
+            "step": "all",
+            "weighted_yield": 1.7468677953560983
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 28532,
+            "step": "finite_core",
+            "weighted_yield": 1.7468677953560983
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 27260,
+            "step": "trigger_bitmask_nonzero",
+            "weighted_yield": 1.6689897694310682
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 27260,
+            "step": "valid_final_state",
+            "weighted_yield": 1.6689897694310682
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 18583,
+            "step": "flavor_matched_lepton_id",
+            "weighted_yield": 1.1377416318905922
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 18583,
+            "step": "z_pair_sanity",
+            "weighted_yield": 1.1377416318905922
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 18577,
+            "step": "broad_validation_window_70_170",
+            "weighted_yield": 1.1373742827117004
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 18255,
+            "step": "fit_window_105_140",
+            "weighted_yield": 1.1176598767778485
+          }
+        ],
+        "4mu": [
+          {
+            "monotonic": true,
+            "raw_entries": 45941,
+            "step": "all",
+            "weighted_yield": 2.812731437910224
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 45941,
+            "step": "finite_core",
+            "weighted_yield": 2.812731437910224
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 45832,
+            "step": "trigger_bitmask_nonzero",
+            "weighted_yield": 2.8060579278270255
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 45832,
+            "step": "valid_final_state",
+            "weighted_yield": 2.8060579278270255
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 43811,
+            "step": "flavor_matched_lepton_id",
+            "weighted_yield": 2.682322479403688
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 43811,
+            "step": "z_pair_sanity",
+            "weighted_yield": 2.682322479403688
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 43806,
+            "step": "broad_validation_window_70_170",
+            "weighted_yield": 2.682016355087945
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 43079,
+            "step": "fit_window_105_140",
+            "weighted_yield": 2.637505879578906
+          }
+        ]
+      }
+    },
+    "TTBar.root": {
+      "all_channels": [
+        {
+          "monotonic": true,
+          "raw_entries": 639,
+          "step": "all",
+          "weighted_yield": 22.789762909397442
+        },
+        {
+          "monotonic": true,
+          "raw_entries": 639,
+          "step": "finite_core",
+          "weighted_yield": 22.789762909397442
+        },
+        {
+          "monotonic": true,
+          "raw_entries": 583,
+          "step": "trigger_bitmask_nonzero",
+          "weighted_yield": 20.792537990889997
+        },
+        {
+          "monotonic": true,
+          "raw_entries": 583,
+          "step": "valid_final_state",
+          "weighted_yield": 20.792537990889997
+        },
+        {
+          "monotonic": true,
+          "raw_entries": 91,
+          "step": "flavor_matched_lepton_id",
+          "weighted_yield": 3.2454904925745964
+        },
+        {
+          "monotonic": true,
+          "raw_entries": 91,
+          "step": "z_pair_sanity",
+          "weighted_yield": 3.2454904925745964
+        },
+        {
+          "monotonic": true,
+          "raw_entries": 50,
+          "step": "broad_validation_window_70_170",
+          "weighted_yield": 1.7832365343816465
+        },
+        {
+          "monotonic": true,
+          "raw_entries": 22,
+          "step": "fit_window_105_140",
+          "weighted_yield": 0.7846240751279244
+        }
+      ],
+      "by_channel": {
+        "2e2mu": [
+          {
+            "monotonic": true,
+            "raw_entries": 343,
+            "step": "all",
+            "weighted_yield": 12.233002625858095
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 343,
+            "step": "finite_core",
+            "weighted_yield": 12.233002625858095
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 314,
+            "step": "trigger_bitmask_nonzero",
+            "weighted_yield": 11.198725435916739
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 314,
+            "step": "valid_final_state",
+            "weighted_yield": 11.198725435916739
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 51,
+            "step": "flavor_matched_lepton_id",
+            "weighted_yield": 1.8189012650692793
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 51,
+            "step": "z_pair_sanity",
+            "weighted_yield": 1.8189012650692793
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 27,
+            "step": "broad_validation_window_70_170",
+            "weighted_yield": 0.962947728566089
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 14,
+            "step": "fit_window_105_140",
+            "weighted_yield": 0.499306229626861
+          }
+        ],
+        "4e": [
+          {
+            "monotonic": true,
+            "raw_entries": 270,
+            "step": "all",
+            "weighted_yield": 9.62947728566089
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 270,
+            "step": "finite_core",
+            "weighted_yield": 9.62947728566089
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 243,
+            "step": "trigger_bitmask_nonzero",
+            "weighted_yield": 8.666529557094801
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 243,
+            "step": "valid_final_state",
+            "weighted_yield": 8.666529557094801
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 16,
+            "step": "flavor_matched_lepton_id",
+            "weighted_yield": 0.5706356910021269
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 16,
+            "step": "z_pair_sanity",
+            "weighted_yield": 0.5706356910021269
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 7,
+            "step": "broad_validation_window_70_170",
+            "weighted_yield": 0.2496531148134305
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 3,
+            "step": "fit_window_105_140",
+            "weighted_yield": 0.10699419206289879
+          }
+        ],
+        "4mu": [
+          {
+            "monotonic": true,
+            "raw_entries": 26,
+            "step": "all",
+            "weighted_yield": 0.9272829978784561
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 26,
+            "step": "finite_core",
+            "weighted_yield": 0.9272829978784561
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 26,
+            "step": "trigger_bitmask_nonzero",
+            "weighted_yield": 0.9272829978784561
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 26,
+            "step": "valid_final_state",
+            "weighted_yield": 0.9272829978784561
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 24,
+            "step": "flavor_matched_lepton_id",
+            "weighted_yield": 0.8559535365031903
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 24,
+            "step": "z_pair_sanity",
+            "weighted_yield": 0.8559535365031903
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 16,
+            "step": "broad_validation_window_70_170",
+            "weighted_yield": 0.5706356910021269
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 5,
+            "step": "fit_window_105_140",
+            "weighted_yield": 0.17832365343816464
+          }
+        ]
+      }
+    },
+    "VBF_HToZZ.root": {
+      "all_channels": [
+        {
+          "monotonic": true,
+          "raw_entries": 83769,
+          "step": "all",
+          "weighted_yield": 0.8207679891566265
+        },
+        {
+          "monotonic": true,
+          "raw_entries": 83769,
+          "step": "finite_core",
+          "weighted_yield": 0.8207679891566265
+        },
+        {
+          "monotonic": true,
+          "raw_entries": 81501,
+          "step": "trigger_bitmask_nonzero",
+          "weighted_yield": 0.7985461433734939
+        },
+        {
+          "monotonic": true,
+          "raw_entries": 81501,
+          "step": "valid_final_state",
+          "weighted_yield": 0.7985461433734939
+        },
+        {
+          "monotonic": true,
+          "raw_entries": 68965,
+          "step": "flavor_matched_lepton_id",
+          "weighted_yield": 0.675718516064257
+        },
+        {
+          "monotonic": true,
+          "raw_entries": 68965,
+          "step": "z_pair_sanity",
+          "weighted_yield": 0.675718516064257
+        },
+        {
+          "monotonic": true,
+          "raw_entries": 68867,
+          "step": "broad_validation_window_70_170",
+          "weighted_yield": 0.6747583128514056
+        },
+        {
+          "monotonic": true,
+          "raw_entries": 67560,
+          "step": "fit_window_105_140",
+          "weighted_yield": 0.6619523373493976
+        }
+      ],
+      "by_channel": {
+        "2e2mu": [
+          {
+            "monotonic": true,
+            "raw_entries": 38908,
+            "step": "all",
+            "weighted_yield": 0.3812202714859438
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 38908,
+            "step": "finite_core",
+            "weighted_yield": 0.3812202714859438
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 37590,
+            "step": "trigger_bitmask_nonzero",
+            "weighted_yield": 0.36830651807228915
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 37590,
+            "step": "valid_final_state",
+            "weighted_yield": 0.36830651807228915
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 31098,
+            "step": "flavor_matched_lepton_id",
+            "weighted_yield": 0.30469795421686746
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 31098,
+            "step": "z_pair_sanity",
+            "weighted_yield": 0.30469795421686746
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 31055,
+            "step": "broad_validation_window_70_170",
+            "weighted_yield": 0.304276640562249
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 30478,
+            "step": "fit_window_105_140",
+            "weighted_yield": 0.29862319919678715
+          }
+        ],
+        "4e": [
+          {
+            "monotonic": true,
+            "raw_entries": 17474,
+            "step": "all",
+            "weighted_yield": 0.17121011164658634
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 17474,
+            "step": "finite_core",
+            "weighted_yield": 0.17121011164658634
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 16617,
+            "step": "trigger_bitmask_nonzero",
+            "weighted_yield": 0.16281323253012048
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 16617,
+            "step": "valid_final_state",
+            "weighted_yield": 0.16281323253012048
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 11663,
+            "step": "flavor_matched_lepton_id",
+            "weighted_yield": 0.11427398032128515
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 11663,
+            "step": "z_pair_sanity",
+            "weighted_yield": 0.11427398032128515
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 11617,
+            "step": "broad_validation_window_70_170",
+            "weighted_yield": 0.11382327269076306
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 11381,
+            "step": "fit_window_105_140",
+            "weighted_yield": 0.11151094658634539
+          }
+        ],
+        "4mu": [
+          {
+            "monotonic": true,
+            "raw_entries": 27387,
+            "step": "all",
+            "weighted_yield": 0.2683376060240964
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 27387,
+            "step": "finite_core",
+            "weighted_yield": 0.2683376060240964
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 27294,
+            "step": "trigger_bitmask_nonzero",
+            "weighted_yield": 0.2674263927710843
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 27294,
+            "step": "valid_final_state",
+            "weighted_yield": 0.2674263927710843
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 26204,
+            "step": "flavor_matched_lepton_id",
+            "weighted_yield": 0.2567465815261044
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 26204,
+            "step": "z_pair_sanity",
+            "weighted_yield": 0.2567465815261044
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 26195,
+            "step": "broad_validation_window_70_170",
+            "weighted_yield": 0.2566583995983936
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 25701,
+            "step": "fit_window_105_140",
+            "weighted_yield": 0.25181819156626506
+          }
+        ]
+      }
+    },
+    "WMHToZZ.root": {
+      "all_channels": [
+        {
+          "monotonic": true,
+          "raw_entries": 29634,
+          "step": "all",
+          "weighted_yield": 0.10291970707656611
+        },
+        {
+          "monotonic": true,
+          "raw_entries": 29634,
+          "step": "finite_core",
+          "weighted_yield": 0.10291970707656611
+        },
+        {
+          "monotonic": true,
+          "raw_entries": 29018,
+          "step": "trigger_bitmask_nonzero",
+          "weighted_yield": 0.10078032192575405
+        },
+        {
+          "monotonic": true,
+          "raw_entries": 29018,
+          "step": "valid_final_state",
+          "weighted_yield": 0.10078032192575405
+        },
+        {
+          "monotonic": true,
+          "raw_entries": 24110,
+          "step": "flavor_matched_lepton_id",
+          "weighted_yield": 0.08373470127610208
+        },
+        {
+          "monotonic": true,
+          "raw_entries": 24110,
+          "step": "z_pair_sanity",
+          "weighted_yield": 0.08373470127610208
+        },
+        {
+          "monotonic": true,
+          "raw_entries": 22475,
+          "step": "broad_validation_window_70_170",
+          "weighted_yield": 0.07805630075406032
+        },
+        {
+          "monotonic": true,
+          "raw_entries": 20853,
+          "step": "fit_window_105_140",
+          "weighted_yield": 0.07242304959396752
+        }
+      ],
+      "by_channel": {
+        "2e2mu": [
+          {
+            "monotonic": true,
+            "raw_entries": 13647,
+            "step": "all",
+            "weighted_yield": 0.04739641096287703
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 13647,
+            "step": "finite_core",
+            "weighted_yield": 0.04739641096287703
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 13308,
+            "step": "trigger_bitmask_nonzero",
+            "weighted_yield": 0.046219054524361945
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 13308,
+            "step": "valid_final_state",
+            "weighted_yield": 0.046219054524361945
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 10805,
+            "step": "flavor_matched_lepton_id",
+            "weighted_yield": 0.03752606583526682
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 10805,
+            "step": "z_pair_sanity",
+            "weighted_yield": 0.03752606583526682
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 10016,
+            "step": "broad_validation_window_70_170",
+            "weighted_yield": 0.034785846867749416
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 9261,
+            "step": "fit_window_105_140",
+            "weighted_yield": 0.03216371084686775
+          }
+        ],
+        "4e": [
+          {
+            "monotonic": true,
+            "raw_entries": 6425,
+            "step": "all",
+            "weighted_yield": 0.022314203886310904
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 6425,
+            "step": "finite_core",
+            "weighted_yield": 0.022314203886310904
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 6180,
+            "step": "trigger_bitmask_nonzero",
+            "weighted_yield": 0.021463312064965195
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 6180,
+            "step": "valid_final_state",
+            "weighted_yield": 0.021463312064965195
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 4149,
+            "step": "flavor_matched_lepton_id",
+            "weighted_yield": 0.014409592517401391
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 4149,
+            "step": "z_pair_sanity",
+            "weighted_yield": 0.014409592517401391
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 3839,
+            "step": "broad_validation_window_70_170",
+            "weighted_yield": 0.013332953886310905
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 3543,
+            "step": "fit_window_105_140",
+            "weighted_yield": 0.0123049376450116
+          }
+        ],
+        "4mu": [
+          {
+            "monotonic": true,
+            "raw_entries": 9562,
+            "step": "all",
+            "weighted_yield": 0.03320909222737819
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 9562,
+            "step": "finite_core",
+            "weighted_yield": 0.03320909222737819
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 9530,
+            "step": "trigger_bitmask_nonzero",
+            "weighted_yield": 0.03309795533642691
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 9530,
+            "step": "valid_final_state",
+            "weighted_yield": 0.03309795533642691
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 9156,
+            "step": "flavor_matched_lepton_id",
+            "weighted_yield": 0.03179904292343387
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 9156,
+            "step": "z_pair_sanity",
+            "weighted_yield": 0.03179904292343387
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 8620,
+            "step": "broad_validation_window_70_170",
+            "weighted_yield": 0.0299375
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 8049,
+            "step": "fit_window_105_140",
+            "weighted_yield": 0.027954401102088165
+          }
+        ]
+      }
+    },
+    "WPHToZZ.root": {
+      "all_channels": [
+        {
+          "monotonic": true,
+          "raw_entries": 40179,
+          "step": "all",
+          "weighted_yield": 0.14618119794804982
+        },
+        {
+          "monotonic": true,
+          "raw_entries": 40179,
+          "step": "finite_core",
+          "weighted_yield": 0.14618119794804982
+        },
+        {
+          "monotonic": true,
+          "raw_entries": 39295,
+          "step": "trigger_bitmask_nonzero",
+          "weighted_yield": 0.14296498602176805
+        },
+        {
+          "monotonic": true,
+          "raw_entries": 39295,
+          "step": "valid_final_state",
+          "weighted_yield": 0.14296498602176805
+        },
+        {
+          "monotonic": true,
+          "raw_entries": 32748,
+          "step": "flavor_matched_lepton_id",
+          "weighted_yield": 0.11914537122384171
+        },
+        {
+          "monotonic": true,
+          "raw_entries": 32748,
+          "step": "z_pair_sanity",
+          "weighted_yield": 0.11914537122384171
+        },
+        {
+          "monotonic": true,
+          "raw_entries": 30423,
+          "step": "broad_validation_window_70_170",
+          "weighted_yield": 0.11068644279781777
+        },
+        {
+          "monotonic": true,
+          "raw_entries": 28054,
+          "step": "fit_window_105_140",
+          "weighted_yield": 0.10206743142523682
+        }
+      ],
+      "by_channel": {
+        "2e2mu": [
+          {
+            "monotonic": true,
+            "raw_entries": 18891,
+            "step": "all",
+            "weighted_yield": 0.06873015780473903
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 18891,
+            "step": "finite_core",
+            "weighted_yield": 0.06873015780473903
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 18363,
+            "step": "trigger_bitmask_nonzero",
+            "weighted_yield": 0.06680916244605488
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 18363,
+            "step": "valid_final_state",
+            "weighted_yield": 0.06680916244605488
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 14858,
+            "step": "flavor_matched_lepton_id",
+            "weighted_yield": 0.054057100453274706
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 14858,
+            "step": "z_pair_sanity",
+            "weighted_yield": 0.054057100453274706
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 13764,
+            "step": "broad_validation_window_70_170",
+            "weighted_yield": 0.05007685628206172
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 12601,
+            "step": "fit_window_105_140",
+            "weighted_yield": 0.045845572944657055
+          }
+        ],
+        "4e": [
+          {
+            "monotonic": true,
+            "raw_entries": 8424,
+            "step": "all",
+            "weighted_yield": 0.03064860776809706
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 8424,
+            "step": "finite_core",
+            "weighted_yield": 0.03064860776809706
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 8095,
+            "step": "trigger_bitmask_nonzero",
+            "weighted_yield": 0.029451623917704856
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 8095,
+            "step": "valid_final_state",
+            "weighted_yield": 0.029451623917704856
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 5548,
+            "step": "flavor_matched_lepton_id",
+            "weighted_yield": 0.020185004261325083
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 5548,
+            "step": "z_pair_sanity",
+            "weighted_yield": 0.020185004261325083
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 5101,
+            "step": "broad_validation_window_70_170",
+            "weighted_yield": 0.018558707054257252
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 4694,
+            "step": "fit_window_105_140",
+            "weighted_yield": 0.01707793979860489
+          }
+        ],
+        "4mu": [
+          {
+            "monotonic": true,
+            "raw_entries": 12864,
+            "step": "all",
+            "weighted_yield": 0.04680243237521374
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 12864,
+            "step": "finite_core",
+            "weighted_yield": 0.04680243237521374
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 12837,
+            "step": "trigger_bitmask_nonzero",
+            "weighted_yield": 0.0467041996580083
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 12837,
+            "step": "valid_final_state",
+            "weighted_yield": 0.0467041996580083
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 12342,
+            "step": "flavor_matched_lepton_id",
+            "weighted_yield": 0.04490326650924192
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 12342,
+            "step": "z_pair_sanity",
+            "weighted_yield": 0.04490326650924192
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 11558,
+            "step": "broad_validation_window_70_170",
+            "weighted_yield": 0.04205087946149879
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 10759,
+            "step": "fit_window_105_140",
+            "weighted_yield": 0.039143918681974865
+          }
+        ]
+      }
+    },
+    "ZHToZZ.root": {
+      "all_channels": [
+        {
+          "monotonic": true,
+          "raw_entries": 72189,
+          "step": "all",
+          "weighted_yield": 0.14606707780069547
+        },
+        {
+          "monotonic": true,
+          "raw_entries": 72189,
+          "step": "finite_core",
+          "weighted_yield": 0.14606707780069547
+        },
+        {
+          "monotonic": true,
+          "raw_entries": 71228,
+          "step": "trigger_bitmask_nonzero",
+          "weighted_yield": 0.144122592328304
+        },
+        {
+          "monotonic": true,
+          "raw_entries": 71228,
+          "step": "valid_final_state",
+          "weighted_yield": 0.144122592328304
+        },
+        {
+          "monotonic": true,
+          "raw_entries": 59728,
+          "step": "flavor_matched_lepton_id",
+          "weighted_yield": 0.12085351539541951
+        },
+        {
+          "monotonic": true,
+          "raw_entries": 59728,
+          "step": "z_pair_sanity",
+          "weighted_yield": 0.12085351539541951
+        },
+        {
+          "monotonic": true,
+          "raw_entries": 29427,
+          "step": "broad_validation_window_70_170",
+          "weighted_yield": 0.059542532774260144
+        },
+        {
+          "monotonic": true,
+          "raw_entries": 22874,
+          "step": "fit_window_105_140",
+          "weighted_yield": 0.04628320571850431
+        }
+      ],
+      "by_channel": {
+        "2e2mu": [
+          {
+            "monotonic": true,
+            "raw_entries": 35136,
+            "step": "all",
+            "weighted_yield": 0.07109411192294167
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 35136,
+            "step": "finite_core",
+            "weighted_yield": 0.07109411192294167
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 34568,
+            "step": "trigger_bitmask_nonzero",
+            "weighted_yield": 0.06994482186225659
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 34568,
+            "step": "valid_final_state",
+            "weighted_yield": 0.06994482186225659
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 28440,
+            "step": "flavor_matched_lepton_id",
+            "weighted_yield": 0.0575454389540204
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 28440,
+            "step": "z_pair_sanity",
+            "weighted_yield": 0.0575454389540204
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 13622,
+            "step": "broad_validation_window_70_170",
+            "weighted_yield": 0.02756272747650021
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 10471,
+            "step": "fit_window_105_140",
+            "weighted_yield": 0.021187000396889862
+          }
+        ],
+        "4e": [
+          {
+            "monotonic": true,
+            "raw_entries": 15345,
+            "step": "all",
+            "weighted_yield": 0.031049042220444554
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 15345,
+            "step": "finite_core",
+            "weighted_yield": 0.031049042220444554
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 15003,
+            "step": "trigger_bitmask_nonzero",
+            "weighted_yield": 0.03035704010644051
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 15003,
+            "step": "valid_final_state",
+            "weighted_yield": 0.03035704010644051
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 10441,
+            "step": "flavor_matched_lepton_id",
+            "weighted_yield": 0.021126298457064947
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 10441,
+            "step": "z_pair_sanity",
+            "weighted_yield": 0.021126298457064947
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 4794,
+            "step": "broad_validation_window_70_170",
+            "weighted_yield": 0.009700169984021583
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 3692,
+            "step": "fit_window_105_140",
+            "weighted_yield": 0.007470385394453
+          }
+        ],
+        "4mu": [
+          {
+            "monotonic": true,
+            "raw_entries": 21708,
+            "step": "all",
+            "weighted_yield": 0.043923923657309245
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 21708,
+            "step": "finite_core",
+            "weighted_yield": 0.043923923657309245
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 21657,
+            "step": "trigger_bitmask_nonzero",
+            "weighted_yield": 0.04382073035960689
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 21657,
+            "step": "valid_final_state",
+            "weighted_yield": 0.04382073035960689
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 20847,
+            "step": "flavor_matched_lepton_id",
+            "weighted_yield": 0.04218177798433415
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 20847,
+            "step": "z_pair_sanity",
+            "weighted_yield": 0.04218177798433415
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 11011,
+            "step": "broad_validation_window_70_170",
+            "weighted_yield": 0.02227963531373835
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 8711,
+            "step": "fit_window_105_140",
+            "weighted_yield": 0.017625819927161453
+          }
+        ]
+      }
+    },
+    "ZZTo4L.root": {
+      "all_channels": [
+        {
+          "monotonic": true,
+          "raw_entries": 1864310,
+          "step": "all",
+          "weighted_yield": 474.0923441578382
+        },
+        {
+          "monotonic": true,
+          "raw_entries": 1864310,
+          "step": "finite_core",
+          "weighted_yield": 474.0923441578382
+        },
+        {
+          "monotonic": true,
+          "raw_entries": 1806517,
+          "step": "trigger_bitmask_nonzero",
+          "weighted_yield": 459.39563661139266
+        },
+        {
+          "monotonic": true,
+          "raw_entries": 1806517,
+          "step": "valid_final_state",
+          "weighted_yield": 459.39563661139266
+        },
+        {
+          "monotonic": true,
+          "raw_entries": 1552685,
+          "step": "flavor_matched_lepton_id",
+          "weighted_yield": 394.84638895286355
+        },
+        {
+          "monotonic": true,
+          "raw_entries": 1552685,
+          "step": "z_pair_sanity",
+          "weighted_yield": 394.84638895286355
+        },
+        {
+          "monotonic": true,
+          "raw_entries": 677642,
+          "step": "broad_validation_window_70_170",
+          "weighted_yield": 172.32374673729467
+        },
+        {
+          "monotonic": true,
+          "raw_entries": 116080,
+          "step": "fit_window_105_140",
+          "weighted_yield": 29.519038845386152
+        }
+      ],
+      "by_channel": {
+        "2e2mu": [
+          {
+            "monotonic": true,
+            "raw_entries": 883569,
+            "step": "all",
+            "weighted_yield": 224.69079629203134
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 883569,
+            "step": "finite_core",
+            "weighted_yield": 224.69079629203134
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 848948,
+            "step": "trigger_bitmask_nonzero",
+            "weighted_yield": 215.88670735452175
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 848948,
+            "step": "valid_final_state",
+            "weighted_yield": 215.88670735452175
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 713146,
+            "step": "flavor_matched_lepton_id",
+            "weighted_yield": 181.35238177491172
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 713146,
+            "step": "z_pair_sanity",
+            "weighted_yield": 181.35238177491172
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 286891,
+            "step": "broad_validation_window_70_170",
+            "weighted_yield": 72.95612141102411
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 53741,
+            "step": "fit_window_105_140",
+            "weighted_yield": 13.666287617073547
+          }
+        ],
+        "4e": [
+          {
+            "monotonic": true,
+            "raw_entries": 360183,
+            "step": "all",
+            "weighted_yield": 91.59421061722709
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 360183,
+            "step": "finite_core",
+            "weighted_yield": 91.59421061722709
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 340719,
+            "step": "trigger_bitmask_nonzero",
+            "weighted_yield": 86.64453304928605
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 340719,
+            "step": "valid_final_state",
+            "weighted_yield": 86.64453304928605
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 247346,
+            "step": "flavor_matched_lepton_id",
+            "weighted_yield": 62.89986373407033
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 247346,
+            "step": "z_pair_sanity",
+            "weighted_yield": 62.89986373407033
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 78973,
+            "step": "broad_validation_window_70_170",
+            "weighted_yield": 20.082762359895597
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 14144,
+            "step": "fit_window_105_140",
+            "weighted_yield": 3.5968063872255494
+          }
+        ],
+        "4mu": [
+          {
+            "monotonic": true,
+            "raw_entries": 620558,
+            "step": "all",
+            "weighted_yield": 157.80733724857978
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 620558,
+            "step": "finite_core",
+            "weighted_yield": 157.80733724857978
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 616850,
+            "step": "trigger_bitmask_nonzero",
+            "weighted_yield": 156.86439620758486
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 616850,
+            "step": "valid_final_state",
+            "weighted_yield": 156.86439620758486
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 592193,
+            "step": "flavor_matched_lepton_id",
+            "weighted_yield": 150.59414344388148
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 592193,
+            "step": "z_pair_sanity",
+            "weighted_yield": 150.59414344388148
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 311778,
+            "step": "broad_validation_window_70_170",
+            "weighted_yield": 79.28486296637494
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 48195,
+            "step": "fit_window_105_140",
+            "weighted_yield": 12.255944841087057
+          }
+        ]
+      }
+    },
+    "cms_10fb_13TeV.root": {
+      "all_channels": [
+        {
+          "monotonic": true,
+          "raw_entries": 854,
+          "step": "all",
+          "weighted_yield": 854.0
+        },
+        {
+          "monotonic": true,
+          "raw_entries": 854,
+          "step": "finite_core",
+          "weighted_yield": 854.0
+        },
+        {
+          "monotonic": true,
+          "raw_entries": 798,
+          "step": "trigger_bitmask_nonzero",
+          "weighted_yield": 798.0
+        },
+        {
+          "monotonic": true,
+          "raw_entries": 798,
+          "step": "valid_final_state",
+          "weighted_yield": 798.0
+        },
+        {
+          "monotonic": true,
+          "raw_entries": 467,
+          "step": "flavor_matched_lepton_id",
+          "weighted_yield": 467.0
+        },
+        {
+          "monotonic": true,
+          "raw_entries": 467,
+          "step": "z_pair_sanity",
+          "weighted_yield": 467.0
+        },
+        {
+          "monotonic": true,
+          "raw_entries": 203,
+          "step": "broad_validation_window_70_170",
+          "weighted_yield": 203.0
+        },
+        {
+          "monotonic": true,
+          "raw_entries": 69,
+          "step": "fit_window_105_140",
+          "weighted_yield": 69.0
+        }
+      ],
+      "by_channel": {
+        "2e2mu": [
+          {
+            "monotonic": true,
+            "raw_entries": 428,
+            "step": "all",
+            "weighted_yield": 428.0
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 428,
+            "step": "finite_core",
+            "weighted_yield": 428.0
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 400,
+            "step": "trigger_bitmask_nonzero",
+            "weighted_yield": 400.0
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 400,
+            "step": "valid_final_state",
+            "weighted_yield": 400.0
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 228,
+            "step": "flavor_matched_lepton_id",
+            "weighted_yield": 228.0
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 228,
+            "step": "z_pair_sanity",
+            "weighted_yield": 228.0
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 98,
+            "step": "broad_validation_window_70_170",
+            "weighted_yield": 98.0
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 37,
+            "step": "fit_window_105_140",
+            "weighted_yield": 37.0
+          }
+        ],
+        "4e": [
+          {
+            "monotonic": true,
+            "raw_entries": 264,
+            "step": "all",
+            "weighted_yield": 264.0
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 264,
+            "step": "finite_core",
+            "weighted_yield": 264.0
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 236,
+            "step": "trigger_bitmask_nonzero",
+            "weighted_yield": 236.0
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 236,
+            "step": "valid_final_state",
+            "weighted_yield": 236.0
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 86,
+            "step": "flavor_matched_lepton_id",
+            "weighted_yield": 86.0
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 86,
+            "step": "z_pair_sanity",
+            "weighted_yield": 86.0
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 24,
+            "step": "broad_validation_window_70_170",
+            "weighted_yield": 24.0
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 11,
+            "step": "fit_window_105_140",
+            "weighted_yield": 11.0
+          }
+        ],
+        "4mu": [
+          {
+            "monotonic": true,
+            "raw_entries": 162,
+            "step": "all",
+            "weighted_yield": 162.0
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 162,
+            "step": "finite_core",
+            "weighted_yield": 162.0
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 162,
+            "step": "trigger_bitmask_nonzero",
+            "weighted_yield": 162.0
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 162,
+            "step": "valid_final_state",
+            "weighted_yield": 162.0
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 153,
+            "step": "flavor_matched_lepton_id",
+            "weighted_yield": 153.0
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 153,
+            "step": "z_pair_sanity",
+            "weighted_yield": 153.0
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 81,
+            "step": "broad_validation_window_70_170",
+            "weighted_yield": 81.0
+          },
+          {
+            "monotonic": true,
+            "raw_entries": 21,
+            "step": "fit_window_105_140",
+            "weighted_yield": 21.0
+          }
+        ]
+      }
+    }
+  },
+  "steps": [
+    "all",
+    "finite_core",
+    "trigger_bitmask_nonzero",
+    "valid_final_state",
+    "flavor_matched_lepton_id",
+    "z_pair_sanity",
+    "broad_validation_window_70_170",
+    "fit_window_105_140"
+  ]
+}

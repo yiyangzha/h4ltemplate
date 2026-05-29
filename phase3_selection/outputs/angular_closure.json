@@ -1,0 +1,284 @@
+{
+  "created_utc": "2026-05-29T21:16:38+00:00",
+  "formula_note": "Angles are detector-level candidates reconstructed from retained lepton four-vectors; use requires data/MC input-validation gates.",
+  "overall_pass": true,
+  "samples": [
+    {
+      "group": "data",
+      "median_abs_diff_GeV": {
+        "m4l": 7.62939453125e-06,
+        "mZ1": 7.62939453125e-06,
+        "mZ2": 3.814697265625e-06
+      },
+      "out_of_range_counts": {
+        "cos_theta1": 0,
+        "cos_theta2": 0,
+        "cos_theta_star": 0,
+        "phi": 0,
+        "phi1": 0
+      },
+      "p95_abs_diff_GeV": {
+        "m4l": 7.476806640624965e-05,
+        "mZ1": 3.0517578125e-05,
+        "mZ2": 5.521774291992185e-05
+      },
+      "passes_0p1_GeV_median_gate": true,
+      "sample": "cms_10fb_13TeV.root",
+      "selected_broad_entries": 203
+    },
+    {
+      "group": "background_reducible",
+      "median_abs_diff_GeV": {
+        "m4l": 1.52587890625e-05,
+        "mZ1": 7.62939453125e-06,
+        "mZ2": 3.814697265625e-06
+      },
+      "out_of_range_counts": {
+        "cos_theta1": 0,
+        "cos_theta2": 0,
+        "cos_theta_star": 0,
+        "phi": 0,
+        "phi1": 0
+      },
+      "p95_abs_diff_GeV": {
+        "m4l": 9.384155273437498e-05,
+        "mZ1": 0.00012893676757812493,
+        "mZ2": 5.3977966308593745e-05
+      },
+      "passes_0p1_GeV_median_gate": true,
+      "sample": "DYJetsToLL.root",
+      "selected_broad_entries": 38
+    },
+    {
+      "group": "background_ggZZ",
+      "median_abs_diff_GeV": {
+        "m4l": 7.62939453125e-06,
+        "mZ1": 7.62939453125e-06,
+        "mZ2": 5.7220458984375e-06
+      },
+      "out_of_range_counts": {
+        "cos_theta1": 0,
+        "cos_theta2": 0,
+        "cos_theta_star": 0,
+        "phi": 0,
+        "phi1": 0
+      },
+      "p95_abs_diff_GeV": {
+        "m4l": 4.57763671875e-05,
+        "mZ1": 4.1961669921875e-05,
+        "mZ2": 7.43865966796875e-05
+      },
+      "passes_0p1_GeV_median_gate": true,
+      "sample": "GGZZ2E2Mu.root",
+      "selected_broad_entries": 17694
+    },
+    {
+      "group": "background_ggZZ",
+      "median_abs_diff_GeV": {
+        "m4l": 7.62939453125e-06,
+        "mZ1": 7.62939453125e-06,
+        "mZ2": 3.814697265625e-06
+      },
+      "out_of_range_counts": {
+        "cos_theta1": 0,
+        "cos_theta2": 0,
+        "cos_theta_star": 0,
+        "phi": 0,
+        "phi1": 0
+      },
+      "p95_abs_diff_GeV": {
+        "m4l": 4.57763671875e-05,
+        "mZ1": 3.0517578125e-05,
+        "mZ2": 3.814697265625e-05
+      },
+      "passes_0p1_GeV_median_gate": true,
+      "sample": "GGZZ4E.root",
+      "selected_broad_entries": 25309
+    },
+    {
+      "group": "background_ggZZ",
+      "median_abs_diff_GeV": {
+        "m4l": 7.62939453125e-06,
+        "mZ1": 7.62939453125e-06,
+        "mZ2": 3.814697265625e-06
+      },
+      "out_of_range_counts": {
+        "cos_theta1": 0,
+        "cos_theta2": 0,
+        "cos_theta_star": 0,
+        "phi": 0,
+        "phi1": 0
+      },
+      "p95_abs_diff_GeV": {
+        "m4l": 4.57763671875e-05,
+        "mZ1": 3.4332275390625e-05,
+        "mZ2": 3.4332275390625e-05
+      },
+      "passes_0p1_GeV_median_gate": true,
+      "sample": "GGZZ4Mu.root",
+      "selected_broad_entries": 72541
+    },
+    {
+      "group": "signal_ggH",
+      "median_abs_diff_GeV": {
+        "m4l": 7.62939453125e-06,
+        "mZ1": 7.62939453125e-06,
+        "mZ2": 3.814697265625e-06
+      },
+      "out_of_range_counts": {
+        "cos_theta1": 0,
+        "cos_theta2": 0,
+        "cos_theta_star": 0,
+        "phi": 0,
+        "phi1": 0
+      },
+      "p95_abs_diff_GeV": {
+        "m4l": 6.866455078125e-05,
+        "mZ1": 4.57763671875e-05,
+        "mZ2": 3.0517578125e-05
+      },
+      "passes_0p1_GeV_median_gate": true,
+      "sample": "GluGluToHToZZ.root",
+      "selected_broad_entries": 113819
+    },
+    {
+      "group": "background_top",
+      "median_abs_diff_GeV": {
+        "m4l": 1.52587890625e-05,
+        "mZ1": 7.62939453125e-06,
+        "mZ2": 3.814697265625e-06
+      },
+      "out_of_range_counts": {
+        "cos_theta1": 0,
+        "cos_theta2": 0,
+        "cos_theta_star": 0,
+        "phi": 0,
+        "phi1": 0
+      },
+      "p95_abs_diff_GeV": {
+        "m4l": 7.362365722656243e-05,
+        "mZ1": 5.8364868164062435e-05,
+        "mZ2": 4.4322013854980457e-05
+      },
+      "passes_0p1_GeV_median_gate": true,
+      "sample": "TTBar.root",
+      "selected_broad_entries": 50
+    },
+    {
+      "group": "signal_VBF",
+      "median_abs_diff_GeV": {
+        "m4l": 1.52587890625e-05,
+        "mZ1": 7.62939453125e-06,
+        "mZ2": 3.814697265625e-06
+      },
+      "out_of_range_counts": {
+        "cos_theta1": 0,
+        "cos_theta2": 0,
+        "cos_theta_star": 0,
+        "phi": 0,
+        "phi1": 0
+      },
+      "p95_abs_diff_GeV": {
+        "m4l": 9.918212890625e-05,
+        "mZ1": 6.866455078125e-05,
+        "mZ2": 5.14984130859375e-05
+      },
+      "passes_0p1_GeV_median_gate": true,
+      "sample": "VBF_HToZZ.root",
+      "selected_broad_entries": 68867
+    },
+    {
+      "group": "signal_VH",
+      "median_abs_diff_GeV": {
+        "m4l": 1.52587890625e-05,
+        "mZ1": 7.62939453125e-06,
+        "mZ2": 3.814697265625e-06
+      },
+      "out_of_range_counts": {
+        "cos_theta1": 0,
+        "cos_theta2": 0,
+        "cos_theta_star": 0,
+        "phi": 0,
+        "phi1": 0
+      },
+      "p95_abs_diff_GeV": {
+        "m4l": 0.0001068115234375,
+        "mZ1": 7.62939453125e-05,
+        "mZ2": 5.7220458984375e-05
+      },
+      "passes_0p1_GeV_median_gate": true,
+      "sample": "WMHToZZ.root",
+      "selected_broad_entries": 22475
+    },
+    {
+      "group": "signal_VH",
+      "median_abs_diff_GeV": {
+        "m4l": 1.52587890625e-05,
+        "mZ1": 7.62939453125e-06,
+        "mZ2": 3.814697265625e-06
+      },
+      "out_of_range_counts": {
+        "cos_theta1": 0,
+        "cos_theta2": 0,
+        "cos_theta_star": 0,
+        "phi": 0,
+        "phi1": 0
+      },
+      "p95_abs_diff_GeV": {
+        "m4l": 0.00012969970703125,
+        "mZ1": 9.1552734375e-05,
+        "mZ2": 6.866455078125e-05
+      },
+      "passes_0p1_GeV_median_gate": true,
+      "sample": "WPHToZZ.root",
+      "selected_broad_entries": 30423
+    },
+    {
+      "group": "signal_VH",
+      "median_abs_diff_GeV": {
+        "m4l": 1.52587890625e-05,
+        "mZ1": 7.62939453125e-06,
+        "mZ2": 3.814697265625e-06
+      },
+      "out_of_range_counts": {
+        "cos_theta1": 0,
+        "cos_theta2": 0,
+        "cos_theta_star": 0,
+        "phi": 0,
+        "phi1": 0
+      },
+      "p95_abs_diff_GeV": {
+        "m4l": 9.918212890625e-05,
+        "mZ1": 7.62939453125e-05,
+        "mZ2": 4.9591064453125e-05
+      },
+      "passes_0p1_GeV_median_gate": true,
+      "sample": "ZHToZZ.root",
+      "selected_broad_entries": 29427
+    },
+    {
+      "group": "background_ZZ",
+      "median_abs_diff_GeV": {
+        "m4l": 7.62939453125e-06,
+        "mZ1": 7.62939453125e-06,
+        "mZ2": 3.814697265625e-06
+      },
+      "out_of_range_counts": {
+        "cos_theta1": 0,
+        "cos_theta2": 0,
+        "cos_theta_star": 0,
+        "phi": 0,
+        "phi1": 0
+      },
+      "p95_abs_diff_GeV": {
+        "m4l": 5.340576171875e-05,
+        "mZ1": 4.1961669921875e-05,
+        "mZ2": 5.53131103515625e-05
+      },
+      "passes_0p1_GeV_median_gate": true,
+      "sample": "ZZTo4L.root",
+      "selected_broad_entries": 677642
+    }
+  ],
+  "source_citation": "Phase 2 strategy cites CMS-HIG-16-041 angular/MELA references, Oreglia Appendix D, and Anderson et al. PRD 89 (2014) 035007."
+}

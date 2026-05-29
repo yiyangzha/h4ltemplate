@@ -1,0 +1,186 @@
+{
+  "created_utc": "2026-05-29T21:16:04+00:00",
+  "files": [
+    {
+      "branch_count_h4lTree": 108,
+      "jet_like_branches": [],
+      "kind": "data",
+      "metadata_generated_events": 854.0,
+      "name": "cms_10fb_13TeV.root",
+      "path": "/sandbox/work/jfc/analyses/h4ltemplate/data/cms_10fb_13TeV.root",
+      "role": "primary_data",
+      "size_bytes": 9076342,
+      "tree_entries": {
+        "Metadata": 1,
+        "h4lTree": 854
+      },
+      "used_for_nominal": true
+    },
+    {
+      "branch_count_h4lTree": 111,
+      "jet_like_branches": [],
+      "kind": "mc",
+      "metadata_generated_events": 82448537.0,
+      "name": "DYJetsToLL.root",
+      "path": "/sandbox/work/jfc/analyses/h4ltemplate/mc/DYJetsToLL.root",
+      "role": "primary_mc",
+      "size_bytes": 183984,
+      "tree_entries": {
+        "Metadata": 1,
+        "h4lTree": 463
+      },
+      "used_for_nominal": true
+    },
+    {
+      "branch_count_h4lTree": 111,
+      "jet_like_branches": [],
+      "kind": "mc",
+      "metadata_generated_events": 499000.0,
+      "name": "GGZZ2E2Mu.root",
+      "path": "/sandbox/work/jfc/analyses/h4ltemplate/mc/GGZZ2E2Mu.root",
+      "role": "primary_mc",
+      "size_bytes": 44108633,
+      "tree_entries": {
+        "Metadata": 1,
+        "h4lTree": 247847
+      },
+      "used_for_nominal": true
+    },
+    {
+      "branch_count_h4lTree": 111,
+      "jet_like_branches": [],
+      "kind": "mc",
+      "metadata_generated_events": 992608.0,
+      "name": "GGZZ4E.root",
+      "path": "/sandbox/work/jfc/analyses/h4ltemplate/mc/GGZZ4E.root",
+      "role": "primary_mc",
+      "size_bytes": 75582447,
+      "tree_entries": {
+        "Metadata": 1,
+        "h4lTree": 434957
+      },
+      "used_for_nominal": true
+    },
+    {
+      "branch_count_h4lTree": 111,
+      "jet_like_branches": [],
+      "kind": "mc",
+      "metadata_generated_events": 997445.0,
+      "name": "GGZZ4Mu.root",
+      "path": "/sandbox/work/jfc/analyses/h4ltemplate/mc/GGZZ4Mu.root",
+      "role": "primary_mc",
+      "size_bytes": 91319656,
+      "tree_entries": {
+        "Metadata": 1,
+        "h4lTree": 604772
+      },
+      "used_for_nominal": true
+    },
+    {
+      "branch_count_h4lTree": 111,
+      "jet_like_branches": [],
+      "kind": "mc",
+      "metadata_generated_events": 983914.0,
+      "name": "GluGluToHToZZ.root",
+      "path": "/sandbox/work/jfc/analyses/h4ltemplate/mc/GluGluToHToZZ.root",
+      "role": "primary_mc",
+      "size_bytes": 24949568,
+      "tree_entries": {
+        "Metadata": 1,
+        "h4lTree": 138479
+      },
+      "used_for_nominal": true
+    },
+    {
+      "branch_count_h4lTree": 111,
+      "jet_like_branches": [],
+      "kind": "mc",
+      "metadata_generated_events": 14776503.0,
+      "name": "TTBar.root",
+      "path": "/sandbox/work/jfc/analyses/h4ltemplate/mc/TTBar.root",
+      "role": "primary_mc",
+      "size_bytes": 219230,
+      "tree_entries": {
+        "Metadata": 1,
+        "h4lTree": 639
+      },
+      "used_for_nominal": true
+    },
+    {
+      "branch_count_h4lTree": 111,
+      "jet_like_branches": [],
+      "kind": "mc",
+      "metadata_generated_events": 498000.0,
+      "name": "VBF_HToZZ.root",
+      "path": "/sandbox/work/jfc/analyses/h4ltemplate/mc/VBF_HToZZ.root",
+      "role": "primary_mc",
+      "size_bytes": 15081579,
+      "tree_entries": {
+        "Metadata": 1,
+        "h4lTree": 83769
+      },
+      "used_for_nominal": true
+    },
+    {
+      "branch_count_h4lTree": 111,
+      "jet_like_branches": [],
+      "kind": "mc",
+      "metadata_generated_events": 193088.0,
+      "name": "WMHToZZ.root",
+      "path": "/sandbox/work/jfc/analyses/h4ltemplate/mc/WMHToZZ.root",
+      "role": "primary_mc",
+      "size_bytes": 5375132,
+      "tree_entries": {
+        "Metadata": 1,
+        "h4lTree": 29634
+      },
+      "used_for_nominal": true
+    },
+    {
+      "branch_count_h4lTree": 111,
+      "jet_like_branches": [],
+      "kind": "mc",
+      "metadata_generated_events": 294744.0,
+      "name": "WPHToZZ.root",
+      "path": "/sandbox/work/jfc/analyses/h4ltemplate/mc/WPHToZZ.root",
+      "role": "primary_mc",
+      "size_bytes": 7304507,
+      "tree_entries": {
+        "Metadata": 1,
+        "h4lTree": 40179
+      },
+      "used_for_nominal": true
+    },
+    {
+      "branch_count_h4lTree": 111,
+      "jet_like_branches": [],
+      "kind": "mc",
+      "metadata_generated_events": 486281.0,
+      "name": "ZHToZZ.root",
+      "path": "/sandbox/work/jfc/analyses/h4ltemplate/mc/ZHToZZ.root",
+      "role": "primary_mc",
+      "size_bytes": 13071357,
+      "tree_entries": {
+        "Metadata": 1,
+        "h4lTree": 72189
+      },
+      "used_for_nominal": true
+    },
+    {
+      "branch_count_h4lTree": 111,
+      "jet_like_branches": [],
+      "kind": "mc",
+      "metadata_generated_events": 52104000.0,
+      "name": "ZZTo4L.root",
+      "path": "/sandbox/work/jfc/analyses/h4ltemplate/mc/ZZTo4L.root",
+      "role": "primary_mc",
+      "size_bytes": 333657506,
+      "tree_entries": {
+        "Metadata": 1,
+        "h4lTree": 1864310
+      },
+      "used_for_nominal": true
+    }
+  ],
+  "primary_paths_only_for_nominal": true
+}

@@ -1,1 +1,347 @@
-[]
+[
+  {
+    "caption": "$\\cos\\theta_1$ input-validation distribution in the broad `70 <= m4l <= 170 GeV` window. The D7 shape gate fails with chi2/ndf = 1.6001492260249683 and p = 0.15619451167710663; this comparison is used only to decide classifier-input eligibility, not to normalize fit templates.",
+    "created_utc": "2026-05-29T21:17:48+00:00",
+    "description": "$\\cos\\theta_1$ input-validation distribution in the broad `70 <= m4l <= 170 GeV` window. The D7 shape gate fails with chi2/ndf = 1.6001492260249683 and p = 0.15619451167710663; this comparison is used only to decide classifier-input eligibility, not to normalize fit templates.",
+    "id": "input_validation_cos_theta1",
+    "metadata": {
+      "passes_d7_gate": false,
+      "variable": "cos_theta1"
+    },
+    "pdf": "figures/input_validation_cos_theta1.pdf",
+    "png": "figures/input_validation_cos_theta1.png",
+    "source": "phase3_selection/outputs/input_validation.json"
+  },
+  {
+    "caption": "$\\cos\\theta_2$ input-validation distribution in the broad `70 <= m4l <= 170 GeV` window. The D7 shape gate fails with chi2/ndf = 1.2886226788815338 and p = 0.26545662085594524; this comparison is used only to decide classifier-input eligibility, not to normalize fit templates.",
+    "created_utc": "2026-05-29T21:17:48+00:00",
+    "description": "$\\cos\\theta_2$ input-validation distribution in the broad `70 <= m4l <= 170 GeV` window. The D7 shape gate fails with chi2/ndf = 1.2886226788815338 and p = 0.26545662085594524; this comparison is used only to decide classifier-input eligibility, not to normalize fit templates.",
+    "id": "input_validation_cos_theta2",
+    "metadata": {
+      "passes_d7_gate": false,
+      "variable": "cos_theta2"
+    },
+    "pdf": "figures/input_validation_cos_theta2.pdf",
+    "png": "figures/input_validation_cos_theta2.png",
+    "source": "phase3_selection/outputs/input_validation.json"
+  },
+  {
+    "caption": "$\\cos\\theta^*$ input-validation distribution in the broad `70 <= m4l <= 170 GeV` window. The D7 shape gate fails with chi2/ndf = 1.0071370073639707 and p = 0.41154068990600756; this comparison is used only to decide classifier-input eligibility, not to normalize fit templates.",
+    "created_utc": "2026-05-29T21:17:49+00:00",
+    "description": "$\\cos\\theta^*$ input-validation distribution in the broad `70 <= m4l <= 170 GeV` window. The D7 shape gate fails with chi2/ndf = 1.0071370073639707 and p = 0.41154068990600756; this comparison is used only to decide classifier-input eligibility, not to normalize fit templates.",
+    "id": "input_validation_cos_theta_star",
+    "metadata": {
+      "passes_d7_gate": false,
+      "variable": "cos_theta_star"
+    },
+    "pdf": "figures/input_validation_cos_theta_star.pdf",
+    "png": "figures/input_validation_cos_theta_star.png",
+    "source": "phase3_selection/outputs/input_validation.json"
+  },
+  {
+    "caption": "$\\eta_{4\\ell}$ input-validation distribution in the broad `70 <= m4l <= 170 GeV` window. The D7 shape gate fails with chi2/ndf = 0.403906670356694 and p = 0.8464356767363523; this comparison is used only to decide classifier-input eligibility, not to normalize fit templates.",
+    "created_utc": "2026-05-29T21:17:50+00:00",
+    "description": "$\\eta_{4\\ell}$ input-validation distribution in the broad `70 <= m4l <= 170 GeV` window. The D7 shape gate fails with chi2/ndf = 0.403906670356694 and p = 0.8464356767363523; this comparison is used only to decide classifier-input eligibility, not to normalize fit templates.",
+    "id": "input_validation_eta4l",
+    "metadata": {
+      "passes_d7_gate": false,
+      "variable": "eta4l"
+    },
+    "pdf": "figures/input_validation_eta4l.pdf",
+    "png": "figures/input_validation_eta4l.png",
+    "source": "phase3_selection/outputs/input_validation.json"
+  },
+  {
+    "caption": "Leading lepton $|\\eta|$ input-validation distribution in the broad `70 <= m4l <= 170 GeV` window. The D7 shape gate passes with chi2/ndf = 0.47339689038215194 and p = 0.7553228717943874; this comparison is used only to decide classifier-input eligibility, not to normalize fit templates.",
+    "created_utc": "2026-05-29T21:17:50+00:00",
+    "description": "Leading lepton $|\\eta|$ input-validation distribution in the broad `70 <= m4l <= 170 GeV` window. The D7 shape gate passes with chi2/ndf = 0.47339689038215194 and p = 0.7553228717943874; this comparison is used only to decide classifier-input eligibility, not to normalize fit templates.",
+    "id": "input_validation_lead_abs_eta",
+    "metadata": {
+      "passes_d7_gate": true,
+      "variable": "lead_abs_eta"
+    },
+    "pdf": "figures/input_validation_lead_abs_eta.pdf",
+    "png": "figures/input_validation_lead_abs_eta.png",
+    "source": "phase3_selection/outputs/input_validation.json"
+  },
+  {
+    "caption": "Leading lepton $p_T$ [GeV] input-validation distribution in the broad `70 <= m4l <= 170 GeV` window. The D7 shape gate fails with chi2/ndf = 4.0563653800581125 and p = 0.0027310794646753646; this comparison is used only to decide classifier-input eligibility, not to normalize fit templates.",
+    "created_utc": "2026-05-29T21:17:51+00:00",
+    "description": "Leading lepton $p_T$ [GeV] input-validation distribution in the broad `70 <= m4l <= 170 GeV` window. The D7 shape gate fails with chi2/ndf = 4.0563653800581125 and p = 0.0027310794646753646; this comparison is used only to decide classifier-input eligibility, not to normalize fit templates.",
+    "id": "input_validation_lead_lepton_pt",
+    "metadata": {
+      "passes_d7_gate": false,
+      "variable": "lead_lepton_pt"
+    },
+    "pdf": "figures/input_validation_lead_lepton_pt.pdf",
+    "png": "figures/input_validation_lead_lepton_pt.png",
+    "source": "phase3_selection/outputs/input_validation.json"
+  },
+  {
+    "caption": "$m_{Z1}$ [GeV] input-validation distribution in the broad `70 <= m4l <= 170 GeV` window. The D7 shape gate fails with chi2/ndf = 122.06372127652519 and p = 6.222370915955571e-155; this comparison is used only to decide classifier-input eligibility, not to normalize fit templates.",
+    "created_utc": "2026-05-29T21:17:52+00:00",
+    "description": "$m_{Z1}$ [GeV] input-validation distribution in the broad `70 <= m4l <= 170 GeV` window. The D7 shape gate fails with chi2/ndf = 122.06372127652519 and p = 6.222370915955571e-155; this comparison is used only to decide classifier-input eligibility, not to normalize fit templates.",
+    "id": "input_validation_mZ1",
+    "metadata": {
+      "passes_d7_gate": false,
+      "variable": "mZ1"
+    },
+    "pdf": "figures/input_validation_mZ1.pdf",
+    "png": "figures/input_validation_mZ1.png",
+    "source": "phase3_selection/outputs/input_validation.json"
+  },
+  {
+    "caption": "$m_{Z2}$ [GeV] input-validation distribution in the broad `70 <= m4l <= 170 GeV` window. The D7 shape gate fails with chi2/ndf = 32.08289039229913 and p = 7.490598035954748e-39; this comparison is used only to decide classifier-input eligibility, not to normalize fit templates.",
+    "created_utc": "2026-05-29T21:17:52+00:00",
+    "description": "$m_{Z2}$ [GeV] input-validation distribution in the broad `70 <= m4l <= 170 GeV` window. The D7 shape gate fails with chi2/ndf = 32.08289039229913 and p = 7.490598035954748e-39; this comparison is used only to decide classifier-input eligibility, not to normalize fit templates.",
+    "id": "input_validation_mZ2",
+    "metadata": {
+      "passes_d7_gate": false,
+      "variable": "mZ2"
+    },
+    "pdf": "figures/input_validation_mZ2.pdf",
+    "png": "figures/input_validation_mZ2.png",
+    "source": "phase3_selection/outputs/input_validation.json"
+  },
+  {
+    "caption": "$\\Phi$ [rad] input-validation distribution in the broad `70 <= m4l <= 170 GeV` window. The D7 shape gate fails with chi2/ndf = 0.7802438912389367 and p = 0.5637239206428847; this comparison is used only to decide classifier-input eligibility, not to normalize fit templates.",
+    "created_utc": "2026-05-29T21:17:53+00:00",
+    "description": "$\\Phi$ [rad] input-validation distribution in the broad `70 <= m4l <= 170 GeV` window. The D7 shape gate fails with chi2/ndf = 0.7802438912389367 and p = 0.5637239206428847; this comparison is used only to decide classifier-input eligibility, not to normalize fit templates.",
+    "id": "input_validation_phi",
+    "metadata": {
+      "passes_d7_gate": false,
+      "variable": "phi"
+    },
+    "pdf": "figures/input_validation_phi.pdf",
+    "png": "figures/input_validation_phi.png",
+    "source": "phase3_selection/outputs/input_validation.json"
+  },
+  {
+    "caption": "$\\Phi_1$ [rad] input-validation distribution in the broad `70 <= m4l <= 170 GeV` window. The D7 shape gate passes with chi2/ndf = 0.15524017964005488 and p = 0.9785264246350153; this comparison is used only to decide classifier-input eligibility, not to normalize fit templates.",
+    "created_utc": "2026-05-29T21:17:54+00:00",
+    "description": "$\\Phi_1$ [rad] input-validation distribution in the broad `70 <= m4l <= 170 GeV` window. The D7 shape gate passes with chi2/ndf = 0.15524017964005488 and p = 0.9785264246350153; this comparison is used only to decide classifier-input eligibility, not to normalize fit templates.",
+    "id": "input_validation_phi1",
+    "metadata": {
+      "passes_d7_gate": true,
+      "variable": "phi1"
+    },
+    "pdf": "figures/input_validation_phi1.pdf",
+    "png": "figures/input_validation_phi1.png",
+    "source": "phase3_selection/outputs/input_validation.json"
+  },
+  {
+    "caption": "$p_T^{4\\ell}$ [GeV] input-validation distribution in the broad `70 <= m4l <= 170 GeV` window. The D7 shape gate fails with chi2/ndf = 0.33279924052727416 and p = 0.8934040385469844; this comparison is used only to decide classifier-input eligibility, not to normalize fit templates.",
+    "created_utc": "2026-05-29T21:17:54+00:00",
+    "description": "$p_T^{4\\ell}$ [GeV] input-validation distribution in the broad `70 <= m4l <= 170 GeV` window. The D7 shape gate fails with chi2/ndf = 0.33279924052727416 and p = 0.8934040385469844; this comparison is used only to decide classifier-input eligibility, not to normalize fit templates.",
+    "id": "input_validation_pt4l",
+    "metadata": {
+      "passes_d7_gate": false,
+      "variable": "pt4l"
+    },
+    "pdf": "figures/input_validation_pt4l.pdf",
+    "png": "figures/input_validation_pt4l.png",
+    "source": "phase3_selection/outputs/input_validation.json"
+  },
+  {
+    "caption": "Subleading lepton $|\\eta|$ input-validation distribution in the broad `70 <= m4l <= 170 GeV` window. The D7 shape gate fails with chi2/ndf = 1.075996615735861 and p = 0.366426176304793; this comparison is used only to decide classifier-input eligibility, not to normalize fit templates.",
+    "created_utc": "2026-05-29T21:17:55+00:00",
+    "description": "Subleading lepton $|\\eta|$ input-validation distribution in the broad `70 <= m4l <= 170 GeV` window. The D7 shape gate fails with chi2/ndf = 1.075996615735861 and p = 0.366426176304793; this comparison is used only to decide classifier-input eligibility, not to normalize fit templates.",
+    "id": "input_validation_sublead_abs_eta",
+    "metadata": {
+      "passes_d7_gate": false,
+      "variable": "sublead_abs_eta"
+    },
+    "pdf": "figures/input_validation_sublead_abs_eta.pdf",
+    "png": "figures/input_validation_sublead_abs_eta.png",
+    "source": "phase3_selection/outputs/input_validation.json"
+  },
+  {
+    "caption": "Subleading lepton $p_T$ [GeV] input-validation distribution in the broad `70 <= m4l <= 170 GeV` window. The D7 shape gate fails with chi2/ndf = 849.4760725947206 and p = 0.0; this comparison is used only to decide classifier-input eligibility, not to normalize fit templates.",
+    "created_utc": "2026-05-29T21:17:56+00:00",
+    "description": "Subleading lepton $p_T$ [GeV] input-validation distribution in the broad `70 <= m4l <= 170 GeV` window. The D7 shape gate fails with chi2/ndf = 849.4760725947206 and p = 0.0; this comparison is used only to decide classifier-input eligibility, not to normalize fit templates.",
+    "id": "input_validation_sublead_lepton_pt",
+    "metadata": {
+      "passes_d7_gate": false,
+      "variable": "sublead_lepton_pt"
+    },
+    "pdf": "figures/input_validation_sublead_lepton_pt.pdf",
+    "png": "figures/input_validation_sublead_lepton_pt.png",
+    "source": "phase3_selection/outputs/input_validation.json"
+  },
+  {
+    "caption": "$y_{4\\ell}$ input-validation distribution in the broad `70 <= m4l <= 170 GeV` window. The D7 shape gate fails with chi2/ndf = 996.6794657416456 and p = 0.0; this comparison is used only to decide classifier-input eligibility, not to normalize fit templates.",
+    "created_utc": "2026-05-29T21:17:56+00:00",
+    "description": "$y_{4\\ell}$ input-validation distribution in the broad `70 <= m4l <= 170 GeV` window. The D7 shape gate fails with chi2/ndf = 996.6794657416456 and p = 0.0; this comparison is used only to decide classifier-input eligibility, not to normalize fit templates.",
+    "id": "input_validation_y4l",
+    "metadata": {
+      "passes_d7_gate": false,
+      "variable": "y4l"
+    },
+    "pdf": "figures/input_validation_y4l.pdf",
+    "png": "figures/input_validation_y4l.png",
+    "source": "phase3_selection/outputs/input_validation.json"
+  },
+  {
+    "caption": "Inclusive four-lepton mass distribution in the broad validation window. MC is normalized with prompt effective cross sections and Metadata denominators, while DY+jets remains the nominal fake proxy. The lower panel shows pulls and the fit-window version is the handoff input for downstream template fits.",
+    "created_utc": "2026-05-29T21:17:59+00:00",
+    "description": "Inclusive four-lepton mass distribution in the broad validation window. MC is normalized with prompt effective cross sections and Metadata denominators, while DY+jets remains the nominal fake proxy. The lower panel shows pulls and the fit-window version is the handoff input for downstream template fits.",
+    "id": "m4l_broad_window_inclusive",
+    "metadata": {
+      "category": "inclusive",
+      "window": "broad_window"
+    },
+    "pdf": "figures/m4l_broad_window_inclusive.pdf",
+    "png": "figures/m4l_broad_window_inclusive.png",
+    "source": "phase3_selection/outputs/fit_inputs_s1.json"
+  },
+  {
+    "caption": "Inclusive four-lepton mass distribution in the fit window. MC is normalized with prompt effective cross sections and Metadata denominators, while DY+jets remains the nominal fake proxy. The lower panel shows pulls and the fit-window version is the handoff input for downstream template fits.",
+    "created_utc": "2026-05-29T21:18:00+00:00",
+    "description": "Inclusive four-lepton mass distribution in the fit window. MC is normalized with prompt effective cross sections and Metadata denominators, while DY+jets remains the nominal fake proxy. The lower panel shows pulls and the fit-window version is the handoff input for downstream template fits.",
+    "id": "m4l_fit_window_inclusive",
+    "metadata": {
+      "category": "inclusive",
+      "window": "fit_window"
+    },
+    "pdf": "figures/m4l_fit_window_inclusive.pdf",
+    "png": "figures/m4l_fit_window_inclusive.png",
+    "source": "phase3_selection/outputs/fit_inputs_s1.json"
+  },
+  {
+    "caption": "Four-lepton mass distribution for the 4mu final-state category in `105 < m4l < 140 GeV`. These final-state categories are the nominal Phase 4 simultaneous-fit categories because the classifier split failed the promotion gates and no real VBF category is available.",
+    "created_utc": "2026-05-29T21:18:01+00:00",
+    "description": "Four-lepton mass distribution for the 4mu final-state category in `105 < m4l < 140 GeV`. These final-state categories are the nominal Phase 4 simultaneous-fit categories because the classifier split failed the promotion gates and no real VBF category is available.",
+    "id": "m4l_fit_4mu",
+    "metadata": {
+      "category": "4mu",
+      "window": "fit_window"
+    },
+    "pdf": "figures/m4l_fit_4mu.pdf",
+    "png": "figures/m4l_fit_4mu.png",
+    "source": "phase3_selection/outputs/fit_inputs_s1.json"
+  },
+  {
+    "caption": "Four-lepton mass distribution for the 4e final-state category in `105 < m4l < 140 GeV`. These final-state categories are the nominal Phase 4 simultaneous-fit categories because the classifier split failed the promotion gates and no real VBF category is available.",
+    "created_utc": "2026-05-29T21:18:02+00:00",
+    "description": "Four-lepton mass distribution for the 4e final-state category in `105 < m4l < 140 GeV`. These final-state categories are the nominal Phase 4 simultaneous-fit categories because the classifier split failed the promotion gates and no real VBF category is available.",
+    "id": "m4l_fit_4e",
+    "metadata": {
+      "category": "4e",
+      "window": "fit_window"
+    },
+    "pdf": "figures/m4l_fit_4e.pdf",
+    "png": "figures/m4l_fit_4e.png",
+    "source": "phase3_selection/outputs/fit_inputs_s1.json"
+  },
+  {
+    "caption": "Four-lepton mass distribution for the 2e2mu final-state category in `105 < m4l < 140 GeV`. These final-state categories are the nominal Phase 4 simultaneous-fit categories because the classifier split failed the promotion gates and no real VBF category is available.",
+    "created_utc": "2026-05-29T21:18:03+00:00",
+    "description": "Four-lepton mass distribution for the 2e2mu final-state category in `105 < m4l < 140 GeV`. These final-state categories are the nominal Phase 4 simultaneous-fit categories because the classifier split failed the promotion gates and no real VBF category is available.",
+    "id": "m4l_fit_2e2mu",
+    "metadata": {
+      "category": "2e2mu",
+      "window": "fit_window"
+    },
+    "pdf": "figures/m4l_fit_2e2mu.pdf",
+    "png": "figures/m4l_fit_2e2mu.png",
+    "source": "phase3_selection/outputs/fit_inputs_s1.json"
+  },
+  {
+    "caption": "DY+jets and TTBar reducible-background diagnostics across the predeclared sideband and signal regions. TTBar/DY ratios are {'high_sideband_140_170': 0.16348247967166454, 'low_sideband_70_105': 0.09536477980847097, 'signal_window_105_140': 0.04440264879971137}, so TTBar is not promoted to the nominal fake model by the Phase 2 thresholds.",
+    "created_utc": "2026-05-29T21:18:04+00:00",
+    "description": "DY+jets and TTBar reducible-background diagnostics across the predeclared sideband and signal regions. TTBar/DY ratios are {'high_sideband_140_170': 0.16348247967166454, 'low_sideband_70_105': 0.09536477980847097, 'signal_window_105_140': 0.04440264879971137}, so TTBar is not promoted to the nominal fake model by the Phase 2 thresholds.",
+    "id": "sideband_dy_ttbar_diagnostics",
+    "metadata": {
+      "promote_ttbar_to_nominal": false,
+      "ratios_ttbar_over_dy": {
+        "high_sideband_140_170": 0.16348247967166454,
+        "low_sideband_70_105": 0.09536477980847097,
+        "signal_window_105_140": 0.04440264879971137
+      },
+      "rule": "promote if TTBar/DY >= 10% in signal window or >= 20% in either sideband"
+    },
+    "pdf": "figures/sideband_dy_ttbar_diagnostics.pdf",
+    "png": "figures/sideband_dy_ttbar_diagnostics.png",
+    "source": "phase3_selection/outputs/sideband_fake_diagnostics.json"
+  },
+  {
+    "caption": "S1 and S2 approach comparison using the common Asimov counting precision proxy. The nominal choice is `S1_reference_like_final_state_categories` because S1 retained because S2 did not pass all input, score-shape, low-stat, overtraining, or >10% improvement gates.",
+    "created_utc": "2026-05-29T21:18:04+00:00",
+    "description": "S1 and S2 approach comparison using the common Asimov counting precision proxy. The nominal choice is `S1_reference_like_final_state_categories` because S1 retained because S2 did not pass all input, score-shape, low-stat, overtraining, or >10% improvement gates.",
+    "id": "approach_comparison_mu_proxy",
+    "metadata": {
+      "approaches": {
+        "S1_reference_like_cut_and_channel_fit": {
+          "asimov_mu_uncertainty_proxy": 0.9730368272006741,
+          "category_viability": "passes final-state categories; see cutflow and fit_inputs_s1.json",
+          "expected_background": 48.877384046719186,
+          "expected_signal": 7.732441263427129,
+          "observed_data": 69.0
+        },
+        "S2_angular_kinematic_classifier_categories": {
+          "best_high_score_mu_uncertainty_proxy": 1.2025396225702243,
+          "best_model": "small_nn",
+          "promote_s2": false,
+          "reason": "S2 promoted only if best model passes score/viability/overtraining gates and improves expected mu uncertainty proxy by >10%.",
+          "relative_improvement": -0.23586239385184005,
+          "s1_mu_uncertainty_proxy": 0.9730368272006741
+        }
+      },
+      "common_metric": "Asimov counting precision proxy sqrt(S+B)/S in 105 < m4l < 140 GeV, plus D7/GoF/category gates",
+      "created_utc": "2026-05-29T21:17:46+00:00",
+      "selected_configuration": "S1_reference_like_final_state_categories",
+      "selection_reason": "S1 retained because S2 did not pass all input, score-shape, low-stat, overtraining, or >10% improvement gates."
+    },
+    "pdf": "figures/approach_comparison_mu_proxy.pdf",
+    "png": "figures/approach_comparison_mu_proxy.png",
+    "source": "phase3_selection/outputs/approach_comparison.json"
+  },
+  {
+    "caption": "bdt classifier ROC curve for the S2 attempt. The weak separation and failed category-viability gates prevent promotion to nominal Phase 4 categories.",
+    "created_utc": "2026-05-29T21:18:04+00:00",
+    "description": "bdt classifier ROC curve for the S2 attempt. The weak separation and failed category-viability gates prevent promotion to nominal Phase 4 categories.",
+    "id": "mva_roc_bdt",
+    "metadata": {
+      "model": "bdt"
+    },
+    "pdf": "figures/mva_roc_bdt.pdf",
+    "png": "figures/mva_roc_bdt.png",
+    "source": "phase3_selection/outputs/mva_metrics.json"
+  },
+  {
+    "caption": "logistic classifier ROC curve for the S2 attempt. The weak separation and failed category-viability gates prevent promotion to nominal Phase 4 categories.",
+    "created_utc": "2026-05-29T21:18:05+00:00",
+    "description": "logistic classifier ROC curve for the S2 attempt. The weak separation and failed category-viability gates prevent promotion to nominal Phase 4 categories.",
+    "id": "mva_roc_logistic",
+    "metadata": {
+      "model": "logistic"
+    },
+    "pdf": "figures/mva_roc_logistic.pdf",
+    "png": "figures/mva_roc_logistic.png",
+    "source": "phase3_selection/outputs/mva_metrics.json"
+  },
+  {
+    "caption": "small_nn classifier ROC curve for the S2 attempt. The weak separation and failed category-viability gates prevent promotion to nominal Phase 4 categories.",
+    "created_utc": "2026-05-29T21:18:05+00:00",
+    "description": "small_nn classifier ROC curve for the S2 attempt. The weak separation and failed category-viability gates prevent promotion to nominal Phase 4 categories.",
+    "id": "mva_roc_small_nn",
+    "metadata": {
+      "model": "small_nn"
+    },
+    "pdf": "figures/mva_roc_small_nn.pdf",
+    "png": "figures/mva_roc_small_nn.png",
+    "source": "phase3_selection/outputs/mva_metrics.json"
+  },
+  {
+    "caption": "Best S2 classifier score data/MC comparison in the broad validation window. The score-shape gate and low-stat category viability failed, so this diagnostic is preserved as rejected-approach evidence rather than used in the nominal fit.",
+    "created_utc": "2026-05-29T21:18:06+00:00",
+    "description": "Best S2 classifier score data/MC comparison in the broad validation window. The score-shape gate and low-stat category viability failed, so this diagnostic is preserved as rejected-approach evidence rather than used in the nominal fit.",
+    "id": "mva_best_score_datamc",
+    "metadata": {
+      "best_model": "small_nn"
+    },
+    "pdf": "figures/mva_best_score_datamc.pdf",
+    "png": "figures/mva_best_score_datamc.png",
+    "source": "phase3_selection/outputs/mva_scores.npz"
+  }
+]

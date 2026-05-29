@@ -1,0 +1,377 @@
+{
+  "allow_list": [
+    "/sandbox/work/jfc/analyses/h4ltemplate/data",
+    "/sandbox/work/jfc/analyses/h4ltemplate/mc"
+  ],
+  "created_utc": "2026-05-29T21:16:25+00:00",
+  "decision": "Formal downscope: no real jet or VBF discriminator branches are available in allowed flat ntuples.",
+  "join_check": {
+    "allowed_upstream_sources": [],
+    "reason": "paths.json allow-list permits only flat ntuple data and MC directories; no NanoAOD/source directory is allowed for a real jet join.",
+    "safe_event_key_join_possible": false
+  },
+  "no_lepton_only_vbf_label": true,
+  "ntuplizer_evidence": {
+    "branch_output_mentions": [
+      {
+        "line": 69,
+        "text": "minM4l=70.0,"
+      },
+      {
+        "line": 193,
+        "text": "m4l = inv_mass(*((l['pt'], l['eta'], l['phi'], l['mass']) for l in ls))"
+      },
+      {
+        "line": 194,
+        "text": "if m4l < cuts['minM4l']:"
+      },
+      {
+        "line": 216,
+        "text": "mZ1=mZ1, mZ2=mZ2, m4l=m4l,"
+      },
+      {
+        "line": 427,
+        "text": "m4l=result['m4l'],   pt4l=result['pt4l'],"
+      },
+      {
+        "line": 430,
+        "text": "trigBits=trig,"
+      },
+      {
+        "line": 520,
+        "text": "for col in ('run', 'lumi', 'trigBits'):"
+      },
+      {
+        "line": 531,
+        "text": "tree = f.mktree(\"h4lTree\", branch_types)"
+      },
+      {
+        "line": 537,
+        "text": "print(f\"Written {len(next(iter(arrays.values())))} events ->{path}  [ROOT TTree: h4lTree]\")"
+      },
+      {
+        "line": 586,
+        "text": "p.add_argument('--min-m4l',    type=float, default=DEFAULTS['minM4l'])"
+      },
+      {
+        "line": 597,
+        "text": "cuts['minM4l']   = args.min_m4l"
+      }
+    ],
+    "found": true,
+    "interpretation": "No jet/VBF output-field evidence found in ntuplizer source.",
+    "jet_output_mentions": [],
+    "path": "/sandbox/work/jfc/analyses/higgs_4lep_mass/h4l_ntuplize.py"
+  },
+  "primary_and_local_branch_checks": [
+    {
+      "branch_count": 108,
+      "event_key_branches": [],
+      "jet_or_vbf_like_branches": [],
+      "kind": "data",
+      "name": "cms_10fb_13TeV.root",
+      "path": "/sandbox/work/jfc/analyses/h4ltemplate/data/cms_10fb_13TeV.root",
+      "role": "primary_data"
+    },
+    {
+      "branch_count": 111,
+      "event_key_branches": [
+        "run",
+        "lumi",
+        "event"
+      ],
+      "jet_or_vbf_like_branches": [],
+      "kind": "mc",
+      "name": "DYJetsToLL.root",
+      "path": "/sandbox/work/jfc/analyses/h4ltemplate/mc/DYJetsToLL.root",
+      "role": "primary_mc"
+    },
+    {
+      "branch_count": 111,
+      "event_key_branches": [
+        "run",
+        "lumi",
+        "event"
+      ],
+      "jet_or_vbf_like_branches": [],
+      "kind": "mc",
+      "name": "GGZZ2E2Mu.root",
+      "path": "/sandbox/work/jfc/analyses/h4ltemplate/mc/GGZZ2E2Mu.root",
+      "role": "primary_mc"
+    },
+    {
+      "branch_count": 111,
+      "event_key_branches": [
+        "run",
+        "lumi",
+        "event"
+      ],
+      "jet_or_vbf_like_branches": [],
+      "kind": "mc",
+      "name": "GGZZ4E.root",
+      "path": "/sandbox/work/jfc/analyses/h4ltemplate/mc/GGZZ4E.root",
+      "role": "primary_mc"
+    },
+    {
+      "branch_count": 111,
+      "event_key_branches": [
+        "run",
+        "lumi",
+        "event"
+      ],
+      "jet_or_vbf_like_branches": [],
+      "kind": "mc",
+      "name": "GGZZ4Mu.root",
+      "path": "/sandbox/work/jfc/analyses/h4ltemplate/mc/GGZZ4Mu.root",
+      "role": "primary_mc"
+    },
+    {
+      "branch_count": 111,
+      "event_key_branches": [
+        "run",
+        "lumi",
+        "event"
+      ],
+      "jet_or_vbf_like_branches": [],
+      "kind": "mc",
+      "name": "GluGluToHToZZ.root",
+      "path": "/sandbox/work/jfc/analyses/h4ltemplate/mc/GluGluToHToZZ.root",
+      "role": "primary_mc"
+    },
+    {
+      "branch_count": 111,
+      "event_key_branches": [
+        "run",
+        "lumi",
+        "event"
+      ],
+      "jet_or_vbf_like_branches": [],
+      "kind": "mc",
+      "name": "TTBar.root",
+      "path": "/sandbox/work/jfc/analyses/h4ltemplate/mc/TTBar.root",
+      "role": "primary_mc"
+    },
+    {
+      "branch_count": 111,
+      "event_key_branches": [
+        "run",
+        "lumi",
+        "event"
+      ],
+      "jet_or_vbf_like_branches": [],
+      "kind": "mc",
+      "name": "VBF_HToZZ.root",
+      "path": "/sandbox/work/jfc/analyses/h4ltemplate/mc/VBF_HToZZ.root",
+      "role": "primary_mc"
+    },
+    {
+      "branch_count": 111,
+      "event_key_branches": [
+        "run",
+        "lumi",
+        "event"
+      ],
+      "jet_or_vbf_like_branches": [],
+      "kind": "mc",
+      "name": "WMHToZZ.root",
+      "path": "/sandbox/work/jfc/analyses/h4ltemplate/mc/WMHToZZ.root",
+      "role": "primary_mc"
+    },
+    {
+      "branch_count": 111,
+      "event_key_branches": [
+        "run",
+        "lumi",
+        "event"
+      ],
+      "jet_or_vbf_like_branches": [],
+      "kind": "mc",
+      "name": "WPHToZZ.root",
+      "path": "/sandbox/work/jfc/analyses/h4ltemplate/mc/WPHToZZ.root",
+      "role": "primary_mc"
+    },
+    {
+      "branch_count": 111,
+      "event_key_branches": [
+        "run",
+        "lumi",
+        "event"
+      ],
+      "jet_or_vbf_like_branches": [],
+      "kind": "mc",
+      "name": "ZHToZZ.root",
+      "path": "/sandbox/work/jfc/analyses/h4ltemplate/mc/ZHToZZ.root",
+      "role": "primary_mc"
+    },
+    {
+      "branch_count": 111,
+      "event_key_branches": [
+        "run",
+        "lumi",
+        "event"
+      ],
+      "jet_or_vbf_like_branches": [],
+      "kind": "mc",
+      "name": "ZZTo4L.root",
+      "path": "/sandbox/work/jfc/analyses/h4ltemplate/mc/ZZTo4L.root",
+      "role": "primary_mc"
+    },
+    {
+      "branch_count": 111,
+      "event_key_branches": [
+        "event",
+        "lumi",
+        "run"
+      ],
+      "jet_or_vbf_like_branches": [],
+      "kind": "data",
+      "name": "data_10fb.root",
+      "path": "/sandbox/work/jfc/analyses/higgs_4lep_mass/data/data_10fb.root",
+      "role": "local_data"
+    },
+    {
+      "branch_count": 111,
+      "event_key_branches": [
+        "run",
+        "lumi",
+        "event"
+      ],
+      "jet_or_vbf_like_branches": [],
+      "kind": "mc",
+      "name": "DYJetsToLL.root",
+      "path": "/sandbox/work/jfc/analyses/higgs_4lep_mass/mc/DYJetsToLL.root",
+      "role": "local_mc"
+    },
+    {
+      "branch_count": 111,
+      "event_key_branches": [
+        "run",
+        "lumi",
+        "event"
+      ],
+      "jet_or_vbf_like_branches": [],
+      "kind": "mc",
+      "name": "GGZZ2E2Mu.root",
+      "path": "/sandbox/work/jfc/analyses/higgs_4lep_mass/mc/GGZZ2E2Mu.root",
+      "role": "local_mc"
+    },
+    {
+      "branch_count": 111,
+      "event_key_branches": [
+        "run",
+        "lumi",
+        "event"
+      ],
+      "jet_or_vbf_like_branches": [],
+      "kind": "mc",
+      "name": "GGZZ4E.root",
+      "path": "/sandbox/work/jfc/analyses/higgs_4lep_mass/mc/GGZZ4E.root",
+      "role": "local_mc"
+    },
+    {
+      "branch_count": 111,
+      "event_key_branches": [
+        "run",
+        "lumi",
+        "event"
+      ],
+      "jet_or_vbf_like_branches": [],
+      "kind": "mc",
+      "name": "GGZZ4Mu.root",
+      "path": "/sandbox/work/jfc/analyses/higgs_4lep_mass/mc/GGZZ4Mu.root",
+      "role": "local_mc"
+    },
+    {
+      "branch_count": 111,
+      "event_key_branches": [
+        "run",
+        "lumi",
+        "event"
+      ],
+      "jet_or_vbf_like_branches": [],
+      "kind": "mc",
+      "name": "GluGluToHToZZ.root",
+      "path": "/sandbox/work/jfc/analyses/higgs_4lep_mass/mc/GluGluToHToZZ.root",
+      "role": "local_mc"
+    },
+    {
+      "branch_count": 111,
+      "event_key_branches": [
+        "run",
+        "lumi",
+        "event"
+      ],
+      "jet_or_vbf_like_branches": [],
+      "kind": "mc",
+      "name": "TTBar.root",
+      "path": "/sandbox/work/jfc/analyses/higgs_4lep_mass/mc/TTBar.root",
+      "role": "local_mc"
+    },
+    {
+      "branch_count": 111,
+      "event_key_branches": [
+        "run",
+        "lumi",
+        "event"
+      ],
+      "jet_or_vbf_like_branches": [],
+      "kind": "mc",
+      "name": "VBF_HToZZ.root",
+      "path": "/sandbox/work/jfc/analyses/higgs_4lep_mass/mc/VBF_HToZZ.root",
+      "role": "local_mc"
+    },
+    {
+      "branch_count": 111,
+      "event_key_branches": [
+        "run",
+        "lumi",
+        "event"
+      ],
+      "jet_or_vbf_like_branches": [],
+      "kind": "mc",
+      "name": "WMHToZZ.root",
+      "path": "/sandbox/work/jfc/analyses/higgs_4lep_mass/mc/WMHToZZ.root",
+      "role": "local_mc"
+    },
+    {
+      "branch_count": 111,
+      "event_key_branches": [
+        "run",
+        "lumi",
+        "event"
+      ],
+      "jet_or_vbf_like_branches": [],
+      "kind": "mc",
+      "name": "WPHToZZ.root",
+      "path": "/sandbox/work/jfc/analyses/higgs_4lep_mass/mc/WPHToZZ.root",
+      "role": "local_mc"
+    },
+    {
+      "branch_count": 111,
+      "event_key_branches": [
+        "run",
+        "lumi",
+        "event"
+      ],
+      "jet_or_vbf_like_branches": [],
+      "kind": "mc",
+      "name": "ZHToZZ.root",
+      "path": "/sandbox/work/jfc/analyses/higgs_4lep_mass/mc/ZHToZZ.root",
+      "role": "local_mc"
+    },
+    {
+      "branch_count": 111,
+      "event_key_branches": [
+        "run",
+        "lumi",
+        "event"
+      ],
+      "jet_or_vbf_like_branches": [],
+      "kind": "mc",
+      "name": "ZZTo4L.root",
+      "path": "/sandbox/work/jfc/analyses/higgs_4lep_mass/mc/ZZTo4L.root",
+      "role": "local_mc"
+    }
+  ],
+  "real_vbf_category_feasible": false
+}
