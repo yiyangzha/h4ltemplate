@@ -725,3 +725,7 @@
 ## 2026-05-30 — Phase 4a commitment update
 
 - Updated `COMMITMENTS.md` for Phase 4a expected-inference evidence and formal classifier-migration downscope.
+
+## 2026-05-30 — Phase 4a expected binning-stability layout fix
+
+- Regenerated `expected_binning_stability` with a shorter x-axis label and wider right margin to resolve right-edge clipping.

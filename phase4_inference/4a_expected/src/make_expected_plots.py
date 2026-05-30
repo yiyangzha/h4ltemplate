@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import argparse
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -8,6 +9,7 @@ import matplotlib.pyplot as plt
 import mplhep as mh
 import numpy as np
 
+import expected_common
 from expected_common import (
     CHANNELS,
     FIG,
@@ -74,8 +76,13 @@ def save_and_register(fig, stem: str, caption: str, source: str, metadata: dict[
         "created_utc": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "metadata": metadata or {},
     }
-    registry = [item for item in figure_registry() if item.get("id") != stem]
-    registry.append(entry)
+    registry = figure_registry()
+    for idx, item in enumerate(registry):
+        if item.get("id") == stem:
+            registry[idx] = entry
+            break
+    else:
+        registry.append(entry)
     write_json(OUT / "FIGURES.json", registry)
     append_session(f"FIGURE_READY: phase4_inference/4a_expected/outputs/{entry['png']}")
     check_watcher_feedback()
@@ -214,22 +221,32 @@ def plot_validation(validation: dict[str, Any]) -> int:
     return 1
 
 
-def plot_binning(validation: dict[str, Any]) -> int:
+def binning_rows(validation: dict[str, Any]) -> tuple[list[dict[str, Any]], list[str], np.ndarray]:
     rows = validation["alternative_binning_stability"]
     labels = [row["configuration"].replace("_", " ") for row in rows]
     y = np.arange(len(rows), dtype=float)[::-1]
+    return rows, labels, y
+
+
+def plot_binning_stability(validation: dict[str, Any]) -> int:
+    rows, labels, y = binning_rows(validation)
     unc = np.asarray([row["mu_uncertainty"] for row in rows], dtype=float)
-    below = np.asarray([row["bins_below_5"] for row in rows], dtype=float)
     fig, ax = plt.subplots(figsize=(10, 10))
-    fig.subplots_adjust(left=0.32, right=0.97)
+    fig.subplots_adjust(left=0.32, right=0.9)
     x_pad = max(0.001, 0.15 * float(np.max(unc) - np.min(unc)))
     ax.errorbar(unc, y, marker="o", linestyle="None", color="black")
     ax.set_xlim(float(np.min(unc)) - x_pad, float(np.max(unc)) + x_pad)
     ax.set_yticks(y, labels)
-    ax.set_xlabel(r"Expected uncertainty on $\mu$")
+    ax.set_xlabel(r"Expected $\mu$ uncertainty")
     mh.label.exp_label(exp="CMS", text="", loc=2, data=True, llabel="Open Simulation", rlabel=r"$13$ TeV", ax=ax)
     caption = "Alternative-binning stability comparison for the expected signal-strength fit. The final-state nominal configuration is retained for the Asimov result after low-count toy validation, while inclusive/coarse variants provide stability cross-checks."
     save_and_register(fig, "expected_binning_stability", caption, "analysis_note/results/expected_validation.json", {"rows": rows})
+    return 1
+
+
+def plot_binning_low_count(validation: dict[str, Any]) -> int:
+    rows, labels, y = binning_rows(validation)
+    below = np.asarray([row["bins_below_5"] for row in rows], dtype=float)
     fig, ax = plt.subplots(figsize=(10, 10))
     fig.subplots_adjust(left=0.32, right=0.97)
     ax.errorbar(below, y, marker="s", linestyle="None", color="#ff7f0e")
@@ -242,7 +259,14 @@ def plot_binning(validation: dict[str, Any]) -> int:
         "The nominal final-state model retains low expected-count bins only after the dedicated Poisson toy validation passes."
     )
     save_and_register(fig, "expected_binning_low_count_summary", caption, "analysis_note/results/expected_validation.json", {"rows": rows})
-    return 2
+    return 1
+
+
+def plot_binning(validation: dict[str, Any]) -> int:
+    made = 0
+    made += plot_binning_stability(validation)
+    made += plot_binning_low_count(validation)
+    return made
 
 
 def plot_mass_scan(mass_scan: dict[str, Any]) -> int:
@@ -286,6 +310,9 @@ def plot_reference(validation: dict[str, Any], parameters: dict[str, Any]) -> in
 
 
 def main() -> None:
+    parser = argparse.ArgumentParser(description="Produce Phase 4a expected-inference plots.")
+    parser.add_argument("--only", choices=["expected_binning_stability"], help="Regenerate one plot without touching unrelated figure timestamps.")
+    args = parser.parse_args()
     ensure_dirs()
     setup_logging()
     parameters = read_json(RESULTS / "expected_parameters.json")
@@ -293,6 +320,13 @@ def main() -> None:
     validation = read_json(RESULTS / "expected_validation.json")
     mass = read_json(RESULTS / "expected_mass_scan.json")
     made = 0
+    if args.only == "expected_binning_stability":
+        stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+        expected_common.SESSION_LOG = expected_common.LOG_DIR / f"fixer_petra_3e4d_{stamp}.md"
+        made += plot_binning_stability(validation)
+        append_session(f"Expected plot fix written\n\n- Regenerated `{args.only}` PNG/PDF pair and updated its `outputs/FIGURES.json` entry.")
+        append_experiment(f"## 2026-05-30 — Phase 4a expected binning-stability layout fix\n\n- Regenerated `expected_binning_stability` with a shorter x-axis label and wider right margin to resolve right-edge clipping.")
+        return
     made += plot_expected_m4l()
     made += plot_mu_scan(parameters)
     made += plot_impacts(parameters)

@@ -154,7 +154,7 @@
   },
   {
     "caption": "Alternative-binning stability comparison for the expected signal-strength fit. The final-state nominal configuration is retained for the Asimov result after low-count toy validation, while inclusive/coarse variants provide stability cross-checks.",
-    "created_utc": "2026-05-30T01:37:32+00:00",
+    "created_utc": "2026-05-30T01:54:55+00:00",
     "description": "Alternative-binning stability comparison for the expected signal-strength fit. The final-state nominal configuration is retained for the Asimov result after low-count toy validation, while inclusive/coarse variants provide stability cross-checks.",
     "id": "expected_binning_stability",
     "metadata": {
