@@ -1315,3 +1315,9 @@
 - Fixer `sven_6dea` regenerated only `analysis_note/figures/doc4c_reference_comparison.{pdf,png}` with no legends, restrained typography, all-black square markers, uncapped total bars for unsplit uncertainties, and capped inner stat bars only where a stat/syst split exists.
 - The figure remains in the main `Comparison to Prior Results and Theory` section of `analysis_note/ANALYSIS_NOTE_doc4c_v1.tex`.
 - `pixi run tectonic --outdir analysis_note analysis_note/ANALYSIS_NOTE_doc4c_v1.tex` and `pixi run lint-plots` completed. Verification evidence is in `analysis_note/review/doc4c/VERIFY_sven_6dea_2026-05-30.md`.
+
+## 2026-05-30 — Doc 4c reference comparison luminosity fix
+
+- Corrected the `doc4c_reference_comparison` luminosity labels after visual inspection found the previous polished plot incorrectly displayed `2.7 fb^-1` for this analysis and CMS-HIG-16-041.
+- Regenerated the comparison figure with correct labels: this analysis `13 TeV, 10 fb^-1`, CMS-HIG-16-041 `13 TeV, 35.9 fb^-1`, CMS-HIG-19-001 `13 TeV, 137 fb^-1`, and PDG as a world average with no dataset luminosity.
+- Recompiled `ANALYSIS_NOTE_doc4c_v1.pdf` and reran `pixi run lint-plots`, which passed. Verification evidence is in `analysis_note/review/doc4c/VERIFY_lumi_fix_2026-05-30.md`.
