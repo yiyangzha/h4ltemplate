@@ -933,3 +933,53 @@
 ## 2026-05-30 — Phase 4a expected plots
 
 - Produced 12 expected-inference figures and registered them in `phase4_inference/4a_expected/outputs/FIGURES.json`.
+
+## 2026-05-30 — Phase 4b 10% observed inference
+
+- Executor `yuki_9d50` selected a fixed-seed 10% data subsample with seed `9417` and kept 25 of 203 selected data events.
+- MC templates were scaled by `0.1` to effective luminosity `1.0` fb^-1 with no data-integral normalization.
+- Partial observed `mu = 6.399` with symmetric uncertainty `3.045801867587206`; expected-vs-partial pull `1.74`.
+
+## 2026-05-30 — Phase 4b 10% observed inference
+
+- Executor `yuki_9d50` selected a fixed-seed 10% data subsample with seed `9417` and kept 20 of 203 selected data events.
+- MC templates were scaled by `0.1` to effective luminosity `1.0` fb^-1 with no data-integral normalization.
+- Partial observed `mu = 3.12e-15` with symmetric uncertainty `1.314510678449501`; expected-vs-partial pull `-0.697`.
+
+## 2026-05-30 — Phase 4b partial figures
+
+- Wrote and registered 7 10% observed-data inference figures, including broad m4l, category overlays, expected comparison, nuisance diagnostics, and split/stability checks.
+
+## 2026-05-30 — Phase 4b partial artifact
+
+- Built `phase4_inference/4b_partial/outputs/INFERENCE_PARTIAL.md` from 10% observed-data result JSONs.
+
+## 2026-05-30 — Phase 4b 10% observed inference
+
+- Executor `yuki_9d50` applied the latest user-requested Phase 4b override: the partial-data fit window is `70 < m4l < 170 GeV`, including the Z peak, replacing the earlier CMS-like `105 < m4l < 140 GeV` Phase 4b instruction.
+- Fixed-seed 10% data subsample seed `9417` kept 20 of 203 selected data events.
+- MC templates were scaled by `0.1` to effective luminosity `1.0` fb^-1 with no data-integral normalization.
+- Partial observed `mu = 0` with symmetric uncertainty `1.3548619813595435`; expected-vs-partial pull `-0.679`.
+
+## 2026-05-30 — Phase 4b partial figures
+
+- Wrote and registered 7 10% observed-data inference figures, including broad m4l, category overlays, expected comparison, nuisance diagnostics, and split/stability checks.
+
+## 2026-05-30 — Phase 4b partial artifact
+
+- Built `phase4_inference/4b_partial/outputs/INFERENCE_PARTIAL.md` from 10% observed-data result JSONs.
+
+## 2026-05-30 — Phase 4b 10% observed inference
+
+- Executor `yuki_9d50` applied the latest user-requested Phase 4b override: the partial-data fit window is `70 < m4l < 170 GeV`, including the Z peak, replacing the earlier CMS-like `105 < m4l < 140 GeV` Phase 4b instruction.
+- Fixed-seed 10% data subsample seed `9417` kept 20 of 203 selected data events.
+- MC templates were scaled by `0.1` to effective luminosity `1.0` fb^-1 with no data-integral normalization.
+- Partial observed `mu = 0` with symmetric uncertainty `1.3548619813595435`; expected-vs-partial pull `-0.679`.
+
+## 2026-05-30 — Phase 4b partial figures
+
+- Wrote and registered 7 10% observed-data inference figures, including broad m4l, category overlays, expected comparison, nuisance diagnostics, and split/stability checks.
+
+## 2026-05-30 — Phase 4b partial artifact
+
+- Built `phase4_inference/4b_partial/outputs/INFERENCE_PARTIAL.md` from 10% observed-data result JSONs.

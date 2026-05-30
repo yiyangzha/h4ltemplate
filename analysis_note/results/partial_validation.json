@@ -1,0 +1,243 @@
+{
+  "broad_display_range_GeV": [
+    70.0,
+    170.0
+  ],
+  "category_compatibility": {
+    "max_abs_pull_vs_combined": 2.865130062766148e-17,
+    "passes": true,
+    "rows": [
+      {
+        "channel": "4mu",
+        "mu_hat": 1.2253516271897822e-16,
+        "mu_uncertainty": 4.0564950832423605,
+        "observed_events": 7,
+        "p_value": 0.7938558846661659,
+        "pull_vs_combined": 2.865130062766148e-17
+      },
+      {
+        "channel": "4e",
+        "mu_hat": 0.0,
+        "mu_uncertainty": 9.276761814667697,
+        "observed_events": 3,
+        "p_value": 0.7970912785685825,
+        "pull_vs_combined": 0.0
+      },
+      {
+        "channel": "2e2mu",
+        "mu_hat": 0.0,
+        "mu_uncertainty": 2.4356661544467197,
+        "observed_events": 10,
+        "p_value": 0.2777928622448772,
+        "pull_vs_combined": 0.0
+      }
+    ]
+  },
+  "completion_verdicts": {
+    "expected_comparison_done": true,
+    "final_state_fit_stable": true,
+    "fixed_seed_10pct_processed": true,
+    "gof_np_done": true,
+    "split_check_done": true
+  },
+  "created_utc": "2026-05-30T04:41:01+00:00",
+  "deterministic_split_consistency": {
+    "delta_mu": -2.2160487051295656e-16,
+    "limitation": "This is not a true CMS run-period split; no run/lumi/event-period branch is present in the Phase 3 event handoff.",
+    "pull": -6.08327254046742e-17,
+    "rows": [
+      {
+        "chi2": 38.15334548655828,
+        "effective_luminosity_fb": 0.5,
+        "method": "deterministic random half-split proxy; true CMS run-period branches are unavailable in selection_events.npz",
+        "mu_hat": 0.0,
+        "mu_uncertainty": 2.8984188540337548,
+        "observed_fit_window_events": 11,
+        "p_value": 0.46251201404063924,
+        "split": "split_a"
+      },
+      {
+        "chi2": 38.88922741079435,
+        "effective_luminosity_fb": 0.5,
+        "method": "deterministic random half-split proxy; true CMS run-period branches are unavailable in selection_events.npz",
+        "mu_hat": 2.2160487051295656e-16,
+        "mu_uncertainty": 2.2067100837464593,
+        "observed_fit_window_events": 9,
+        "p_value": 0.429504574338935,
+        "split": "split_b"
+      }
+    ]
+  },
+  "expected_vs_partial": {
+    "compatible_with_expected_2sigma": true,
+    "expected_mu": 1.0,
+    "expected_uncertainty": 0.5747382435005995,
+    "partial_mu": 0.0,
+    "partial_uncertainty": 1.3548619813595435,
+    "pull_vs_expected": -0.679474677941247
+  },
+  "fit_window_GeV": [
+    70.0,
+    170.0
+  ],
+  "gof_interpretation": "Observed 10% data GoF is evaluated against the post-fit model. A chi2 near zero would be treated as a circularity alarm; this result is not a self-consistency Asimov check.",
+  "low_count_validation": {
+    "alternative_binning_stability": [
+      {
+        "bin_edges": [
+          70.0,
+          80.0,
+          90.0,
+          100.0,
+          105.0,
+          112.0,
+          118.0,
+          122.0,
+          126.0,
+          130.0,
+          140.0,
+          150.0,
+          160.0,
+          170.0
+        ],
+        "channels": [
+          "4mu",
+          "4e",
+          "2e2mu"
+        ],
+        "combined_chi2": 31.787729081249562,
+        "combined_p_value": 0.7510996372603069,
+        "configuration": "final_state_nominal",
+        "expected_bins_below_1": 35,
+        "fit_status": "fit_succeeded",
+        "mu_hat": 7.311624894698951e-16,
+        "mu_uncertainty": 1.358004937885729,
+        "observed_zero_bins": 24,
+        "total_bins": 39
+      },
+      {
+        "bin_edges": [
+          70.0,
+          80.0,
+          90.0,
+          100.0,
+          105.0,
+          112.0,
+          118.0,
+          122.0,
+          126.0,
+          130.0,
+          140.0,
+          150.0,
+          160.0,
+          170.0
+        ],
+        "channels": [
+          "inclusive"
+        ],
+        "combined_chi2": 5.598646527071712,
+        "combined_p_value": 0.9349486915877538,
+        "configuration": "inclusive_nominal",
+        "expected_bins_below_1": 10,
+        "fit_status": "fit_succeeded",
+        "mu_hat": 1.2197710060161967e-15,
+        "mu_uncertainty": 1.4180117136121317,
+        "observed_zero_bins": 2,
+        "total_bins": 13
+      },
+      {
+        "bin_edges": [
+          70.0,
+          90.0,
+          105.0,
+          122.0,
+          126.0,
+          140.0,
+          170.0
+        ],
+        "channels": [
+          "inclusive"
+        ],
+        "combined_chi2": 1.8708980870071357,
+        "combined_p_value": 0.8667048017935544,
+        "configuration": "inclusive_coarse",
+        "expected_bins_below_1": 1,
+        "fit_status": "fit_succeeded",
+        "mu_hat": 4.224623694486763e-14,
+        "mu_uncertainty": 1.0106056323658603,
+        "observed_zero_bins": 1,
+        "total_bins": 6
+      },
+      {
+        "bin_edges": [
+          70.0,
+          105.0,
+          122.0,
+          126.0,
+          140.0,
+          170.0
+        ],
+        "channels": [
+          "inclusive"
+        ],
+        "combined_chi2": 1.7633692718055252,
+        "combined_p_value": 0.7791768964993777,
+        "configuration": "inclusive_peak_side",
+        "expected_bins_below_1": 1,
+        "fit_status": "fit_succeeded",
+        "mu_hat": 0.0,
+        "mu_uncertainty": 1.0105448812503846,
+        "observed_zero_bins": 1,
+        "total_bins": 5
+      }
+    ],
+    "merge_or_rebin_decision": "retain_final_state_nominal_for_10pct",
+    "nominal_final_state_retained": true,
+    "toy_validation": {
+      "fit_failures": 0,
+      "fit_success_fraction": 1.0,
+      "median_bias_vs_mu1": -0.1910121351733738,
+      "median_mu": 0.8089878648266262,
+      "n_toys": 80,
+      "passes_bias_gate": true,
+      "passes_fit_success_gate": true,
+      "seed": 4269,
+      "std_mu": 1.4067840964173979
+    }
+  },
+  "normalization_policy": {
+    "data_integral_normalization": false,
+    "mc_luminosity_scale_factor": 0.1,
+    "mc_scaled_to_partial_luminosity": true
+  },
+  "phase": "4b_partial",
+  "subsample": {
+    "actual_fraction": 0.09852216748768473,
+    "broad_display_range_GeV": [
+      70.0,
+      170.0
+    ],
+    "broad_window_counts_by_channel": {
+      "2e2mu": 10,
+      "4e": 3,
+      "4mu": 7
+    },
+    "effective_luminosity_fb": 1.0,
+    "fit_window_GeV": [
+      70.0,
+      170.0
+    ],
+    "fit_window_counts_by_channel": {
+      "2e2mu": 10,
+      "4e": 3,
+      "4mu": 7
+    },
+    "fraction_requested": 0.1,
+    "full_luminosity_fb": 10.0,
+    "kept_data_events": 20,
+    "mc_normalization": "All Phase 3 MC template weights are multiplied by 0.10 to represent the 10% effective luminosity; no MC template is normalized to the observed data integral.",
+    "seed": 9417,
+    "selection_method": "numpy default_rng(seed) permutation of selected data events from Phase 3 handoff; first round(0.10*N) events retained",
+    "total_selected_data_events": 203
+  }
+}

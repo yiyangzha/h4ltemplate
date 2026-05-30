@@ -1,1 +1,251 @@
-[]
+[
+  {
+    "caption": "Phase 4b fit-window 70-170 GeV four-lepton mass distribution for the fixed-seed 10% data subsample compared with MC scaled to 10% luminosity; the ratio uses no data-integral normalization.",
+    "created_utc": "2026-05-30T04:41:22+00:00",
+    "description": "Phase 4b fit-window 70-170 GeV four-lepton mass distribution for the fixed-seed 10% data subsample compared with MC scaled to 10% luminosity; the ratio uses no data-integral normalization.",
+    "id": "partial_m4l_broad_inclusive",
+    "metadata": {
+      "data_integral_normalization": false,
+      "fit_window_GeV": [
+        70,
+        170
+      ],
+      "seed": 9417
+    },
+    "pdf": "figures/partial_m4l_broad_inclusive.pdf",
+    "png": "figures/partial_m4l_broad_inclusive.png",
+    "source": "phase3_selection/outputs/selection_events.npz"
+  },
+  {
+    "caption": "Phase 4b fit-window 70-170 GeV final-state category templates for 10% data and MC scaled to 10% luminosity.",
+    "created_utc": "2026-05-30T04:41:23+00:00",
+    "description": "Phase 4b fit-window 70-170 GeV final-state category templates for 10% data and MC scaled to 10% luminosity.",
+    "id": "partial_m4l_70_170_categories",
+    "metadata": {
+      "channels": [
+        "4mu",
+        "4e",
+        "2e2mu"
+      ],
+      "fit_window_GeV": [
+        70,
+        170
+      ]
+    },
+    "pdf": "figures/partial_m4l_70_170_categories.pdf",
+    "png": "figures/partial_m4l_70_170_categories.png",
+    "source": "phase3_selection/outputs/selection_events.npz"
+  },
+  {
+    "caption": "Comparison of Phase 4a expected signal strength and Phase 4b fixed-seed 10% observed-data fit result.",
+    "created_utc": "2026-05-30T04:41:23+00:00",
+    "description": "Comparison of Phase 4a expected signal strength and Phase 4b fixed-seed 10% observed-data fit result.",
+    "id": "partial_expected_mu_comparison",
+    "metadata": {
+      "expected_vs_partial": {
+        "compatible_with_expected_2sigma": true,
+        "expected_mu": 1.0,
+        "expected_uncertainty": 0.5747382435005995,
+        "partial_mu": 0.0,
+        "partial_uncertainty": 1.3548619813595435,
+        "pull_vs_expected": -0.679474677941247
+      }
+    },
+    "pdf": "figures/partial_expected_mu_comparison.pdf",
+    "png": "figures/partial_expected_mu_comparison.png",
+    "source": "analysis_note/results/partial_parameters.json"
+  },
+  {
+    "caption": "Observed 10% nuisance best-fit values for the nominal final-state workspace; grouped MC-stat parameters are omitted from the display.",
+    "created_utc": "2026-05-30T04:41:24+00:00",
+    "description": "Observed 10% nuisance best-fit values for the nominal final-state workspace; grouped MC-stat parameters are omitted from the display.",
+    "id": "partial_nuisance_pulls",
+    "metadata": {
+      "shown_parameters": [
+        "m4l_scale_shape",
+        "lepton_eff",
+        "lumi",
+        "qqZZ_norm",
+        "ggZZ_norm",
+        "dy_fake_norm",
+        "ttbar_omission",
+        "signal_VBF_theory",
+        "signal_VH_theory",
+        "signal_ggH_theory"
+      ]
+    },
+    "pdf": "figures/partial_nuisance_pulls.pdf",
+    "png": "figures/partial_nuisance_pulls.png",
+    "source": "analysis_note/results/partial_parameters.json"
+  },
+  {
+    "caption": "Largest fixed-nuisance impacts on the 10% observed-data signal-strength fit.",
+    "created_utc": "2026-05-30T04:41:24+00:00",
+    "description": "Largest fixed-nuisance impacts on the 10% observed-data signal-strength fit.",
+    "id": "partial_nuisance_impacts",
+    "metadata": {
+      "top_n": 10
+    },
+    "pdf": "figures/partial_nuisance_impacts.pdf",
+    "png": "figures/partial_nuisance_impacts.png",
+    "source": "analysis_note/results/partial_parameters.json"
+  },
+  {
+    "caption": "Low-count stability check comparing nominal final-state and merged/inclusive fallback binnings on the fixed-seed 10% data subsample.",
+    "created_utc": "2026-05-30T04:41:24+00:00",
+    "description": "Low-count stability check comparing nominal final-state and merged/inclusive fallback binnings on the fixed-seed 10% data subsample.",
+    "id": "partial_binning_stability",
+    "metadata": {
+      "rows": [
+        {
+          "bin_edges": [
+            70.0,
+            80.0,
+            90.0,
+            100.0,
+            105.0,
+            112.0,
+            118.0,
+            122.0,
+            126.0,
+            130.0,
+            140.0,
+            150.0,
+            160.0,
+            170.0
+          ],
+          "channels": [
+            "4mu",
+            "4e",
+            "2e2mu"
+          ],
+          "combined_chi2": 31.787729081249562,
+          "combined_p_value": 0.7510996372603069,
+          "configuration": "final_state_nominal",
+          "expected_bins_below_1": 35,
+          "fit_status": "fit_succeeded",
+          "mu_hat": 7.311624894698951e-16,
+          "mu_uncertainty": 1.358004937885729,
+          "observed_zero_bins": 24,
+          "total_bins": 39
+        },
+        {
+          "bin_edges": [
+            70.0,
+            80.0,
+            90.0,
+            100.0,
+            105.0,
+            112.0,
+            118.0,
+            122.0,
+            126.0,
+            130.0,
+            140.0,
+            150.0,
+            160.0,
+            170.0
+          ],
+          "channels": [
+            "inclusive"
+          ],
+          "combined_chi2": 5.598646527071712,
+          "combined_p_value": 0.9349486915877538,
+          "configuration": "inclusive_nominal",
+          "expected_bins_below_1": 10,
+          "fit_status": "fit_succeeded",
+          "mu_hat": 1.2197710060161967e-15,
+          "mu_uncertainty": 1.4180117136121317,
+          "observed_zero_bins": 2,
+          "total_bins": 13
+        },
+        {
+          "bin_edges": [
+            70.0,
+            90.0,
+            105.0,
+            122.0,
+            126.0,
+            140.0,
+            170.0
+          ],
+          "channels": [
+            "inclusive"
+          ],
+          "combined_chi2": 1.8708980870071357,
+          "combined_p_value": 0.8667048017935544,
+          "configuration": "inclusive_coarse",
+          "expected_bins_below_1": 1,
+          "fit_status": "fit_succeeded",
+          "mu_hat": 4.224623694486763e-14,
+          "mu_uncertainty": 1.0106056323658603,
+          "observed_zero_bins": 1,
+          "total_bins": 6
+        },
+        {
+          "bin_edges": [
+            70.0,
+            105.0,
+            122.0,
+            126.0,
+            140.0,
+            170.0
+          ],
+          "channels": [
+            "inclusive"
+          ],
+          "combined_chi2": 1.7633692718055252,
+          "combined_p_value": 0.7791768964993777,
+          "configuration": "inclusive_peak_side",
+          "expected_bins_below_1": 1,
+          "fit_status": "fit_succeeded",
+          "mu_hat": 0.0,
+          "mu_uncertainty": 1.0105448812503846,
+          "observed_zero_bins": 1,
+          "total_bins": 5
+        }
+      ]
+    },
+    "pdf": "figures/partial_binning_stability.pdf",
+    "png": "figures/partial_binning_stability.png",
+    "source": "analysis_note/results/partial_validation.json"
+  },
+  {
+    "caption": "Deterministic half-split proxy consistency check for the 10% observed-data subsample; true CMS run-period metadata is unavailable.",
+    "created_utc": "2026-05-30T04:41:24+00:00",
+    "description": "Deterministic half-split proxy consistency check for the 10% observed-data subsample; true CMS run-period metadata is unavailable.",
+    "id": "partial_split_consistency",
+    "metadata": {
+      "split_consistency": {
+        "delta_mu": -2.2160487051295656e-16,
+        "limitation": "This is not a true CMS run-period split; no run/lumi/event-period branch is present in the Phase 3 event handoff.",
+        "pull": -6.08327254046742e-17,
+        "rows": [
+          {
+            "chi2": 38.15334548655828,
+            "effective_luminosity_fb": 0.5,
+            "method": "deterministic random half-split proxy; true CMS run-period branches are unavailable in selection_events.npz",
+            "mu_hat": 0.0,
+            "mu_uncertainty": 2.8984188540337548,
+            "observed_fit_window_events": 11,
+            "p_value": 0.46251201404063924,
+            "split": "split_a"
+          },
+          {
+            "chi2": 38.88922741079435,
+            "effective_luminosity_fb": 0.5,
+            "method": "deterministic random half-split proxy; true CMS run-period branches are unavailable in selection_events.npz",
+            "mu_hat": 2.2160487051295656e-16,
+            "mu_uncertainty": 2.2067100837464593,
+            "observed_fit_window_events": 9,
+            "p_value": 0.429504574338935,
+            "split": "split_b"
+          }
+        ]
+      }
+    },
+    "pdf": "figures/partial_split_consistency.pdf",
+    "png": "figures/partial_split_consistency.png",
+    "source": "analysis_note/results/partial_validation.json"
+  }
+]

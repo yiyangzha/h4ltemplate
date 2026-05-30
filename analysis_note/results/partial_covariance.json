@@ -1,0 +1,60 @@
+{
+  "created_utc": "2026-05-30T04:41:19+00:00",
+  "mc_stat": [
+    [
+      0.0
+    ]
+  ],
+  "mc_stat_treatment": "group_category_normsys_from_sumw2; not full bin-by-bin HistFactory staterror profiling",
+  "parameters": [
+    "mu"
+  ],
+  "phase": "4b_partial",
+  "stat": [
+    [
+      1.7661748411798666
+    ]
+  ],
+  "syst": [
+    [
+      0.06947614735364138
+    ]
+  ],
+  "total": [
+    [
+      1.835650988533508
+    ]
+  ],
+  "uncertainty_breakdown": {
+    "full": {
+      "err_hi": 1.3548619813595435,
+      "err_lo": null,
+      "err_sym": 1.3548619813595435,
+      "muhat": 0.0,
+      "scan_hi": 1.3548619813595435,
+      "scan_lo": null
+    },
+    "stat_only": {
+      "err_hi": 1.3289751093153952,
+      "err_lo": null,
+      "err_sym": 1.3289751093153952,
+      "muhat": 0.0,
+      "scan_hi": 1.3289751093153952,
+      "scan_lo": null
+    },
+    "stat_plus_mcstat": {
+      "err_hi": 1.3278735821035832,
+      "err_lo": null,
+      "err_sym": 1.3278735821035832,
+      "muhat": 0.0,
+      "scan_hi": 1.3278735821035832,
+      "scan_lo": null
+    },
+    "variance_components": {
+      "mc_stat": 0.0,
+      "stat": 1.7661748411798666,
+      "syst_total_including_mc_stat": 0.06947614735364138,
+      "total": 1.835650988533508
+    }
+  }
+}

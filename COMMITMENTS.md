@@ -126,8 +126,8 @@ machine-readable proof item.
   p-value. Proof: GoF JSON and toy-validation output if low-stat bins remain.
 - [x] [D2][VT10] Nuisance pulls/constraints and impact ranking after fits.
   Proof: pulls/impacts JSON and systematic impact figure.
-- [ ] [VT11] Fixed-seed 10% data validation compared to expected results.
-  Proof: seed, event-count, and stability-comparison JSON.
+- [x] [VT11] Fixed-seed 10% data validation compared to expected results.
+  Proof: `analysis_note/results/partial_validation.json` and `partial_parameters.json` record seed `9417`, 10% event counts/effective luminosity, expected-vs-partial compatibility metrics, split diagnostics, and low-count stability checks. Phase 4b uses the latest user-requested override fit window `70 < m4l < 170 GeV`, including the Z peak, replacing the earlier CMS-like `105 < m4l < 140 GeV` Phase 4b instruction.
 - [x] [D9][VT12] Mass-template closure if any mass estimator or morphing scan
   is reported. Proof: `expected_mass_scan.json` records injected masses 115, 125, and 135 GeV, recovered grid masses, bias threshold verdicts, and per-mass scan rows.
 - [D] [A3][D4] VBF downscope review gate: if no jet information is recoverable,
