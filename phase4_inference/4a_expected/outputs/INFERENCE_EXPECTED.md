@@ -1,7 +1,7 @@
 # Phase 4a Expected Inference
 
 Session: `edmund_69a2`
-Created: 2026-05-30T03:16:56+00:00
+Created: 2026-05-30T03:32:53+00:00
 
 ## Summary
 
@@ -98,9 +98,16 @@ Closure-test sensitivity with intentionally corrupted model ingredients:
 | m4l_scale_factor_1.2 | 99.91 | 17 | 9.2424e-14 | True |
 
 Final-state simultaneous corruption-test pass status: `False`.
+Criterion status: `documented_low_count_infeasible`.
 The intentionally wrong +20 percent mass-response model is rejected below
 `p = 0.05`; the -20 percent direction is not rejected in the low-count
-final-state workspace. Quantitative limitation: The final-state simultaneous workspace was run as requested, but not every 20 percent mass-response corruption is rejected with the 18-bin final-state deviance test. Non-rejected rows: [{'corruption': 'm4l_scale_factor_0.8', 'deviance': 16.923830685007037, 'ndf': 17, 'p_value': 0.459538098019478, 'passes_failure_requirement': False}]. This is a quantitative limitation from splitting the already low-count Asimov model into final states; the earlier inclusive alarm was more sensitive, but it is not a substitute for full final-state closure.
+final-state workspace. Quantitative limitation: The final-state simultaneous workspace was run as requested, but the -20 percent mass-response corruption is not rejected by three defensible final-state-aligned tests: profiled Poisson deviance, profiled per-channel shape-only Poisson deviance, and profiled Pearson chi2. The raw unprofiled Pearson diagnostic is not used for the gate because it drops the nominal profiled workspace treatment and is less reliable for low-count bins. This is a documented low-count infeasibility/limitation, not a passed +/-20 percent sensitivity criterion.
+
+| Attempt | test | statistic | ndf | p-value | rejects |
+| --- | --- | --- | --- | --- | --- |
+| 1 | profiled Poisson saturated-likelihood deviance in the final-state simultaneous workspace | 16.92 | 17 | 0.45954 | False |
+| 2 | profiled per-channel shape-only Poisson deviance with one conditioned normalization per final state | 12.97 | 15 | 0.60486 | False |
+| 3 | profiled Pearson chi2 on the final-state simultaneous expected bins | 22.72 | 17 | 0.15844 | False |
 
 ## Covariance And Uncertainty Breakdown
 

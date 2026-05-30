@@ -129,7 +129,7 @@ machine-readable proof item.
 - [ ] [VT11] Fixed-seed 10% data validation compared to expected results.
   Proof: seed, event-count, and stability-comparison JSON.
 - [x] [D9][VT12] Mass-template closure if any mass estimator or morphing scan
-  is reported. Proof: `expected_mass_scan.json` records injected masses 124, 125, and 126 GeV, recovered grid masses, bias threshold verdicts, and per-mass scan rows.
+  is reported. Proof: `expected_mass_scan.json` records injected masses 115, 125, and 135 GeV, recovered grid masses, bias threshold verdicts, and per-mass scan rows.
 - [D] [A3][D4] VBF downscope review gate: if no jet information is recoverable,
   produce a `SELECTION.md` subsection with the evidence and a CMS category
   non-comparability table. Proof: branch/provenance/allow-list evidence and

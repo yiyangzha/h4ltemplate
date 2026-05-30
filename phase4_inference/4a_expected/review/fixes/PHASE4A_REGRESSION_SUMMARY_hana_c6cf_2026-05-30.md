@@ -17,7 +17,7 @@ Date: 2026-05-30
 
 ## Important Limitation
 
-The final-state simultaneous corruption test does not fully pass: the `m4l_scale_factor_1.2` corruption is rejected, but `m4l_scale_factor_0.8` is not rejected with the 18-bin final-state deviance test (`p = 0.4595`). This is documented in `expected_validation.json` as a quantitative low-count limitation, not hidden as a pass.
+Follow-up update: the final-state simultaneous corruption test does not fully pass. The `m4l_scale_factor_1.2` corruption is rejected, but `m4l_scale_factor_0.8` is not rejected by three final-state-aligned attempts: profiled Poisson deviance (`p = 0.45954`), profiled per-channel shape-only Poisson deviance (`p = 0.60486`), and profiled Pearson chi2 (`p = 0.15844`). The raw unprofiled Pearson diagnostic crosses 0.05, but is not used for the gate because it drops the nominal profiled workspace treatment and is less reliable for low-count bins. `expected_validation.json` and `INFERENCE_EXPECTED.md` mark the criterion as `documented_low_count_infeasible`, not as a passed +/-20 percent sensitivity criterion.
 
 ## Verification
 

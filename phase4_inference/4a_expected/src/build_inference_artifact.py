@@ -106,7 +106,19 @@ def main() -> None:
         for row in validation["closure_sensitivity"]["rows"]
     ]
     corruption_pass = validation["closure_sensitivity"]["passes"]
+    corruption_status = validation["closure_sensitivity"].get("criterion_status", "passed" if corruption_pass else "failed")
     corruption_limitation = validation["closure_sensitivity"].get("quantitative_limitation") or "none"
+    corruption_attempt_rows = [
+        [
+            row["attempt"],
+            row["test"],
+            fmt(row["statistic"]),
+            row["ndf"],
+            fmt(row["p_value"], 5),
+            row["rejects_at_0p05"],
+        ]
+        for row in validation["closure_sensitivity"].get("remediation_attempts", [])
+    ]
     impact_rows = [
         [row["nuisance"], fmt(row["mu_shift_down"]), fmt(row["mu_shift_up"]), fmt(row["max_abs_impact"])]
         for row in parameters["nuisance_impacts"][:12]
@@ -191,9 +203,12 @@ Closure-test sensitivity with intentionally corrupted model ingredients:
 {table(["Corruption", "deviance", "ndf", "p-value", "fails as required"], corruption_rows)}
 
 Final-state simultaneous corruption-test pass status: `{corruption_pass}`.
+Criterion status: `{corruption_status}`.
 The intentionally wrong +20 percent mass-response model is rejected below
 `p = 0.05`; the -20 percent direction is not rejected in the low-count
 final-state workspace. Quantitative limitation: {corruption_limitation}
+
+{table(["Attempt", "test", "statistic", "ndf", "p-value", "rejects"], corruption_attempt_rows) if corruption_attempt_rows else ""}
 
 ## Covariance And Uncertainty Breakdown
 

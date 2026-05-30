@@ -850,6 +850,12 @@
 
 - Produced 12 expected-inference figures and registered them in `phase4_inference/4a_expected/outputs/FIGURES.json`.
 
+## 2026-05-30 — Phase 4a corruption follow-up (hana_c6cf)
+
+- Tested three final-state-aligned diagnostics for the non-rejecting `m4l_scale_factor_0.8` corruption: profiled Poisson deviance (`p = 0.45954`), profiled per-channel shape-only Poisson deviance (`p = 0.60486`), and profiled Pearson chi2 (`p = 0.15844`).
+- Did not use the raw unprofiled Pearson diagnostic (`p = 0.026715`) to pass the gate because it drops the nominal profiled workspace treatment and is less reliable for low-count bins.
+- Marked the Phase 4a corruption criterion as `documented_low_count_infeasible`, not passed, and fixed VT12 injected-mass wording to `115, 125, 135 GeV`.
+
 ## 2026-05-30 — Phase 4a expected inference artifact
 
 - Built `phase4_inference/4a_expected/outputs/INFERENCE_EXPECTED.md` from expected-result JSON files.
@@ -895,3 +901,21 @@
 - Updated Phase 4a expected inference to retain the `105 < m4l < 140 GeV` fit window, add a broad expected `m4l` display, broaden the shifted-template mass scan to `110-140 GeV`, add per-systematic shifted-bin payloads, and mark grouped MC-stat as a formal downscope/approximation.
 - Re-ran corruption sensitivity in the final-state simultaneous workspace. The `+20%` mass-response corruption is rejected, but the `-20%` direction is not (`p = 0.4595`); this is documented as a quantitative low-count limitation rather than claimed as a pass.
 - Verification: `pixi run p4a-all`, `pixi run lint-plots`, registry smoke tests, and JSON sanity checks completed.
+
+## 2026-05-30 — Phase 4a expected inference workspace
+
+- Executor `edmund_69a2` built the expected pyhf model from Phase 3 fit inputs using Asimov observations only.
+- Expected `mu = 1 +/- 0.5747` with final-state categories before review.
+- Low-count toy validation used 80 toys with seed 4269; success fraction 1.000, median bias -0.06065.
+
+## 2026-05-30 — Phase 4a expected inference artifact
+
+- Built `phase4_inference/4a_expected/outputs/INFERENCE_EXPECTED.md` from expected-result JSON files.
+
+## 2026-05-30 — Phase 4a commitment update
+
+- Updated `COMMITMENTS.md` for Phase 4a expected-inference evidence and formal classifier-migration downscope.
+
+## 2026-05-30 — Phase 4a expected plots
+
+- Produced 12 expected-inference figures and registered them in `phase4_inference/4a_expected/outputs/FIGURES.json`.

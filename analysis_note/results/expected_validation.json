@@ -20,7 +20,7 @@
       "combined_ndf": 17,
       "combined_p_value": 1.0,
       "configuration": "final_state_nominal",
-      "min_expected_bin": 0.6875956068251002,
+      "min_expected_bin": 0.6875956068251003,
       "mu_hat": 1.0,
       "mu_uncertainty": 0.5723579328235826,
       "total_bins": 18
@@ -96,12 +96,67 @@
       "4e",
       "2e2mu"
     ],
+    "criterion_status": "documented_low_count_infeasible",
     "passes": false,
-    "quantitative_limitation": "The final-state simultaneous workspace was run as requested, but not every 20 percent mass-response corruption is rejected with the 18-bin final-state deviance test. Non-rejected rows: [{'corruption': 'm4l_scale_factor_0.8', 'deviance': 16.923830685007037, 'ndf': 17, 'p_value': 0.459538098019478, 'passes_failure_requirement': False}]. This is a quantitative limitation from splitting the already low-count Asimov model into final states; the earlier inclusive alarm was more sensitive, but it is not a substitute for full final-state closure.",
+    "quantitative_limitation": "The final-state simultaneous workspace was run as requested, but the -20 percent mass-response corruption is not rejected by three defensible final-state-aligned tests: profiled Poisson deviance, profiled per-channel shape-only Poisson deviance, and profiled Pearson chi2. The raw unprofiled Pearson diagnostic is not used for the gate because it drops the nominal profiled workspace treatment and is less reliable for low-count bins. This is a documented low-count infeasibility/limitation, not a passed +/-20 percent sensitivity criterion.",
+    "remediation_attempts": [
+      {
+        "attempt": 1,
+        "ndf": 17,
+        "outcome": "does_not_reject",
+        "p_value": 0.459538098019478,
+        "rejects_at_0p05": false,
+        "statistic": 16.923830685007037,
+        "test": "profiled Poisson saturated-likelihood deviance in the final-state simultaneous workspace"
+      },
+      {
+        "attempt": 2,
+        "ndf": 15,
+        "outcome": "does_not_reject",
+        "p_value": 0.6048589744511268,
+        "rejects_at_0p05": false,
+        "statistic": 12.96684425893616,
+        "test": "profiled per-channel shape-only Poisson deviance with one conditioned normalization per final state"
+      },
+      {
+        "attempt": 3,
+        "diagnostic_note": "The raw unprofiled Pearson diagnostic gives p=0.026715, but is not used for the gate because it drops the nominal profiling treatment and is less appropriate in low-count bins.",
+        "ndf": 17,
+        "outcome": "does_not_reject",
+        "p_value": 0.1584443561401858,
+        "rejects_at_0p05": false,
+        "statistic": 22.72426591322774,
+        "test": "profiled Pearson chi2 on the final-state simultaneous expected bins"
+      }
+    ],
     "rows": [
       {
         "corruption": "m4l_scale_factor_0.8",
         "deviance": 16.923830685007037,
+        "diagnostics": {
+          "profiled_channel_shape_deviance": {
+            "ndf": 15,
+            "p_value": 0.6048589744511268,
+            "statistic": 12.96684425893616
+          },
+          "profiled_pearson_chi2": {
+            "ndf": 17,
+            "p_value": 0.1584443561401858,
+            "statistic": 22.72426591322774
+          },
+          "profiled_poisson_deviance": {
+            "ndf": 17,
+            "p_value": 0.459538098019478,
+            "statistic": 16.923830685007037
+          },
+          "raw_unprofiled_pearson_chi2": {
+            "ndf": 17,
+            "p_value": 0.026714712930836142,
+            "reason_not_used": "Unprofiled raw-template Pearson is not the nominal final-state workspace fit and is less reliable for the low-count bins; retained only as a diagnostic.",
+            "statistic": 29.949071204441026,
+            "used_for_gate": false
+          }
+        },
         "ndf": 17,
         "p_value": 0.459538098019478,
         "passes_failure_requirement": false
@@ -109,6 +164,30 @@
       {
         "corruption": "m4l_scale_factor_1.2",
         "deviance": 99.91066397247003,
+        "diagnostics": {
+          "profiled_channel_shape_deviance": {
+            "ndf": 15,
+            "p_value": 1.9669146817730878e-11,
+            "statistic": 82.9999740135521
+          },
+          "profiled_pearson_chi2": {
+            "ndf": 17,
+            "p_value": 8.222996810739852e-15,
+            "statistic": 105.55618037744783
+          },
+          "profiled_poisson_deviance": {
+            "ndf": 17,
+            "p_value": 9.242355722661752e-14,
+            "statistic": 99.91066397247003
+          },
+          "raw_unprofiled_pearson_chi2": {
+            "ndf": 17,
+            "p_value": 1.454096886647889e-16,
+            "reason_not_used": "Unprofiled raw-template Pearson is not the nominal final-state workspace fit and is less reliable for the low-count bins; retained only as a diagnostic.",
+            "statistic": 114.8692440202906,
+            "used_for_gate": false
+          }
+        },
         "ndf": 17,
         "p_value": 9.242355722661752e-14,
         "passes_failure_requirement": true
@@ -123,7 +202,7 @@
     "injection_bias_lt_20pct": true,
     "low_count_validated": true
   },
-  "created_utc": "2026-05-30T03:16:45+00:00",
+  "created_utc": "2026-05-30T03:32:37+00:00",
   "final_state_channel_compatibility": {
     "max_abs_pull_vs_combined": 0.0,
     "passes": true,
