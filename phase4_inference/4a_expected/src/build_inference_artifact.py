@@ -133,7 +133,9 @@ and mass-bin edges `{parameters['workspace_summary']['bin_edges']}`. MC
 statistical uncertainty is propagated with group/category normalization
 nuisances derived from Phase 3 `sumw2`; full per-bin staterror profiling was
 not computationally stable in this sandbox, so the implementation is paired
-with explicit alternative-binning stability checks.
+with explicit alternative-binning stability checks. This grouped treatment is
+an expected-phase approximation to per-bin HistFactory `staterror` terms, not
+a drop-in replacement for a full per-bin MC-stat profile.
 
 ## Expected Fit Result
 
@@ -142,6 +144,9 @@ with explicit alternative-binning stability checks.
 The exact Asimov deviance is expected to be numerically zero when the fitted
 expectation matches the generated model expectation. The chi2 values are
 reported for audit only and are not observed-data goodness-of-fit results.
+The independent validation evidence is the Poisson toy behavior, signal
+injection/recovery, corrupted-model closure rejection, and alternative-binning
+stability below.
 
 ## Low-Count Validation And Binning
 
@@ -155,6 +160,10 @@ simultaneous model because the Poisson toy validation passes:
 - median `mu`: `{fmt(toy['median_mu'])}`
 - median bias: `{fmt(toy['median_bias'])}`
 - bias gate pass: `{toy['passes_bias_gate']}`
+
+This retention is conditional on the expected-only Phase 4a inputs. The
+observed 10 percent and full-data phases must repeat the stability checks and
+merge or rebin if observed-data fits or toys become unstable.
 
 {table(["Binning", "Channels", "mu uncertainty", "bins below 5", "fit p"], binning_rows)}
 
@@ -187,6 +196,11 @@ shown below.
 
 {table(["Nuisance", "mu shift down", "mu shift up", "max abs impact"], impact_rows)}
 
+Asimov nuisance pulls are expected to be zero because the pseudo-data are
+generated from the nominal model. The table and impact figure therefore show
+expected sensitivity from fixed nuisance shifts, not observed-data pulls or
+post-fit constraints.
+
 ## Mass-Template Closure
 
 The Phase 4a method-parity attempt uses shifted detector-level M125 templates
@@ -207,6 +221,11 @@ gate on the available templates.
 
 {systematic_table(systematics)}
 
+Rows marked as fallback priors are explicitly downscoped expected-phase
+approximations caused by missing official generator-composition or effective
+cross-section inputs. They are propagated to avoid silently dropping the
+source, but they should not be read as precision external calibrations.
+
 ## Figures
 
 {table(["Figure", "PNG", "PDF"], figure_rows)}
@@ -216,8 +235,11 @@ gate on the available templates.
 | Finding | Resolution | Evidence |
 | --- | --- | --- |
 | Phase 3 handoff has many low-count final-state bins. | Retained final-state model only after Poisson toys and alternative-binning checks passed. | `expected_validation.json`, `expected_binning_stability.png`, `expected_binning_low_count_summary.png` |
-| Full per-bin pyhf staterror model was computationally impractical. | Used grouped MC-stat normalization nuisances derived from `sumw2` and documented alternative-binning stability. | `expected_parameters.json`, `expected_covariance.json`, `expected_validation.json` |
-| Plot watcher reported a crowded binning-stability figure. | Split the display into two separately registered figures. | `PLOT_WATCHER_RECHECK_vera_ee63.md` reports PASS with zero unresolved blockers. |
+| Full per-bin pyhf staterror model was computationally impractical. | Used grouped MC-stat normalization nuisances derived from `sumw2`, labelled the approximation in JSON/prose, and documented alternative-binning stability. | `expected_parameters.json`, `expected_covariance.json`, `expected_validation.json` |
+| Plot watcher reported a crowded binning-stability figure. | Split the display into two separately registered figures and rerendered the stability figure with extra x-axis padding/no data-overlapping legend. | `PLOT_WATCHER_RECHECK_vera_ee63.md` reports PASS with zero unresolved blockers. |
+| Earlier watcher files still contain stale FAIL/BLOCKED text. | Current figure status is determined by the later `PLOT_WATCHER_RECHECK_vera_ee63.md` PASS and the rerendered figure mtimes; stale watcher files are retained as audit history only. | `phase4_inference/4a_expected/review/validation/PLOT_WATCHER_RECHECK_vera_ee63.md` |
+| Exact Asimov GoF values can look tautological. | Labelled chi2=0/p=1 as expected self-consistency and pointed to toys, injections, corruption tests, and binning variants as the actual validation evidence. | `expected_validation.json`, Validation Tests section |
+| Mass-profile closure could be misread as an official mass result. | Kept it as method-parity evidence only and explicitly did not promote it to a calibrated mass measurement. | `expected_mass_scan.json`, `expected_mass_profile_attempt.png` |
 | MVA/classifier and VBF-like categories were rejected upstream. | No classifier migration or VBF systematics are propagated; they are documented as not applicable/downscoped. | `expected_systematics.json`, Phase 3 selection artifacts |
 
 ## Machine-Readable Outputs

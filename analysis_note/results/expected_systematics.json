@@ -1,5 +1,5 @@
 {
-  "created_utc": "2026-05-30T01:26:52+00:00",
+  "created_utc": "2026-05-30T01:37:28+00:00",
   "phase": "4a_expected",
   "sources": [
     {
@@ -10,7 +10,8 @@
       "relative_variation": 0.008072174738841406,
       "source": "Integrated luminosity",
       "status": "implemented",
-      "this_analysis": "Propagated in pyhf model"
+      "this_analysis": "Propagated in pyhf model",
+      "variation_basis": "external_public_uncertainty"
     },
     {
       "conventions": "SP4",
@@ -20,7 +21,8 @@
       "relative_variation": 0.03,
       "source": "Lepton reconstruction/ID/trigger efficiency",
       "status": "implemented",
-      "this_analysis": "Propagated in pyhf model"
+      "this_analysis": "Propagated in pyhf model",
+      "variation_basis": "analysis_measured_envelope"
     },
     {
       "conventions": "SP7",
@@ -29,8 +31,9 @@
       "ref_2": "CMS-HIG-16-041 and CMS-HIG-19-001 normalize H(125) signal to SM expectations; prompt effective signal cross sections are user-provided, so a 5 percent composition prior is scanned and marked fallback.",
       "relative_variation": 0.05,
       "source": "Signal production normalization/composition",
-      "status": "implemented",
-      "this_analysis": "Propagated in pyhf model"
+      "status": "implemented_fallback_prior",
+      "this_analysis": "Propagated in pyhf model",
+      "variation_basis": "fallback_prior_due_to_missing_generator_composition_inputs"
     },
     {
       "conventions": "SP9",
@@ -39,8 +42,9 @@
       "ref_2": "Open-data fallback for prompt effective ZZ cross section; CMS references estimate ZZ from simulation and treat background normalization as a systematic source.",
       "relative_variation": 0.1,
       "source": "qqZZ background normalization",
-      "status": "implemented",
-      "this_analysis": "Propagated in pyhf model"
+      "status": "implemented_fallback_prior",
+      "this_analysis": "Propagated in pyhf model",
+      "variation_basis": "fallback_prior_due_to_prompt_effective_cross_sections"
     },
     {
       "conventions": "SP9",
@@ -49,8 +53,9 @@
       "ref_2": "Open-data fallback for small loop-induced ggZZ component; prior is wider than qqZZ because only prompt effective cross sections are available in this sandbox.",
       "relative_variation": 0.2,
       "source": "ggZZ background normalization",
-      "status": "implemented",
-      "this_analysis": "Propagated in pyhf model"
+      "status": "implemented_fallback_prior",
+      "this_analysis": "Propagated in pyhf model",
+      "variation_basis": "fallback_prior_due_to_prompt_effective_cross_sections"
     },
     {
       "conventions": "SP10",
@@ -60,7 +65,8 @@
       "relative_variation": 0.5,
       "source": "DY+jets fake-proxy normalization",
       "status": "implemented",
-      "this_analysis": "Propagated in pyhf model"
+      "this_analysis": "Propagated in pyhf model",
+      "variation_basis": "analysis_measured_low_sideband_statistics"
     },
     {
       "conventions": "SP11",
@@ -70,7 +76,8 @@
       "relative_variation": 0.04440264879971137,
       "source": "TTBar omission diagnostic",
       "status": "implemented",
-      "this_analysis": "Propagated in pyhf model"
+      "this_analysis": "Propagated in pyhf model",
+      "variation_basis": "analysis_measured_omission_envelope"
     },
     {
       "conventions": "SP5",
@@ -80,7 +87,8 @@
       "relative_variation": 0.001,
       "source": "Lepton momentum scale/resolution shape",
       "status": "implemented",
-      "this_analysis": "Propagated in pyhf model"
+      "this_analysis": "Propagated in pyhf model",
+      "variation_basis": "external_public_performance_envelope"
     },
     {
       "conventions": "SP3",
@@ -89,8 +97,9 @@
       "ref_2": "Derived from Phase 3 per-bin sumw2 templates. Implemented as group/category normalization nuisances and tested with alternative-bin stability because full per-bin staterror profiling is computationally impractical in this sandbox.",
       "relative_variation": null,
       "source": "MC statistical uncertainty",
-      "status": "implemented",
-      "this_analysis": "Propagated in pyhf model"
+      "status": "implemented_grouped_approximation",
+      "this_analysis": "Propagated in pyhf model",
+      "variation_basis": "analysis_measured_sumw2_grouped_approximation"
     },
     {
       "conventions": "SP8",

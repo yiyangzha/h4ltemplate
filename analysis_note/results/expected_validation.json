@@ -20,7 +20,7 @@
       "combined_ndf": 17,
       "combined_p_value": 1.0,
       "configuration": "final_state_nominal",
-      "min_expected_bin": 0.6875956068251003,
+      "min_expected_bin": 0.6875956068251002,
       "mu_hat": 1.0,
       "mu_uncertainty": 0.5723579328235826,
       "total_bins": 18
@@ -116,7 +116,7 @@
     "injection_bias_lt_20pct": true,
     "low_count_validated": true
   },
-  "created_utc": "2026-05-30T01:26:52+00:00",
+  "created_utc": "2026-05-30T01:37:28+00:00",
   "final_state_channel_compatibility": {
     "max_abs_pull_vs_combined": 0.0,
     "passes": true,
@@ -150,6 +150,7 @@
       }
     ]
   },
+  "gof_interpretation": "The nominal Asimov observation is generated from the same model that is fitted, so chi2=0 and p=1 are expected self-consistency/audit quantities, not independent goodness-of-fit validation.",
   "low_count_validation": {
     "decision": "retain_final_state_simultaneous_model_for_expected_Asimov_fit",
     "input_handoff": {
@@ -159,6 +160,7 @@
       "inclusive_bins_below_5_expected": 0,
       "inclusive_total_bins": 6
     },
+    "scope_note": "Retention is Phase-4a expected-only: observed partial/full phases must repeat stability checks and may merge/rebin if observed-data fits or toys become unstable.",
     "toy_validation": {
       "fit_failures": 0,
       "fit_success_fraction": 1.0,
@@ -171,6 +173,11 @@
       "seed": 4269,
       "std_mu": 0.5972534571136956
     }
+  },
+  "mc_stat_implementation": {
+    "justification": "Full per-bin staterror profiling was not computationally stable in the sandbox; alternative binning and toy checks bound the expected-phase impact of the approximation.",
+    "not_equivalent_to": "per-bin HistFactory staterror modifiers",
+    "type": "group_category_normsys_from_sumw2"
   },
   "phase": "4a_expected",
   "precision_comparison": {

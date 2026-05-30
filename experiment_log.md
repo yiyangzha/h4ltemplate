@@ -663,6 +663,33 @@
 
 - Updated `COMMITMENTS.md` for Phase 4a expected-inference evidence and formal classifier-migration downscope.
 
+## 2026-05-30 — Phase 4a VERIFY Follow-up 2 self-critique
+
+- Re-read the expected artifact, result JSON, commitments, watcher feedback, and all current PNGs.
+- Fixed referee-facing ambiguity by labelling chi2=0/p=1 as Asimov self-consistency rather than independent GoF validation.
+- Labelled grouped MC-stat nuisances as an approximation to per-bin `staterror` profiling and added JSON fields documenting the implementation.
+- Added expected-only caveats for low-count category retention and mass-profile non-promotion.
+- Added systematic variation-basis metadata, including explicit fallback-prior status where official inputs are unavailable.
+- Rerendered `expected_binning_stability.png` with extra x-axis padding and no data-overlapping legend; figure registry smoke test after rerender found 10 entries, 20 registered files, 0 missing/empty/orphan.
+
+## 2026-05-30 — Phase 4a expected inference workspace
+
+- Executor `edmund_69a2` built the expected pyhf model from Phase 3 fit inputs using Asimov observations only.
+- Expected `mu = 1 +/- 0.5747` with final-state categories before review.
+- Low-count toy validation used 80 toys with seed 4269; success fraction 1.000, median bias -0.06065.
+
+## 2026-05-30 — Phase 4a expected plots
+
+- Produced 10 expected-inference figures and registered them in `phase4_inference/4a_expected/outputs/FIGURES.json`.
+
+## 2026-05-30 — Phase 4a expected inference artifact
+
+- Built `phase4_inference/4a_expected/outputs/INFERENCE_EXPECTED.md` from expected-result JSON files.
+
+## 2026-05-30 — Phase 4a commitment update
+
+- Updated `COMMITMENTS.md` for Phase 4a expected-inference evidence and formal classifier-migration downscope.
+
 ## 2026-05-30 — Phase 4a expected inference workspace
 
 - Executor `edmund_69a2` built the expected pyhf model from Phase 3 fit inputs using Asimov observations only.

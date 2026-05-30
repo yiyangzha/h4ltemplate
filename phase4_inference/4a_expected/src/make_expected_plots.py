@@ -49,6 +49,9 @@ def check_watcher_feedback() -> None:
     validation_dir = PHASE / "review" / "validation"
     if not validation_dir.exists():
         return
+    superseding_rechecks = sorted(validation_dir.glob("PLOT_WATCHER_RECHECK_*.md"))
+    if any("PASS" in path.read_text() and "Unresolved blockers: `0`" in path.read_text() for path in superseding_rechecks):
+        return
     for path in sorted(validation_dir.glob("PLOT_WATCHER_FEEDBACK_*.md")):
         text = path.read_text()
         if "FAIL" in text and "Unresolved blockers: `0`" not in text:
@@ -116,7 +119,7 @@ def plot_expected_m4l() -> int:
     axes[-1].set_xlabel(r"$m_{4\ell}$ [GeV]")
     caption = (
         "Expected Asimov four-lepton mass templates in the final-state categories used by the Phase 4a simultaneous fit. "
-        "Points show cumulative component expectations and the total model expectation; no observed Open Data counts are used as pseudo-data."
+        "Points show the background expectation, Higgs signal expectation, and their total; no observed Open Data counts are used as pseudo-data."
     )
     save_and_register(fig, "expected_m4l_final_state_templates", caption, "phase3_selection/outputs/fit_inputs_s1.json", {"channels": list(CHANNELS)})
     return 1
@@ -219,16 +222,18 @@ def plot_binning(validation: dict[str, Any]) -> int:
     below = np.asarray([row["bins_below_5"] for row in rows], dtype=float)
     fig, ax = plt.subplots(figsize=(10, 10))
     fig.subplots_adjust(left=0.32, right=0.97)
-    ax.errorbar(unc, y, marker="o", linestyle="None", color="black", label=r"$\mu$ uncertainty")
+    x_pad = max(0.001, 0.15 * float(np.max(unc) - np.min(unc)))
+    ax.errorbar(unc, y, marker="o", linestyle="None", color="black")
+    ax.set_xlim(float(np.min(unc)) - x_pad, float(np.max(unc)) + x_pad)
     ax.set_yticks(y, labels)
     ax.set_xlabel(r"Expected uncertainty on $\mu$")
-    ax.legend(loc="lower right", fontsize="x-small")
     mh.label.exp_label(exp="CMS", text="", loc=2, data=True, llabel="Open Simulation", rlabel=r"$13$ TeV", ax=ax)
     caption = "Alternative-binning stability comparison for the expected signal-strength fit. The final-state nominal configuration is retained for the Asimov result after low-count toy validation, while inclusive/coarse variants provide stability cross-checks."
     save_and_register(fig, "expected_binning_stability", caption, "analysis_note/results/expected_validation.json", {"rows": rows})
     fig, ax = plt.subplots(figsize=(10, 10))
     fig.subplots_adjust(left=0.32, right=0.97)
     ax.errorbar(below, y, marker="s", linestyle="None", color="#ff7f0e")
+    ax.set_xlim(-0.8, float(np.max(below)) + 0.8)
     ax.set_yticks(y, labels)
     ax.set_xlabel("Bins below five expected events")
     mh.label.exp_label(exp="CMS", text="", loc=2, data=True, llabel="Open Simulation", rlabel=r"$13$ TeV", ax=ax)

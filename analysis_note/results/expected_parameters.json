@@ -1,6 +1,6 @@
 {
   "asimov_observation": "nominal model expectation including auxiliary data; no observed Open Data counts used",
-  "created_utc": "2026-05-30T01:26:52+00:00",
+  "created_utc": "2026-05-30T01:37:28+00:00",
   "fit_model": "pyhf simultaneous final-state template likelihood",
   "fit_status": {
     "bestfit": [
@@ -36,6 +36,7 @@
     ],
     "boundary_check": "PASS: mu and retained nuisance central values are not at configured bounds in the Asimov fit.",
     "converged": true,
+    "nuisance_pull_interpretation": "Asimov data are generated from the nominal model, so nuisance best fits are expected at nominal values; zero pulls are a self-consistency check, not an observed-data constraint measurement.",
     "parameter_names": [
       "m4l_scale_shape",
       "mu",

@@ -45,6 +45,7 @@ SYSTEMATIC_SOURCES = {
         "source": "CMS-PAS-LUM-20-001 public summary, 2017 full-year luminosity 42.12 +/- 0.34 fb^-1; used as a scale reference for the user-provided 10 fb^-1 subset.",
         "url": "https://cms-results.web.cern.ch/cms-results/public-results/preliminary-results/LUM-20-001/",
         "conventions": "SP1",
+        "basis": "external_public_uncertainty",
     },
     "lepton_eff": {
         "label": "Lepton reconstruction/ID/trigger efficiency",
@@ -52,6 +53,7 @@ SYSTEMATIC_SOURCES = {
         "source": "Phase 3 cut-motivation closure: largest final-state lepton-ID data/MC step-efficiency discrepancy is about 3 percent; propagated as a rate envelope.",
         "url": "phase3_selection/outputs/cut_motivation_diagnostics.json",
         "conventions": "SP4",
+        "basis": "analysis_measured_envelope",
     },
     "signal_theory": {
         "label": "Signal production normalization/composition",
@@ -59,6 +61,7 @@ SYSTEMATIC_SOURCES = {
         "source": "CMS-HIG-16-041 and CMS-HIG-19-001 normalize H(125) signal to SM expectations; prompt effective signal cross sections are user-provided, so a 5 percent composition prior is scanned and marked fallback.",
         "url": "https://cms-results.web.cern.ch/cms-results/public-results/publications/HIG-16-041/",
         "conventions": "SP7",
+        "basis": "fallback_prior_due_to_missing_generator_composition_inputs",
     },
     "zz_norm": {
         "label": "qqZZ background normalization",
@@ -66,6 +69,7 @@ SYSTEMATIC_SOURCES = {
         "source": "Open-data fallback for prompt effective ZZ cross section; CMS references estimate ZZ from simulation and treat background normalization as a systematic source.",
         "url": "https://cms-results.web.cern.ch/cms-results/public-results/publications/HIG-19-001/",
         "conventions": "SP9",
+        "basis": "fallback_prior_due_to_prompt_effective_cross_sections",
     },
     "ggzz_norm": {
         "label": "ggZZ background normalization",
@@ -73,6 +77,7 @@ SYSTEMATIC_SOURCES = {
         "source": "Open-data fallback for small loop-induced ggZZ component; prior is wider than qqZZ because only prompt effective cross sections are available in this sandbox.",
         "url": "https://cms-results.web.cern.ch/cms-results/public-results/publications/HIG-19-001/",
         "conventions": "SP9",
+        "basis": "fallback_prior_due_to_prompt_effective_cross_sections",
     },
     "dy_norm": {
         "label": "DY+jets fake-proxy normalization",
@@ -80,6 +85,7 @@ SYSTEMATIC_SOURCES = {
         "source": "Phase 3 sideband fake diagnostics show only 11 DY+jets raw entries in the two sidebands after selection, so the DY fake proxy is weakly constrained and assigned a broad fallback prior.",
         "url": "phase3_selection/outputs/sideband_fake_diagnostics.json",
         "conventions": "SP10",
+        "basis": "analysis_measured_low_sideband_statistics",
     },
     "ttbar_omission": {
         "label": "TTBar omission diagnostic",
@@ -87,6 +93,7 @@ SYSTEMATIC_SOURCES = {
         "source": "Phase 3 TTBar/DY weighted-yield diagnostic in the signal window; TTBar is below promotion threshold and propagated as an omission envelope on reducible background.",
         "url": "phase3_selection/outputs/sideband_fake_diagnostics.json",
         "conventions": "SP11",
+        "basis": "analysis_measured_omission_envelope",
     },
     "m4l_scale": {
         "label": "Lepton momentum scale/resolution shape",
@@ -94,6 +101,7 @@ SYSTEMATIC_SOURCES = {
         "source": "CMS momentum-scale public performance context reports per-mille-level deviations; propagated by shifting m4l templates by +/-0.1 percent.",
         "url": "https://cds.cern.ch/record/1279137",
         "conventions": "SP5",
+        "basis": "external_public_performance_envelope",
     },
     "mc_stat": {
         "label": "MC statistical uncertainty",
@@ -101,6 +109,7 @@ SYSTEMATIC_SOURCES = {
         "source": "Derived from Phase 3 per-bin sumw2 templates. Implemented as group/category normalization nuisances and tested with alternative-bin stability because full per-bin staterror profiling is computationally impractical in this sandbox.",
         "url": "phase3_selection/outputs/fit_inputs_s1.json",
         "conventions": "SP3",
+        "basis": "analysis_measured_sumw2_grouped_approximation",
     },
 }
 
@@ -602,15 +611,21 @@ def systematic_table_payload(active_systematics: set[str]) -> dict[str, Any]:
     rows = []
     for key, payload in SYSTEMATIC_SOURCES.items():
         status = "implemented" if key in active_systematics else "documented_not_applicable_or_downstream"
+        basis = payload["basis"]
+        if status == "implemented" and basis.startswith("fallback_prior"):
+            status = "implemented_fallback_prior"
+        elif status == "implemented" and basis == "analysis_measured_sumw2_grouped_approximation":
+            status = "implemented_grouped_approximation"
         rows.append(
             {
                 "key": key,
                 "source": payload["label"],
                 "conventions": payload["conventions"],
                 "relative_variation": payload["relative"],
+                "variation_basis": basis,
                 "ref_1": payload["url"],
                 "ref_2": payload["source"],
-                "this_analysis": "Propagated in pyhf model" if status == "implemented" else "Documented only",
+                "this_analysis": "Propagated in pyhf model" if key in active_systematics else "Documented only",
                 "status": status,
             }
         )
@@ -665,6 +680,7 @@ def main() -> None:
             "twice_nll": full_fit["best_nll"],
             "converged": True,
             "boundary_check": "PASS: mu and retained nuisance central values are not at configured bounds in the Asimov fit.",
+            "nuisance_pull_interpretation": "Asimov data are generated from the nominal model, so nuisance best fits are expected at nominal values; zero pulls are a self-consistency check, not an observed-data constraint measurement.",
             "parameter_names": full_fit["model"].config.par_names,
             "bestfit": full_fit["bestfit"].tolist(),
         },
@@ -696,6 +712,13 @@ def main() -> None:
             "input_handoff": read_json(PHASE3_OUT / "selected_configuration.json")["low_count_bin_summary"],
             "toy_validation": toys,
             "decision": "retain_final_state_simultaneous_model_for_expected_Asimov_fit" if toys["passes_bias_gate"] and toys["passes_fit_success_gate"] else "merge_or_rebin_required",
+            "scope_note": "Retention is Phase-4a expected-only: observed partial/full phases must repeat stability checks and may merge/rebin if observed-data fits or toys become unstable.",
+        },
+        "gof_interpretation": "The nominal Asimov observation is generated from the same model that is fitted, so chi2=0 and p=1 are expected self-consistency/audit quantities, not independent goodness-of-fit validation.",
+        "mc_stat_implementation": {
+            "type": "group_category_normsys_from_sumw2",
+            "not_equivalent_to": "per-bin HistFactory staterror modifiers",
+            "justification": "Full per-bin staterror profiling was not computationally stable in the sandbox; alternative binning and toy checks bound the expected-phase impact of the approximation.",
         },
         "alternative_binning_stability": stability,
         "final_state_channel_compatibility": compatibility,

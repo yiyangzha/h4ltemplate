@@ -1,7 +1,7 @@
 # Phase 4a Expected Inference
 
 Session: `edmund_69a2`
-Created: 2026-05-30T01:26:57+00:00
+Created: 2026-05-30T01:37:33+00:00
 
 ## Summary
 
@@ -27,7 +27,9 @@ and mass-bin edges `[105.0, 112.0, 118.0, 122.0, 126.0, 130.0, 140.0]`. MC
 statistical uncertainty is propagated with group/category normalization
 nuisances derived from Phase 3 `sumw2`; full per-bin staterror profiling was
 not computationally stable in this sandbox, so the implementation is paired
-with explicit alternative-binning stability checks.
+with explicit alternative-binning stability checks. This grouped treatment is
+an expected-phase approximation to per-bin HistFactory `staterror` terms, not
+a drop-in replacement for a full per-bin MC-stat profile.
 
 ## Expected Fit Result
 
@@ -41,6 +43,9 @@ with explicit alternative-binning stability checks.
 The exact Asimov deviance is expected to be numerically zero when the fitted
 expectation matches the generated model expectation. The chi2 values are
 reported for audit only and are not observed-data goodness-of-fit results.
+The independent validation evidence is the Poisson toy behavior, signal
+injection/recovery, corrupted-model closure rejection, and alternative-binning
+stability below.
 
 ## Low-Count Validation And Binning
 
@@ -54,6 +59,10 @@ simultaneous model because the Poisson toy validation passes:
 - median `mu`: `0.9394`
 - median bias: `-0.06065`
 - bias gate pass: `True`
+
+This retention is conditional on the expected-only Phase 4a inputs. The
+observed 10 percent and full-data phases must repeat the stability checks and
+merge or rebin if observed-data fits or toys become unstable.
 
 | Binning | Channels | mu uncertainty | bins below 5 | fit p |
 | --- | --- | --- | --- | --- |
@@ -119,6 +128,11 @@ shown below.
 | ttbar_omission | 0.003187 | -0.002649 | 0.003187 |
 | signal_VH_theory | 0.001326 | -0.001318 | 0.001326 |
 
+Asimov nuisance pulls are expected to be zero because the pseudo-data are
+generated from the nominal model. The table and impact figure therefore show
+expected sensitivity from fixed nuisance shifts, not observed-data pulls or
+post-fit constraints.
+
 ## Mass-Template Closure
 
 The Phase 4a method-parity attempt uses shifted detector-level M125 templates
@@ -145,16 +159,21 @@ gate on the available templates.
 | --- | --- | --- | --- | --- | --- |
 | Integrated luminosity | SP1 | https://cms-results.web.cern.ch/cms-results/public-results/preliminary-results/LUM-20-001/ | CMS-PAS-LUM-20-001 public summary, 2017 full-year luminosity 42.12 +/- 0.34 fb^-1; used as a scale reference for the user-provided 10 fb^-1 subset. | Propagated in pyhf model | implemented |
 | Lepton reconstruction/ID/trigger efficiency | SP4 | phase3_selection/outputs/cut_motivation_diagnostics.json | Phase 3 cut-motivation closure: largest final-state lepton-ID data/MC step-efficiency discrepancy is about 3 percent; propagated as a rate envelope. | Propagated in pyhf model | implemented |
-| Signal production normalization/composition | SP7 | https://cms-results.web.cern.ch/cms-results/public-results/publications/HIG-16-041/ | CMS-HIG-16-041 and CMS-HIG-19-001 normalize H(125) signal to SM expectations; prompt effective signal cross sections are user-provided, so a 5 percent composition prior is scanned and marked fallback. | Propagated in pyhf model | implemented |
-| qqZZ background normalization | SP9 | https://cms-results.web.cern.ch/cms-results/public-results/publications/HIG-19-001/ | Open-data fallback for prompt effective ZZ cross section; CMS references estimate ZZ from simulation and treat background normalization as a systematic source. | Propagated in pyhf model | implemented |
-| ggZZ background normalization | SP9 | https://cms-results.web.cern.ch/cms-results/public-results/publications/HIG-19-001/ | Open-data fallback for small loop-induced ggZZ component; prior is wider than qqZZ because only prompt effective cross sections are available in this sandbox. | Propagated in pyhf model | implemented |
+| Signal production normalization/composition | SP7 | https://cms-results.web.cern.ch/cms-results/public-results/publications/HIG-16-041/ | CMS-HIG-16-041 and CMS-HIG-19-001 normalize H(125) signal to SM expectations; prompt effective signal cross sections are user-provided, so a 5 percent composition prior is scanned and marked fallback. | Propagated in pyhf model | implemented_fallback_prior |
+| qqZZ background normalization | SP9 | https://cms-results.web.cern.ch/cms-results/public-results/publications/HIG-19-001/ | Open-data fallback for prompt effective ZZ cross section; CMS references estimate ZZ from simulation and treat background normalization as a systematic source. | Propagated in pyhf model | implemented_fallback_prior |
+| ggZZ background normalization | SP9 | https://cms-results.web.cern.ch/cms-results/public-results/publications/HIG-19-001/ | Open-data fallback for small loop-induced ggZZ component; prior is wider than qqZZ because only prompt effective cross sections are available in this sandbox. | Propagated in pyhf model | implemented_fallback_prior |
 | DY+jets fake-proxy normalization | SP10 | phase3_selection/outputs/sideband_fake_diagnostics.json | Phase 3 sideband fake diagnostics show only 11 DY+jets raw entries in the two sidebands after selection, so the DY fake proxy is weakly constrained and assigned a broad fallback prior. | Propagated in pyhf model | implemented |
 | TTBar omission diagnostic | SP11 | phase3_selection/outputs/sideband_fake_diagnostics.json | Phase 3 TTBar/DY weighted-yield diagnostic in the signal window; TTBar is below promotion threshold and propagated as an omission envelope on reducible background. | Propagated in pyhf model | implemented |
 | Lepton momentum scale/resolution shape | SP5 | https://cds.cern.ch/record/1279137 | CMS momentum-scale public performance context reports per-mille-level deviations; propagated by shifting m4l templates by +/-0.1 percent. | Propagated in pyhf model | implemented |
-| MC statistical uncertainty | SP3 | phase3_selection/outputs/fit_inputs_s1.json | Derived from Phase 3 per-bin sumw2 templates. Implemented as group/category normalization nuisances and tested with alternative-bin stability because full per-bin staterror profiling is computationally impractical in this sandbox. | Propagated in pyhf model | implemented |
+| MC statistical uncertainty | SP3 | phase3_selection/outputs/fit_inputs_s1.json | Derived from Phase 3 per-bin sumw2 templates. Implemented as group/category normalization nuisances and tested with alternative-bin stability because full per-bin staterror profiling is computationally impractical in this sandbox. | Propagated in pyhf model | implemented_grouped_approximation |
 | Higgs branching fraction | SP8 | https://pdg.lbl.gov/2024/tables/rpp2024-sum-gauge-higgs-bosons.pdf | PDG H->ZZ* fraction retained for cross-section conversions | Not used because Phase 4a reports detector-level mu only | not_applicable_no_cross_section_conversion |
 | Classifier/category migration | SP12 | phase3_selection/outputs/approach_comparison.json | S2 classifier categories rejected | No MVA categories used | not_applicable_mva_rejected |
 | Angular reconstruction | SP13 | phase3_selection/outputs/angular_closure.json | Angular inputs not used in nominal fit after S2 rejection | Closure retained as Phase 3 evidence | documented_not_propagated_no_angular_categories |
+
+Rows marked as fallback priors are explicitly downscoped expected-phase
+approximations caused by missing official generator-composition or effective
+cross-section inputs. They are propagated to avoid silently dropping the
+source, but they should not be read as precision external calibrations.
 
 ## Figures
 
@@ -176,8 +195,11 @@ gate on the available templates.
 | Finding | Resolution | Evidence |
 | --- | --- | --- |
 | Phase 3 handoff has many low-count final-state bins. | Retained final-state model only after Poisson toys and alternative-binning checks passed. | `expected_validation.json`, `expected_binning_stability.png`, `expected_binning_low_count_summary.png` |
-| Full per-bin pyhf staterror model was computationally impractical. | Used grouped MC-stat normalization nuisances derived from `sumw2` and documented alternative-binning stability. | `expected_parameters.json`, `expected_covariance.json`, `expected_validation.json` |
-| Plot watcher reported a crowded binning-stability figure. | Split the display into two separately registered figures. | `PLOT_WATCHER_RECHECK_vera_ee63.md` reports PASS with zero unresolved blockers. |
+| Full per-bin pyhf staterror model was computationally impractical. | Used grouped MC-stat normalization nuisances derived from `sumw2`, labelled the approximation in JSON/prose, and documented alternative-binning stability. | `expected_parameters.json`, `expected_covariance.json`, `expected_validation.json` |
+| Plot watcher reported a crowded binning-stability figure. | Split the display into two separately registered figures and rerendered the stability figure with extra x-axis padding/no data-overlapping legend. | `PLOT_WATCHER_RECHECK_vera_ee63.md` reports PASS with zero unresolved blockers. |
+| Earlier watcher files still contain stale FAIL/BLOCKED text. | Current figure status is determined by the later `PLOT_WATCHER_RECHECK_vera_ee63.md` PASS and the rerendered figure mtimes; stale watcher files are retained as audit history only. | `phase4_inference/4a_expected/review/validation/PLOT_WATCHER_RECHECK_vera_ee63.md` |
+| Exact Asimov GoF values can look tautological. | Labelled chi2=0/p=1 as expected self-consistency and pointed to toys, injections, corruption tests, and binning variants as the actual validation evidence. | `expected_validation.json`, Validation Tests section |
+| Mass-profile closure could be misread as an official mass result. | Kept it as method-parity evidence only and explicitly did not promote it to a calibrated mass measurement. | `expected_mass_scan.json`, `expected_mass_profile_attempt.png` |
 | MVA/classifier and VBF-like categories were rejected upstream. | No classifier migration or VBF systematics are propagated; they are documented as not applicable/downscoped. | `expected_systematics.json`, Phase 3 selection artifacts |
 
 ## Machine-Readable Outputs
