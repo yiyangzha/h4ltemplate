@@ -1,30 +1,52 @@
 from __future__ import annotations
 
+import ast
+
 import numpy as np
 
-from selection_common import FINAL_STATE_LABELS, FIT_WINDOW, OUT, append_experiment, append_session, now, read_json, setup_logging, write_json
+from selection_common import (
+    BROAD_M4L_BINS,
+    FINAL_STATE_LABELS,
+    OUT,
+    TRAINING_WINDOW,
+    append_experiment,
+    append_session,
+    hist_counts,
+    now,
+    read_json,
+    setup_logging,
+    write_json,
+)
 
 
 LOW_COUNT_THRESHOLD = 5.0
 
 
 def s1_bin_viability() -> dict:
-    fit_inputs = read_json(OUT / "fit_inputs_s1.json")
-    edges = fit_inputs["bin_edges"]
+    events = np.load(OUT / "selection_events.npz", allow_pickle=True)
+    edges = BROAD_M4L_BINS.tolist()
+    m4l = events["m4l"].astype(float)
+    channels = events["channel_code"].astype(int)
+    weights = events["weight"].astype(float)
+    is_data = events["is_data"].astype(bool)
+    is_signal = events["is_signal"].astype(bool)
+    sample_index = events["sample_index"].astype(int)
+    meta = ast.literal_eval(str(events["sample_meta_json"][0]))
+    nominal_background_indices = np.asarray(
+        [row["group"] not in {"data", "background_top"} and not row["group"].startswith("signal") for row in meta],
+        dtype=bool,
+    )
+    nominal_background = nominal_background_indices[sample_index]
 
     def category_totals(category: str) -> dict:
-        signal = np.zeros(len(edges) - 1, dtype=float)
-        background = np.zeros(len(edges) - 1, dtype=float)
-        data = np.zeros(len(edges) - 1, dtype=float)
-        for sample_payload in fit_inputs["samples"].values():
-            item = sample_payload["fit_window"][category]
-            counts = np.asarray(item["counts"], dtype=float)
-            if item["stack"] == "Data":
-                data += counts
-            elif item["group"].startswith("signal"):
-                signal += counts
-            else:
-                background += counts
+        if category == "inclusive":
+            category_mask = np.ones(len(m4l), dtype=bool)
+        else:
+            category_mask = channels == FINAL_STATE_LABELS.index(category)
+        window = (m4l > TRAINING_WINDOW[0]) & (m4l < TRAINING_WINDOW[1]) & category_mask
+        signal, _ = hist_counts(m4l[window & is_signal & (~is_data)], weights[window & is_signal & (~is_data)], np.asarray(edges, dtype=float))
+        background, _ = hist_counts(m4l[window & nominal_background & (~is_data)], weights[window & nominal_background & (~is_data)], np.asarray(edges, dtype=float))
+        data, _ = hist_counts(m4l[window & is_data], np.ones(np.sum(window & is_data), dtype=float), np.asarray(edges, dtype=float))
         total = signal + background
         return {
             "bin_edges": edges,
@@ -63,7 +85,7 @@ def s1_bin_viability() -> dict:
 
 def s1_metrics() -> dict:
     events = np.load(OUT / "selection_events.npz", allow_pickle=True)
-    fit = (events["m4l"] > FIT_WINDOW[0]) & (events["m4l"] < FIT_WINDOW[1])
+    fit = (events["m4l"] > TRAINING_WINDOW[0]) & (events["m4l"] < TRAINING_WINDOW[1])
     is_signal = events["is_signal"].astype(bool)
     is_data = events["is_data"].astype(bool)
     weights = events["weight"].astype(float)
@@ -94,7 +116,7 @@ def main() -> None:
     selected = "S2_classifier_categories" if s2.get("promote_s2") else "S1_reference_like_final_state_categories"
     payload = {
         "created_utc": now(),
-        "common_metric": "Asimov counting precision proxy sqrt(S+B)/S in 105 < m4l < 140 GeV, plus broad-window 70 < m4l < 170 GeV MVA D7/GoF/category gates",
+        "common_metric": "Asimov counting precision proxy sqrt(S+B)/S in 80 < m4l < 170 GeV, plus broad-window 70 < m4l < 170 GeV MVA score-shape/category/mass-sculpting gates",
         "approaches": {
             "S1_reference_like_cut_and_channel_fit": s1,
             "S2_angular_kinematic_classifier_categories": s2,

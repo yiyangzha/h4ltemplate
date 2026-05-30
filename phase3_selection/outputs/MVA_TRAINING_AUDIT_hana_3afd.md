@@ -1,109 +1,79 @@
-# MVA Training Audit — `hana_3afd`
+# MVA Training Audit
 
+Session: `hana_3afd`
 Date: 2026-05-30
-
-## Scope
-
-Fast repair of the Phase 3 MVA training path after the previous worker left
-`phase3_selection/src/train_mva.py` in a broken state and the current MVA was
-effectively random (`lead_abs_eta` + `phi1`, AUC about 0.55).
 
 ## Root Cause
 
-The weak MVA was not one single bug. It was a stack of bad constraints:
+- The old classifier was not broken by labels or a failed train/test split.
+  It was underpowered: the D7 gate was used as a hard whitelist and left only
+  `lead_abs_eta` and `phi1` as active inputs. With those two variables, the
+  best AUC was about `0.55`, consistent with near-random separation.
+- The previous MVA comparison mixed broad-window MVA diagnostics with an
+  older `105 < m4l < 140 GeV` S1 precision proxy. The repaired comparison uses
+  `80 < m4l < 170 GeV` for the active S1/S2 training metric.
+- Strong JHEP-like variables including `mZ1` and `mZ2` improve raw separation
+  but induce visible score-mass correlation in the broad background sample, so
+  they are retained as diagnostic-only rather than used in nominal fit
+  categories.
+- The repaired mass-safe feature set is no longer random, but S2 still fails
+  promotion because score-shape data/MC and low-stat category gates fail.
 
-1. Training had collapsed onto the strict D7-passing whitelist, which left only
-   `lead_abs_eta` and `phi1`.
-2. The training path was not explicitly locked to the requested
-   `80 < m4l < 170 GeV` MC window.
-3. The old implementation mixed incompatible model variants and output
-   contracts, which made the Phase 3 task graph fragile.
-4. The previous setup did not present a clear broad-feature diagnostic using
-   JHEP-like observables, so there was no fast audit trail for whether the weak
-   AUC came from the feature content or from a code path failure.
+## Repair
 
-## Repair Applied
-
-- Restored `phase3_selection/src/train_mva.py` to a working script and rewired
-  it to a fixed `TRAINING_WINDOW = (80.0, 170.0)`.
-- Applied the MC training/evaluation mask
-  `(~is_data) & (80 < m4l < 170)`.
-- Kept `m4l` out of all classifier inputs.
-- Trained four cheap weighted models:
-  - `logistic_mass_safe`
-  - `bdt_mass_safe`
-  - `logistic_jhep_like_diagnostic`
-  - `bdt_jhep_like_diagnostic`
-- Preserved downstream JSON fields needed by Phase 3 consumers.
-
-## Feature Policy
-
-### D7 broad-window pass/fail summary used for the audit
-
-- D7-passing inputs: `lead_abs_eta`, `phi1`
-- D7-failing inputs: `cos_theta1`, `cos_theta2`, `cos_theta_star`, `eta4l`,
-  `lead_lepton_pt`, `mZ1`, `mZ2`, `phi`, `pt4l`, `sublead_abs_eta`,
-  `sublead_lepton_pt`, `y4l`
-
-### Nominal repaired mass-safe feature set
+`phase3_selection/src/train_mva.py` was restored and changed to train weighted
+models in `80 < m4l < 170 GeV`, excluding `m4l` itself. The nominal mass-safe
+features are:
 
 `pt4l`, `eta4l`, `lead_lepton_pt`, `sublead_lepton_pt`, `lead_abs_eta`,
-`sublead_abs_eta`, `cos_theta_star`, `cos_theta1`, `cos_theta2`, `phi`,
-`phi1`, `channel_code`
+`sublead_abs_eta`, `cos_theta_star`, `cos_theta1`, `cos_theta2`, `phi`, `phi1`,
+and `channel_code`.
 
-### JHEP-like diagnostic feature set
+The diagnostic JHEP-like set adds `mZ1` and `mZ2`, but those variants are not
+eligible for nominal promotion because their mass-sculpting diagnostics fail.
 
-Nominal mass-safe set plus `mZ1`, `mZ2`.
-
-These diagnostic models were kept non-nominal because the fast mass-sculpting
-checks failed badly.
+D7 still records the broad-window data/MC modeling stress: the variables that
+passed the original gate were only `lead_abs_eta` and `phi1`. Variables such as
+`pt4l`, lepton kinematics, angular terms, `mZ1`, and `mZ2` have useful
+discrimination, so they are evaluated in the repaired MVA with explicit
+score-shape and mass-sculpting gates rather than silently discarded.
 
 ## New Numbers
 
-From `phase3_selection/outputs/mva_metrics.json` after the repair:
+From `phase3_selection/outputs/mva_metrics.json`:
 
-| Model | Weighted test AUC | AUC gap | Signal mean gap | Score gate | Category viability | Mass sculpting |
-|---|---:|---:|---:|---|---|---|
-| `logistic_mass_safe` | 0.7430 | 0.0070 | 0.0003 | FAIL | FAIL | PASS |
-| `bdt_mass_safe` | 0.7929 | 0.0173 | 0.0006 | FAIL | FAIL | FAIL |
-| `logistic_jhep_like_diagnostic` | 0.8428 | 0.0033 | 0.0000 | FAIL | FAIL | FAIL |
-| `bdt_jhep_like_diagnostic` | 0.9176 | 0.0163 | 0.0002 | FAIL | FAIL | FAIL |
+| Model | AUC | Promotion use |
+|---|---:|---|
+| `logistic_mass_safe` | `0.7430` | eligible but fails score-shape gate |
+| `bdt_mass_safe` | `0.7929` | best nominal candidate, not promoted |
+| `logistic_jhep_like_diagnostic` | `0.8428` | diagnostic only |
+| `bdt_jhep_like_diagnostic` | `0.9176` | diagnostic only |
 
-Mass-sculpting correlation diagnostic on background in `80 < m4l < 170 GeV`:
+Background score-mass correlation in `80 < m4l < 170 GeV`:
 
-- `logistic_mass_safe`: `corr(score, m4l) = 0.1453`
-- `bdt_mass_safe`: `corr(score, m4l) = 0.3578`
-- `logistic_jhep_like_diagnostic`: `corr(score, m4l) = 0.5744`
-- `bdt_jhep_like_diagnostic`: `corr(score, m4l) = 0.4462`
+- `logistic_mass_safe`: `0.1453`, mass-sculpting gate passes.
+- `bdt_mass_safe`: `0.3578`, mass-sculpting gate fails.
+- `logistic_jhep_like_diagnostic`: `0.5744`, diagnostic-only.
+- `bdt_jhep_like_diagnostic`: `0.4462`, diagnostic-only.
 
-Promotion summary:
-
-- Best nominal model: `bdt_mass_safe`
-- Best nominal weighted test AUC: `0.7929`
-- Relative precision-proxy improvement vs S1 in `80 < m4l < 170 GeV`:
-  `+0.1902`
-- `promote_s2 = false`
+The best nominal candidate is `bdt_mass_safe`. Its broad-window proxy improves
+over S1 by about `0.190`, but the score data/MC gate fails
+(`chi2 = 85.96`, `ndf = 4`, `p = 9.50e-18`) and the broad category viability
+fails, so `promote_s2 = false`.
 
 ## Decision
 
-S2 stays rejected.
-
-Reason: even after the repair and broader feature content, the classifier still
-fails the score data/MC gate and the low-stat category viability gate, and the
-best nominal BDT also fails the fast mass-sculpting diagnostic. The broader
-`mZ1/mZ2`-inclusive diagnostic models are more powerful in AUC but clearly less
-safe for a mass fit.
+Keep S1 final-state categories for Phase 4c. The MVA training was materially
+improved and the random-classifier failure is resolved, but the repaired
+classifier is not safe enough to define final fit categories.
 
 ## Commands Run
 
 ```bash
 pixi run p3-train-mva
 pixi run p3-compare
+pixi run p3-selection-plots
+pixi run p3-artifact
+pixi run lint-plots
 git diff --check
 ```
-
-## Remaining Limitation
-
-This was a fast Phase 3 repair, not a full redesign of the category scheme.
-The current classifier infrastructure is working again, but there is still no
-mass-safe S2 configuration that clears the Phase 3 promotion gates.

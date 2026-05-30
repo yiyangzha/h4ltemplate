@@ -1088,3 +1088,23 @@
 ## 2026-05-29 — Phase 3 approach comparison
 
 - Compared S1 and S2 on common expected precision and validation gates; selected `S1_reference_like_final_state_categories`.
+
+## 2026-05-29 — Phase 3 approach comparison
+
+- Compared S1 and S2 on common expected precision and validation gates; selected `S1_reference_like_final_state_categories`.
+
+## 2026-05-29 — Phase 3 selection figures
+
+- Produced 17 selection/sideband/MVA diagnostic figures and updated `FIGURES.json`.
+
+## 2026-05-29 — Phase 3 selection artifact
+
+- Built `phase3_selection/outputs/SELECTION.md` from Phase 3 JSON/NPZ outputs.
+
+## 2026-05-29 — Phase 3 selection figures
+
+- Produced 17 selection/sideband/MVA diagnostic figures and updated `FIGURES.json`.
+
+## 2026-05-29 — Phase 3 selection artifact
+
+- Built `phase3_selection/outputs/SELECTION.md` from Phase 3 JSON/NPZ outputs.

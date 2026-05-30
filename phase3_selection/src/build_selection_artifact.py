@@ -242,7 +242,8 @@ retained branches:
   electrons and muon PF+medium IDs only for muons;
 - Z-pair sanity using retained `zId`, charge, flavor, `mZ1`, and `mZ2`;
 - broad validation window `70 <= m4l <= 170 GeV` for sidebands and diagnostics;
-- fit window `105 < m4l < 140 GeV` for fit-ready templates.
+- current MVA training and S1/S2 comparison window `80 < m4l < 170 GeV`;
+- current Phase 4c observed fit/display window `70 < m4l < 170 GeV`.
 
 ## Cutflow
 
@@ -285,15 +286,14 @@ retained lepton four-vectors and the Phase 2-cited H->4l angular references.
 
 ## Input-Variable Modeling Gate
 
-D7 was applied before classifier training. Shape comparisons use a data-area
-normalization only for input-modeling diagnostics; nominal yields remain
-prompt-luminosity normalized. Only variables passing `chi2/ndf <= 5` and no
-coherent shape-ratio trend above 20 percent were eligible for S2 training.
-Classifier training and score validation use the broad `70 <= m4l <= 170 GeV`
-selected event table. The fitted mass `m4l` is not used as a classifier input.
-This regression also tries a tuned BDT variant in addition to the original
-logistic, BDT, and small-NN alternatives; promotion still requires all gates
-and a >10 percent improvement over S1.
+D7 was applied as an input-modeling diagnostic before classifier training.
+Shape comparisons use a data-area normalization only for input-modeling
+diagnostics; nominal yields remain prompt-luminosity normalized. The MVA
+regression found that using D7 as a hard whitelist left only two weak inputs
+and made the classifier nearly random. The repaired training keeps `m4l`
+excluded, trains in `80 < m4l < 170 GeV`, and uses curated mass-safe angular
+and kinematic inputs. Variables with severe broad-window data/MC disagreement
+or strong score-mass correlation are kept diagnostic-only.
 
 {input_table(validation)}
 
@@ -310,13 +310,15 @@ Variables explicitly not promoted: `m4l` is excluded to avoid mass sculpting;
 
 S2 was not promoted. The best classifier is
 {best_model_label} with a relative proxy change of
-{fmt(mva['promotion_decision'].get('relative_improvement'))}; this is worse
-than S1, not a >10 percent improvement. The detailed S2 gate table is:
+{fmt(mva['promotion_decision'].get('relative_improvement'))}. It improves the
+simple broad-window proxy but still fails the score-shape/category/mass-
+sculpting gates required before using classifier categories in the fit. The
+detailed S2 gate table is:
 
 {mva_gate_table(mva)}
 
-The BDT variants are checked as the meaningful improvement attempt, but no
-trained classifier variant satisfies all S2 promotion gates.
+The repaired BDT is no longer random, but no trained classifier variant
+satisfies all S2 promotion gates.
 
 ## Fake And Sideband Diagnostics
 
@@ -330,16 +332,12 @@ the Phase 2 thresholds:
 
 ## Fit-Ready Handoff
 
-The fit-ready handoff for Phase 4 is `fit_inputs_s1.json`. It contains
-prompt-normalized `m4l` templates in `105 < m4l < 140 GeV`, bin edges
-`[105, 112, 118, 122, 126, 130, 140]`, sumw2 arrays for MC-stat terms, and
-final-state categories plus an inclusive diagnostic category. Phase 4 may use
-the `4mu`, `4e`, and `2e2mu` categories for the simultaneous fit only after
-low-count Poisson/toy validation and MC-stat stability checks. If those checks
-fail, Phase 4 must rebin or merge categories before reporting a result. The
-inclusive category is a diagnostic cross-check only and must not be fitted
-simultaneously with the mutually exclusive final-state categories. The
-broad-window templates are explicitly validation-only.
+The current Phase 4c observed fit uses the selected event table directly and
+builds templates over `70 < m4l < 170 GeV`, including the Z peak. The older
+`fit_inputs_s1.json` narrow-window templates are retained for traceability of
+earlier Phase 4a/legacy checks and are not the active Phase 4c fit window.
+The `4mu`, `4e`, and `2e2mu` categories remain the active simultaneous-fit
+categories because the repaired MVA still fails promotion gates.
 
 ## Figures
 

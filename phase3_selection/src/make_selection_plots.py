@@ -17,6 +17,7 @@ from selection_common import (
     read_json,
     sample_display_name,
     setup_logging,
+    write_json,
 )
 
 
@@ -295,28 +296,18 @@ def plot_vbf_downscope_evidence() -> int:
 
 
 def plot_category_viability() -> int:
-    fit_inputs = read_json(OUT / "fit_inputs_s1.json")
     comparison = read_json(OUT / "approach_comparison.json")
-    low_summary = comparison["approaches"]["S1_reference_like_cut_and_channel_fit"]["final_state_bin_viability"]["summary"]
+    viability = comparison["approaches"]["S1_reference_like_cut_and_channel_fit"]["final_state_bin_viability"]
+    low_summary = viability["summary"]
     channels = FINAL_STATE_LABELS
     signal = []
     background = []
     data = []
     for channel in channels:
-        sig = 0.0
-        bkg = 0.0
-        obs = 0.0
-        for sample_payload in fit_inputs["samples"].values():
-            item = sample_payload["fit_window"][channel]
-            if item["stack"] == "Data":
-                obs += item["weighted_yield"]
-            elif item["group"].startswith("signal"):
-                sig += item["weighted_yield"]
-            else:
-                bkg += item["weighted_yield"]
-        signal.append(sig)
-        background.append(bkg)
-        data.append(obs)
+        item = viability["by_category"][channel]
+        signal.append(float(np.sum(item["signal_expected_by_bin"])))
+        background.append(float(np.sum(item["background_expected_by_bin"])))
+        data.append(float(np.sum(item["data_observed_by_bin"])))
     x = np.arange(len(channels), dtype=float)
     width = 0.25
     fig, ax = plt.subplots(figsize=(10, 10))
@@ -340,7 +331,7 @@ def plot_category_viability() -> int:
         ax=ax,
     )
     caption = (
-        "S1 final-state category viability summary for the fit window. "
+        "S1 final-state category viability summary for the broad MVA comparison window. "
         f"The categories are retained only as a conditional Phase 4 handoff: {low_summary['final_state_bins_below_5_expected']}/"
         f"{low_summary['final_state_total_bins']} final-state bins have S+B below five expected events, while S2 classifier categories fail low-stat viability."
     )
@@ -348,7 +339,7 @@ def plot_category_viability() -> int:
         fig,
         "category_viability_s1",
         caption,
-        "phase3_selection/outputs/fit_inputs_s1.json",
+        "phase3_selection/outputs/approach_comparison.json",
         {"channels": channels, "low_count_summary": low_summary},
     )
     return 1
@@ -357,6 +348,21 @@ def plot_category_viability() -> int:
 def plot_approach_and_mva() -> int:
     made = 0
     comparison = read_json(OUT / "approach_comparison.json")
+    metrics = read_json(OUT / "mva_metrics.json")
+    active_roc_ids = {f"mva_roc_{model_name}" for model_name in metrics.get("models", {})}
+    registry_path = OUT / "FIGURES.json"
+    if registry_path.exists():
+        registry = read_json(registry_path)
+        kept = []
+        for item in registry:
+            if item["id"].startswith("mva_roc_") and item["id"] not in active_roc_ids:
+                for key in ("png", "pdf"):
+                    stale = OUT / item[key]
+                    if stale.exists():
+                        stale.unlink()
+                continue
+            kept.append(item)
+        write_json(registry_path, kept)
     fig = __import__("matplotlib.pyplot").pyplot.subplots(figsize=(10, 10))[0]
     ax = fig.axes[0]
     labels = ["S1", "S2 best split"]
@@ -375,7 +381,6 @@ def plot_approach_and_mva() -> int:
     )
     save_and_register(fig, "approach_comparison_mu_proxy", caption, "phase3_selection/outputs/approach_comparison.json", comparison)
     made += 1
-    metrics = read_json(OUT / "mva_metrics.json")
     for model_name, model in metrics.get("models", {}).items():
         fig = __import__("matplotlib.pyplot").pyplot.subplots(figsize=(10, 10))[0]
         ax = fig.axes[0]
@@ -390,7 +395,7 @@ def plot_approach_and_mva() -> int:
         __import__("mplhep").label.exp_label(exp="CMS", text="", loc=2, data=True, llabel="Open Simulation", rlabel=r"$13$ TeV", ax=ax)
         caption = (
             f"{label_name} classifier ROC curve for the S2 attempt. "
-            "The weak separation and failed category-viability gates prevent promotion to nominal Phase 4 categories."
+            "The repaired classifier has useful separation, but score-shape, mass-sculpting, or low-stat category gates prevent promotion to nominal Phase 4 categories."
         )
         save_and_register(
             fig,

@@ -1,8 +1,8 @@
 # Session State
 
-Last updated: 2026-05-30T03:37:40Z
-Current phase: Phase 4c — Full Data Inference
-Step in loop: ADVANCE
+Last updated: 2026-05-30T06:03:00Z
+Current phase: Phase 4c — Full Data Inference / targeted MVA regression
+Step in loop: ITERATE
 Iteration count: 0
 
 ## Completed phases (commit hashes)
@@ -90,6 +90,20 @@ Doc 4b updated the analysis note with the fixed-seed 10% result and passed the
 compact gate. The human gate was auto-approved per the user's directive and
 archived. Next step: run Phase 4c full-data inference using the current
 `70 < m4l < 170 GeV` fit-window instruction unless superseded.
+
+Phase 4c full-data inference is committed through `bee3081`, with observed
+`mu = 2.4776 -0.7139 +0.8388` and an observed shifted-template mass scan whose
+best grid point is `125.0 GeV`. The user then requested a fast targeted MVA
+training audit because the previous classifier behaved nearly randomly.
+
+The targeted MVA regression found the root cause: the D7 gate was used as a hard
+feature whitelist, leaving only `lead_abs_eta` and `phi1`. The repaired MVA now
+trains weighted models in `80 < m4l < 170 GeV`, excludes `m4l`, and uses a
+curated mass-safe angular/kinematic feature set. Best nominal model is
+`bdt_mass_safe` with AUC `0.7929` and broad-window proxy improvement `0.1902`,
+but S2 remains rejected because score-shape, low-stat/category, and/or
+mass-sculpting gates fail. The active Phase 4c result remains S1 because the
+MVA is not promoted.
 
 ## Pending Decisions For Human
 

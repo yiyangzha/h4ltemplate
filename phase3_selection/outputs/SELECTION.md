@@ -8,7 +8,7 @@ Created from machine-readable Phase 3 outputs.
 Phase 3 implements the reviewed Phase 2 strategy using the primary prompt
 ROOT paths only. The nominal Phase 4 handoff is `S1_reference_like_final_state_categories` with final-state
 categories `4mu`, `4e`, and `2e2mu`, but this binning is conditional:
-17/18
+27/33
 final-state fit bins have `S+B < 5` and require Phase 4 low-count Poisson/toy
 validation plus MC-stat stability checks before a result is reported. No VBF
 category is used because the recovery gate found no real jet/VBF information in
@@ -56,7 +56,8 @@ retained branches:
   electrons and muon PF+medium IDs only for muons;
 - Z-pair sanity using retained `zId`, charge, flavor, `mZ1`, and `mZ2`;
 - broad validation window `70 <= m4l <= 170 GeV` for sidebands and diagnostics;
-- fit window `105 < m4l < 140 GeV` for fit-ready templates.
+- current MVA training and S1/S2 comparison window `80 < m4l < 170 GeV`;
+- current Phase 4c observed fit/display window `70 < m4l < 170 GeV`.
 
 ## Cutflow
 
@@ -100,24 +101,39 @@ final-state binning is a conditional Phase 4 handoff. The per-bin expected
 
 | Category | m4l bin [GeV] | Signal | Background | S+B | S+B < 5 |
 | --- | --- | --- | --- | --- | --- |
-| 4mu | 105-112 | 0.0443 | 2.52 | 2.56 | yes |
-| 4mu | 112-118 | 0.104 | 2.37 | 2.47 | yes |
+| 4mu | 70-85 | 0.0038 | 2.98 | 2.99 | yes |
+| 4mu | 85-100 | 0.024 | 53.3 | 53.3 | no |
+| 4mu | 100-105 | 0.0163 | 1.84 | 1.86 | yes |
+| 4mu | 105-112 | 0.0443 | 2.48 | 2.53 | yes |
+| 4mu | 112-118 | 0.104 | 2.33 | 2.43 | yes |
 | 4mu | 118-122 | 0.235 | 2.86 | 3.1 | yes |
-| 4mu | 122-126 | 2.21 | 1.56 | 3.77 | yes |
-| 4mu | 126-130 | 0.375 | 2.14 | 2.51 | yes |
-| 4mu | 130-140 | 0.00661 | 3.97 | 3.98 | yes |
-| 4e | 105-112 | 0.0201 | 1.86 | 1.88 | yes |
+| 4mu | 122-126 | 2.21 | 1.53 | 3.74 | yes |
+| 4mu | 126-130 | 0.375 | 2.1 | 2.48 | yes |
+| 4mu | 130-140 | 0.00661 | 3.94 | 3.94 | yes |
+| 4mu | 140-155 | 0.00429 | 4.11 | 4.11 | yes |
+| 4mu | 155-170 | 0.00345 | 3.52 | 3.52 | yes |
+| 4e | 70-85 | 0.00212 | 0.946 | 0.948 | yes |
+| 4e | 85-100 | 0.0109 | 12.1 | 12.1 | no |
+| 4e | 100-105 | 0.00704 | 0.434 | 0.442 | yes |
+| 4e | 105-112 | 0.0201 | 1.83 | 1.85 | yes |
 | 4e | 112-118 | 0.0736 | 2.52 | 2.6 | yes |
-| 4e | 118-122 | 0.255 | 2.44 | 2.7 | yes |
+| 4e | 118-122 | 0.255 | 2.41 | 2.66 | yes |
 | 4e | 122-126 | 0.706 | 0.467 | 1.17 | yes |
 | 4e | 126-130 | 0.198 | 0.49 | 0.688 | yes |
-| 4e | 130-140 | 0.0137 | 2.6 | 2.61 | yes |
-| 2e2mu | 105-112 | 0.0544 | 4.42 | 4.48 | yes |
-| 2e2mu | 112-118 | 0.155 | 2.46 | 2.62 | yes |
-| 2e2mu | 118-122 | 0.511 | 3.74 | 4.25 | yes |
-| 2e2mu | 122-126 | 2.21 | 1.77 | 3.97 | yes |
-| 2e2mu | 126-130 | 0.544 | 3.84 | 4.38 | yes |
-| 2e2mu | 130-140 | 0.0233 | 6.84 | 6.87 | no |
+| 4e | 130-140 | 0.0137 | 2.56 | 2.57 | yes |
+| 4e | 140-155 | 0.00215 | 2.42 | 2.42 | yes |
+| 4e | 155-170 | 0.00217 | 3.07 | 3.07 | yes |
+| 2e2mu | 70-85 | 0.00464 | 2.93 | 2.94 | yes |
+| 2e2mu | 85-100 | 0.0292 | 45.7 | 45.7 | no |
+| 2e2mu | 100-105 | 0.0199 | 1.7 | 1.72 | yes |
+| 2e2mu | 105-112 | 0.0544 | 4.39 | 4.44 | yes |
+| 2e2mu | 112-118 | 0.155 | 2.39 | 2.54 | yes |
+| 2e2mu | 118-122 | 0.511 | 3.63 | 4.14 | yes |
+| 2e2mu | 122-126 | 2.21 | 1.73 | 3.94 | yes |
+| 2e2mu | 126-130 | 0.544 | 3.7 | 4.24 | yes |
+| 2e2mu | 130-140 | 0.0233 | 6.73 | 6.76 | no |
+| 2e2mu | 140-155 | 0.00629 | 5.98 | 5.99 | no |
+| 2e2mu | 155-170 | 0.00553 | 6.8 | 6.81 | no |
 
 The VBF recovery gate checked primary and local branch inventories, the current
 allow-list, event-key join feasibility, and `h4l_ntuplize.py` provenance.
@@ -150,15 +166,14 @@ retained lepton four-vectors and the Phase 2-cited H->4l angular references.
 
 ## Input-Variable Modeling Gate
 
-D7 was applied before classifier training. Shape comparisons use a data-area
-normalization only for input-modeling diagnostics; nominal yields remain
-prompt-luminosity normalized. Only variables passing `chi2/ndf <= 5` and no
-coherent shape-ratio trend above 20 percent were eligible for S2 training.
-Classifier training and score validation use the broad `70 <= m4l <= 170 GeV`
-selected event table. The fitted mass `m4l` is not used as a classifier input.
-This regression also tries a tuned BDT variant in addition to the original
-logistic, BDT, and small-NN alternatives; promotion still requires all gates
-and a >10 percent improvement over S1.
+D7 was applied as an input-modeling diagnostic before classifier training.
+Shape comparisons use a data-area normalization only for input-modeling
+diagnostics; nominal yields remain prompt-luminosity normalized. The MVA
+regression found that using D7 as a hard whitelist left only two weak inputs
+and made the classifier nearly random. The repaired training keeps `m4l`
+excluded, trains in `80 < m4l < 170 GeV`, and uses curated mass-safe angular
+and kinematic inputs. Variables with severe broad-window data/MC disagreement
+or strong score-mass correlation are kept diagnostic-only.
 
 | Variable | chi2/ndf | ndf | p | max shape ratio deviation | D7 pass |
 | --- | --- | --- | --- | --- | --- |
@@ -184,24 +199,26 @@ Variables explicitly not promoted: `m4l` is excluded to avoid mass sculpting;
 
 | Approach | Metric/result |
 | --- | --- |
-| S1 reference-like final-state fit | mu uncertainty proxy = 0.973; conditional low-count handoff |
-| S2 classifier categories | best model = small NN, relative improvement = -0.236 |
+| S1 reference-like final-state fit | mu uncertainty proxy = 1.82; conditional low-count handoff |
+| S2 classifier categories | best model = mass-safe BDT, relative improvement = 0.19 |
 | Nominal selection | S1_reference_like_final_state_categories |
 
 S2 was not promoted. The best classifier is
-small NN with a relative proxy change of
--0.236; this is worse
-than S1, not a >10 percent improvement. The detailed S2 gate table is:
+mass-safe BDT with a relative proxy change of
+0.19. It improves the
+simple broad-window proxy but still fails the score-shape/category/mass-
+sculpting gates required before using classifier categories in the fit. The
+detailed S2 gate table is:
 
 | Model | AUC | overtrain gap | score chi2 | score ndf | score p | score gate | low-stat bin fraction | category gate | all S2 gates |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| BDT | 0.548 | 2.726e-05 | 4.945 | 2 | 0.08436 | True | 1 | False | False |
-| tuned BDT | 0.5457 | 2.307e-05 | n/a | 0 | n/a | False | 1 | False | False |
-| logistic | 0.5496 | 1.516e-05 | n/a | 0 | n/a | False | 0.9722 | False | False |
-| small NN | 0.5505 | 1.216e-05 | n/a | 0 | n/a | False | 1 | False | False |
+| JHEP-like diagnostic BDT | 0.9176 | 0.000192 | 2005 | 8 | 0 | False | 0.8939 | False | False |
+| mass-safe BDT | 0.7929 | 0.0005652 | 85.96 | 4 | 9.502e-18 | False | 0.9091 | False | False |
+| JHEP-like diagnostic logistic | 0.8428 | 7.091e-06 | 1307 | 9 | 1.012e-275 | False | 0.9242 | False | False |
+| mass-safe logistic | 0.743 | 0.000286 | 2186 | 9 | 0 | False | 0.9242 | False | False |
 
-The BDT variants are checked as the meaningful improvement attempt, but no
-trained classifier variant satisfies all S2 promotion gates.
+The repaired BDT is no longer random, but no trained classifier variant
+satisfies all S2 promotion gates.
 
 ## Fake And Sideband Diagnostics
 
@@ -220,16 +237,12 @@ the Phase 2 thresholds:
 
 ## Fit-Ready Handoff
 
-The fit-ready handoff for Phase 4 is `fit_inputs_s1.json`. It contains
-prompt-normalized `m4l` templates in `105 < m4l < 140 GeV`, bin edges
-`[105, 112, 118, 122, 126, 130, 140]`, sumw2 arrays for MC-stat terms, and
-final-state categories plus an inclusive diagnostic category. Phase 4 may use
-the `4mu`, `4e`, and `2e2mu` categories for the simultaneous fit only after
-low-count Poisson/toy validation and MC-stat stability checks. If those checks
-fail, Phase 4 must rebin or merge categories before reporting a result. The
-inclusive category is a diagnostic cross-check only and must not be fitted
-simultaneously with the mutually exclusive final-state categories. The
-broad-window templates are explicitly validation-only.
+The current Phase 4c observed fit uses the selected event table directly and
+builds templates over `70 < m4l < 170 GeV`, including the Z peak. The older
+`fit_inputs_s1.json` narrow-window templates are retained for traceability of
+earlier Phase 4a/legacy checks and are not the active Phase 4c fit window.
+The `4mu`, `4e`, and `2e2mu` categories remain the active simultaneous-fit
+categories because the repaired MVA still fails promotion gates.
 
 ## Figures
 
@@ -261,10 +274,10 @@ broad-window templates are explicitly validation-only.
 | vbf_downscope_evidence | figures/vbf_downscope_evidence.png | figures/vbf_downscope_evidence.pdf |
 | category_viability_s1 | figures/category_viability_s1.png | figures/category_viability_s1.pdf |
 | approach_comparison_mu_proxy | figures/approach_comparison_mu_proxy.png | figures/approach_comparison_mu_proxy.pdf |
-| mva_roc_bdt | figures/mva_roc_bdt.png | figures/mva_roc_bdt.pdf |
-| mva_roc_bdt_tuned | figures/mva_roc_bdt_tuned.png | figures/mva_roc_bdt_tuned.pdf |
-| mva_roc_logistic | figures/mva_roc_logistic.png | figures/mva_roc_logistic.pdf |
-| mva_roc_small_nn | figures/mva_roc_small_nn.png | figures/mva_roc_small_nn.pdf |
+| mva_roc_bdt_jhep_like_diagnostic | figures/mva_roc_bdt_jhep_like_diagnostic.png | figures/mva_roc_bdt_jhep_like_diagnostic.pdf |
+| mva_roc_bdt_mass_safe | figures/mva_roc_bdt_mass_safe.png | figures/mva_roc_bdt_mass_safe.pdf |
+| mva_roc_logistic_jhep_like_diagnostic | figures/mva_roc_logistic_jhep_like_diagnostic.png | figures/mva_roc_logistic_jhep_like_diagnostic.pdf |
+| mva_roc_logistic_mass_safe | figures/mva_roc_logistic_mass_safe.png | figures/mva_roc_logistic_mass_safe.pdf |
 | mva_best_score_datamc | figures/mva_best_score_datamc.png | figures/mva_best_score_datamc.pdf |
 
 ## Method Health And Open Issues

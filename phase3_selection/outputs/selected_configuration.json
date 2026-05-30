@@ -1,13 +1,13 @@
 {
-  "created_utc": "2026-05-30T05:55:52+00:00",
+  "created_utc": "2026-05-30T05:59:24+00:00",
   "fit_inputs": "fit_inputs_s1.json",
   "handoff_status": "conditional_low_count_final_state_binning",
   "low_count_bin_summary": {
-    "final_state_bins_below_5_expected": 17,
-    "final_state_fraction_below_5_expected": 0.9444444444444444,
-    "final_state_total_bins": 18,
-    "inclusive_bins_below_5_expected": 0,
-    "inclusive_total_bins": 6
+    "final_state_bins_below_5_expected": 27,
+    "final_state_fraction_below_5_expected": 0.8181818181818182,
+    "final_state_total_bins": 33,
+    "inclusive_bins_below_5_expected": 1,
+    "inclusive_total_bins": 11
   },
   "low_count_evidence_source": "approach_comparison.json:approaches.S1_reference_like_cut_and_channel_fit.final_state_bin_viability",
   "nominal_configuration": "S1_reference_like_final_state_categories",
