@@ -1,5 +1,27 @@
 # Experiment Log
 
+## 2026-05-30 — Doc 4c final note writer nora_eef5
+
+- Read required Doc 4c note-writer context and current Phase 4c observed
+  artifacts without rerunning inference.
+- Staged refreshed broad-window Phase 4a expected figures and Phase 4c
+  observed figures into `analysis_note/figures/`.
+- Created `analysis_note/ANALYSIS_NOTE_doc4c_v1.tex` from Doc 4b and updated
+  it to the full-data result: `mu = 2.4776 -0.7139 +0.8388`, GoF
+  `chi2/ndf = 47.326/38`, `p = 0.1427`, active fit window
+  `70 < m4l < 170 GeV`, and observed shifted-template mass best grid point
+  `125.0 GeV`.
+- Generated `analysis_note/figures/doc4c_reference_comparison.{pdf,png}`.
+  The user-requested mass uncertainty correction was applied: CMS-HIG-16-041 /
+  JHEP 11 (2017) 047 is shown as `mH = 125.26 +/- 0.20(stat) +/- 0.08(syst)
+  GeV`, with total plotted as `sqrt(0.20^2 + 0.08^2) = 0.215 GeV`; this
+  analysis is shown as a coarse-grid shifted-template diagnostic with visual
+  half-step `1.25 GeV`, not as a calibrated stat/syst uncertainty.
+- Compiled `analysis_note/ANALYSIS_NOTE_doc4c_v1.pdf` with Tectonic through
+  Pixi. Page count: 73. Focused checks passed: no `\tbd`, no active-result
+  narrow-window claim, all referenced figures exist, key JSON numbers match
+  the note, and `pixi run lint-plots` passes.
+
 ## 2026-05-29T20:45:39Z — Phase 3 executor plan magnus_d784
 
 - Read the required Phase 3 startup context before code or ROOT data work:
