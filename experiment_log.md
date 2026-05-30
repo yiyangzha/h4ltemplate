@@ -1309,3 +1309,9 @@
 - Doc 4c now uses the repaired Phase 3 MVA artifacts: `bdt_mass_safe` AUC `0.7929042332570392`, relative precision-proxy improvement `0.1902098976350023`, and `promote_s2=false`; stale old MVA figure names were removed.
 - Regenerated `doc4c_reference_comparison` in the main Comparison section. CMS-HIG-16-041/JHEP mass is shown as `125.26 +/- 0.20(stat) +/- 0.08(syst)` GeV with component styling; this analysis is shown with diagnostic fine-grid resolution only, not fabricated stat/syst.
 - `pixi run p4c-all`, `pixi run tectonic --outdir analysis_note analysis_note/ANALYSIS_NOTE_doc4c_v1.tex`, and `pixi run lint-plots` completed. Verification evidence is in `analysis_note/review/doc4c/VERIFY_viktor_9f5e_2026-05-30.md`.
+
+## 2026-05-30 — Doc 4c reference comparison plot polish
+
+- Fixer `sven_6dea` regenerated only `analysis_note/figures/doc4c_reference_comparison.{pdf,png}` with no legends, restrained typography, all-black square markers, uncapped total bars for unsplit uncertainties, and capped inner stat bars only where a stat/syst split exists.
+- The figure remains in the main `Comparison to Prior Results and Theory` section of `analysis_note/ANALYSIS_NOTE_doc4c_v1.tex`.
+- `pixi run tectonic --outdir analysis_note analysis_note/ANALYSIS_NOTE_doc4c_v1.tex` and `pixi run lint-plots` completed. Verification evidence is in `analysis_note/review/doc4c/VERIFY_sven_6dea_2026-05-30.md`.
