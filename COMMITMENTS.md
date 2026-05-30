@@ -21,10 +21,13 @@ machine-readable proof item.
   template likelihood. Proof: Phase 4 workspaces and fit result JSON include
   categories, samples, Poisson terms, nuisance constraints, MC-stat terms,
   GoF, pulls, and impacts.
-- [x] [D3][VT1][VT3] Enforce `105 < m4l < 140 GeV` for signal-strength and
-  mass/width inference. Proof: fit-ready histogram metadata and selection
-  cutflow JSON record the fit window; broader sideband plots are labeled
-  validation-only.
+- [x] [D3][VT1][VT3] Use the latest user-requested observed-data fit window
+  `70 < m4l < 170 GeV`, including the Z peak, for Phase 4b/4c
+  signal-strength inference. Proof: `partial_validation.json`,
+  `observed_validation.json`, and `observed_parameters.json` record the
+  `70-170 GeV` fit window, full event counts, and no data-integral MC
+  normalization. Earlier `105 < m4l < 140 GeV` fit-ready templates are retained
+  only as legacy/expected-phase traceability.
 - [x] [D4][VT6][VT13] Nominal categories are final states 4mu, 4e, and 2e2mu,
   with extra classifier categories only after viability gates; no VBF-like
   category unless jet recovery passes [A3]. Proof: category schema JSON,
@@ -180,9 +183,12 @@ machine-readable proof item.
 
 ## Final AN comparability matrix
 
-- [x] [REF-MATRIX][FIG6] Inclusive `mu`: classify as matched if the fit has
-  one global signal-strength POI in the same `105 < m4l < 140 GeV` inference
-  window and compatible category inclusiveness; pulls required only if matched.
+- [x] [REF-MATRIX][FIG6] Inclusive `mu`: final comparison must classify the
+  Phase 4c `mu` as methodologically approximate rather than fully matched,
+  because the final observed fit uses the latest user-requested
+  `70 < m4l < 170 GeV` window including the Z peak while CMS-HIG-16-041 uses
+  the narrower signal-region likelihood. The AN should still compare the
+  numbers as context and state the window/category/fake-background differences.
 - [x] [REF-MATRIX][D9] Mass: Phase 4a category-simultaneous shifted-template scan with `mu` profiled passes expected injected-mass closure, and Phase 4c adds a full-data observed shifted-template mass scan. The final AN must classify the mass result as approximated detector-level mass-profile evidence rather than an official-quality matched CMS mass measurement because independent mass-hypothesis MC and official calibration/morphing inputs are unavailable.
 - [D] [REF-MATRIX] Fiducial cross section: unavailable in the final result because no reviewed acceptance/fiducial conversion with cited branching-fraction and acceptance inputs was implemented; Phase 4c reports detector-level signal strength only.
 - [D] [REF-MATRIX] Width: unavailable in the final result because no validated width likelihood/shape interpretation was implemented; no pull is reported.

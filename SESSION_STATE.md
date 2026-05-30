@@ -47,12 +47,15 @@ Iteration count: 0
 
 ## Current Work
 
-Phase 3 passed after one review iteration. The nominal Phase 4 handoff is S1
-final-state categories `4mu`, `4e`, and `2e2mu` in `105 < m4l < 140 GeV`.
+Phase 3 passed after one review iteration. After the targeted MVA regression,
+the nominal Phase 4c handoff remains S1 final-state categories `4mu`, `4e`,
+and `2e2mu`; the active observed fit uses `70 < m4l < 170 GeV`, including the
+Z peak.
 
-This handoff is conditional: `17/18` final-state bins have `S+B < 5`. Phase 4a
-must run low-count Poisson/toy validation and MC-stat stability checks before
-reporting fit results; otherwise it must rebin or merge categories.
+This handoff is conditional because many final-state bins have low expected
+counts. Phase 4a/4c must run low-count Poisson/toy validation and MC-stat
+stability checks before reporting fit results; otherwise it must rebin or
+merge categories.
 
 Key Phase 3 artifacts:
 
@@ -66,7 +69,7 @@ Key Phase 3 artifacts:
 
 Phase 4a expected inference has passed its blocking gate with a documented
 low-count limitation. Phase 3 MVA training/evaluation metadata now records the
-broad `70 < m4l < 170 GeV` window and a tuned BDT trial; S1 remains nominal.
+broad `80 < m4l < 170 GeV` training window and a repaired BDT trial; S1 remains nominal.
 Phase 4a includes broad `m4l` display metadata, a broadened `110-140 GeV`
 shifted-template mass scan, per-systematic shifted-bin payloads, a
 systematic-shift summary figure, and formal grouped-MC-stat downscope labeling.

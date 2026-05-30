@@ -41,3 +41,19 @@ Next action:
 Spawned focused worker `felix_cf3e` (`gpt-5.4`, medium) to audit MVA labels,
 weights, split, input gates, features, and broad-window training; update Phase 3
 and affected Phase 4c outputs; run targeted checks; and commit.
+
+## Later Resume Note — Doc 4c Continuation
+
+Resumed from a clean worktree at `2c83e53`. State found:
+
+- Phase 4c observed inference and observed shifted-template mass scan exist.
+- Phase 3 targeted MVA regression is committed; the repaired MVA is no longer
+  random (`bdt_mass_safe` AUC `0.7929`) but is not promoted, so Phase 4c remains
+  on S1 final-state categories.
+- Doc 4b human gate is archived and auto-approved per the user's directive.
+- `analysis_note/review/doc4c/CLAUDE.md` exists, but
+  `ANALYSIS_NOTE_doc4c_v1.tex/pdf` does not.
+
+Next action: run a compact Phase 4c verification gate, then spawn a note writer
+for Doc 4c using `agents/note_writer.md` and the Doc 4c template. Keep the gate
+fast and focused because the user requested reduced review overhead.
