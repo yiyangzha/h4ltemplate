@@ -34,7 +34,7 @@ The active Phase 3 handoff and Phase 4 signal-strength likelihood use final-stat
 The Phase 4a expected Asimov baseline gives $\mu=1.0^{+0.6265}_{-0.5109}$ with symmetric expected uncertainty 0.5687.
 The fixed-seed 10\% sample is retained as a validation cross-check, yielding $\mu=0.0^{+1.3549}$ at the physical boundary with $\chi^2/\mathrm{ndf}=31.755/38$ and $p=0.7524$.
 The full-data result is $\mu=2.4776^{+0.8388}_{-0.7139}$, with symmetric uncertainty 0.7763 and post-fit $\chi^2/\mathrm{ndf}=47.326/38$ ($p=0.1427$). The observed result is compatible with the expected baseline at 1.535 standard deviations and with the 10\% validation result at 1.587 standard deviations.
-A shifted-template detector-level mass scan with $\mu$ profiled finds best grid point $m_H=125.0$ GeV; this scan is reported only as method-parity evidence and is not promoted to an official CMS-quality Higgs mass measurement.
+A shifted-template detector-level mass scan with $\mu$ profiled finds a refined fine-grid center $m_H=124.75$ GeV with 0.25 GeV grid spacing; this scan is reported only as method-parity evidence and is not promoted to an official CMS-quality Higgs mass measurement.
 \end{abstract}
 \tableofcontents
 \clearpage
@@ -46,7 +46,7 @@ A shifted-template detector-level mass scan with $\mu$ profiled finds best grid 
 \item Updated the Results, Cross-checks, Comparison, Conclusions, and limitations so the fixed-seed 10\% result is a validation cross-check rather than the headline result.
 \item Staged refreshed broad-window Phase 4a expected figures and all Phase 4c observed figures, and added a full-data public-reference comparison figure.
 \item Clarified that the repaired MVA is diagnostic only: the active result remains S1 final-state categories because score-shape, category, and mass-sculpting promotion gates fail; no lepton-only proxy is labeled VBF.
-\item Added the observed shifted-template mass scan with $\mu$ profiled at each grid point, explicitly classified as detector-level diagnostic evidence rather than an official calibrated mass measurement.
+\item Refined the observed shifted-template mass scan from the original coarse grid to a local 0.25 GeV grid around the coarse minimum; the reported diagnostic fine-grid center is $m_H=124.75$ GeV.
 \end{itemize}
 \textbf{Doc 4b v1, 2026-05-30}
 \begin{itemize}[leftmargin=*]
@@ -62,7 +62,7 @@ The $H\to ZZ^{(*)}\to4\ell$ channel, central to the original LHC Higgs-boson obs
 
 The user request asked for a CMS-HIG-16-041-like analysis, including the $105<m_{4\ell}<140$ GeV fit window, categorization, a VBF category if possible, and an angular neural-network discriminator. The analysis implements the shared signal-strength parameter and simultaneous final-state fit, but it does not claim official equivalence. The flat ntuples contain no recoverable jet or VBF discriminant information, and the classifier/neural-network route did not pass promotion gates. These outcomes are part of the result because they define what the open-data ntuple can support.
 
-The principal contextual reference is CMS-HIG-16-041, published as JHEP 11 (2017) 047, which reports $\mu=1.05^{+0.19}_{-0.17}$ at $m_H=125.09$ GeV, a fiducial cross section of $2.92^{+0.48}_{-0.44}\mathrm{(stat)}^{+0.28}_{-0.24}\mathrm{(syst)}$ fb, $m_H=125.26\pm0.21$ GeV, and $\Gamma_H<1.10$ GeV at 95\% CL \cite{CMS-HIG-16-041}. A later CMS Run-2 result gives $\mu=0.94\pm0.07\mathrm{(stat)}^{+0.09}_{-0.08}\mathrm{(syst)}$ and an inclusive fiducial cross section of $2.84^{+0.23}_{-0.22}\mathrm{(stat)}^{+0.26}_{-0.21}\mathrm{(syst)}$ fb \cite{CMS-HIG-19-001}. PDG world-average values are used only as external context and validation references, not as fit inputs \cite{PDG2024}.
+The principal contextual reference is CMS-HIG-16-041, published as JHEP 11 (2017) 047, which reports $\mu=1.05^{+0.19}_{-0.17}$ at $m_H=125.09$ GeV, a fiducial cross section of $2.92^{+0.48}_{-0.44}\mathrm{(stat)}^{+0.28}_{-0.24}\mathrm{(syst)}$ fb, $m_H=125.26\pm0.20\mathrm{(stat)}\pm0.08\mathrm{(syst)}$ GeV, and $\Gamma_H<1.10$ GeV at 95\% CL \cite{CMS-HIG-16-041}. A later CMS Run-2 result gives $\mu=0.94\pm0.07\mathrm{(stat)}^{+0.09}_{-0.08}\mathrm{(syst)}$ and an inclusive fiducial cross section of $2.84^{+0.23}_{-0.22}\mathrm{(stat)}^{+0.26}_{-0.21}\mathrm{(syst)}$ fb \cite{CMS-HIG-19-001}. PDG world-average values are used only as external context and validation references, not as fit inputs \cite{PDG2024}.
 \section{Data Samples}
 The analysis uses flat ntuples derived from CMS open-data-style event content and simulation workflows \cite{CMSDetector,CMSOpenData,GEANT4,PYTHIA8,POWHEG}. It uses the prompt-specified primary paths, not the local worktree copies, because Phase 1 found non-identical file sizes, metadata rows, and event entries between the two locations. The open-data file contains a single h4lTree with 854 candidate entries and metadata luminosity information. All simulated samples are normalized with the prompt-provided effective cross sections and generated-event denominators from the Metadata trees.
 
@@ -647,7 +647,7 @@ Total & 0.60270 & 0.7763 \\
 \end{figure}
 
 \subsection{Mass-Profile Diagnostic}
-The observed shifted-template mass scan uses the broad likelihood for observed counts and background constraints, while excluding the Z-peak region from Higgs mass hypotheses. It profiles $\mu$ at each mass grid point and finds a best grid value of $m_H=125.0$ GeV with profiled $\mu=2.4776$. The reported interval is $[125.0,125.0]$ GeV only by the coarse $\Delta(-2\ln L)\le1$ grid criterion and is not meaningful as a calibrated uncertainty.
+The observed shifted-template mass scan uses the broad likelihood for observed counts and background constraints, while excluding the Z-peak region from Higgs mass hypotheses. It first scans $110$--$150$ GeV in 2.5 GeV steps, then refines locally over $122$--$128$ GeV in 0.25 GeV steps around the coarse minimum. The fine-grid center is $m_H=124.75$ GeV with profiled $\mu=2.4035$. The diagnostic $\Delta(-2\ln L)\le1$ grid interval is $[124.75,125.50]$ GeV, but this is a shifted-template grid diagnostic rather than a calibrated statistical uncertainty. A quadratic interpolation of the fine-grid points gives $125.424$ GeV and is retained only as a diagnostic interpolation, not as the reported center.
 
 \begin{table}[htbp]
 \centering
@@ -656,10 +656,14 @@ The observed shifted-template mass scan uses the broad likelihood for observed c
 \toprule
 Quantity & Value \\
 \midrule
-Scan range & 110--150 GeV in 2.5 GeV steps \\
-Best grid point & 125.0 GeV \\
-Best profiled $\mu$ & 2.4776 \\
-Grid interval & [125.0, 125.0] GeV, not meaningful \\
+Coarse scan range & 110--150 GeV in 2.5 GeV steps \\
+Fine scan range & 122--128 GeV in 0.25 GeV steps \\
+Coarse best grid point & 125.0 GeV \\
+Reported fine-grid center & 124.75 GeV \\
+Best profiled $\mu$ in mass scan & 2.4035 \\
+Diagnostic grid half-step & 0.125 GeV, not stat/syst \\
+Diagnostic grid interval & [124.75, 125.50] GeV by $\Delta(-2\ln L)\le1$ grid criterion \\
+Diagnostic quadratic interpolation & 125.424 GeV, not reported as calibrated center \\
 Promoted to nominal mass measurement & no \\
 Z-peak treatment & excluded from Higgs mass-hypothesis grid \\
 \bottomrule
@@ -670,7 +674,7 @@ Z-peak treatment & excluded from Higgs mass-hypothesis grid \\
 \begin{figure}[p]
 \centering
 \includegraphics[width=0.92\linewidth,height=0.70\textheight,keepaspectratio]{figures/observed_mass_scan.pdf}
-\caption{Observed shifted-template detector-level mass scan with $\mu$ profiled at each mass hypothesis. The best grid point is 125.0 GeV, but the scan is not an official CMS-quality mass measurement because independent mass-hypothesis MC and official calibration/morphing inputs are unavailable.}
+\caption{Observed shifted-template detector-level mass scan with $\mu$ profiled at each mass hypothesis. The coarse scan is refined locally with a 0.25 GeV grid, giving a reported fine-grid center of 124.75 GeV. The scan is not an official CMS-quality mass measurement because independent mass-hypothesis MC and official calibration/morphing inputs are unavailable.}
 \label{fig:observed-mass-scan}
 \end{figure}
 
@@ -679,7 +683,7 @@ The full-data result is compared quantitatively with public CMS and PDG referenc
 
 Using a symmetrized CMS-HIG-16-041 uncertainty of 0.18, the full-data signal-strength pull is $(2.4776-1.05)/\sqrt{0.7763^2+0.18^2}=1.79$ standard deviations, and the central-value ratio is 2.36. Using a combined CMS-HIG-19-001 uncertainty of $\sqrt{0.07^2+0.085^2}=0.110$, the pull is 1.96 standard deviations, and the central-value ratio is 2.64. The precision ratio relative to CMS-HIG-16-041 is $0.7763/0.18=4.31$; relative to the approximate CMS-HIG-19-001 combined uncertainty it is 7.05.
 
-The observed mass-scan best grid point is 125.0 GeV. CMS-HIG-16-041/JHEP 11 (2017) 047 reports $m_H=125.26\pm0.20\mathrm{(stat)}\pm0.08\mathrm{(syst)}$ GeV, giving a quadrature total uncertainty of 0.215 GeV \cite{CMS-HIG-16-041}. The PDG 2024 world-average context value is $125.20\pm0.11$ GeV \cite{PDG2024}. The grid residuals are -0.26 GeV and -0.20 GeV, respectively, but no calibrated pull is quoted for this analysis because the scan has only a coarse 2.5 GeV grid and no meaningful statistical/systematic split.
+The observed mass-scan fine-grid center is 124.75 GeV. CMS-HIG-16-041/JHEP 11 (2017) 047 reports $m_H=125.26\pm0.20\mathrm{(stat)}\pm0.08\mathrm{(syst)}$ GeV, giving a quadrature total uncertainty of 0.215 GeV \cite{CMS-HIG-16-041}. The PDG 2024 world-average context value is $125.20\pm0.11$ GeV \cite{PDG2024}. The grid residuals are -0.51 GeV and -0.45 GeV, respectively, but no calibrated pull is quoted for this analysis because the scan uses shifted M125 templates and has no meaningful statistical/systematic split.
 
 \begin{table}[htbp]
 \centering
@@ -693,8 +697,8 @@ Inclusive $\mu$ & $2.4776^{+0.8388}_{-0.7139}$ & CMS-HIG-16-041: $1.05^{+0.19}_{
 Inclusive $\mu$ & $2.4776^{+0.8388}_{-0.7139}$ & CMS-HIG-19-001: $0.94\pm0.07\mathrm{(stat)}^{+0.09}_{-0.08}\mathrm{(syst)}$ & pull 1.96$\sigma$, ratio 2.64, uncertainty ratio 7.05 \\
 Internal compatibility & pull = 1.535 & Phase 4a expected baseline & compatible within two standard deviations \\
 10\% validation compatibility & pull = 1.587 & Phase 4b fixed-seed validation & compatible within two standard deviations \\
-Mass diagnostic & 125.0 GeV best grid; visual grid half-step 1.25 GeV, not stat/syst & CMS-HIG-16-041: $125.26\pm0.20\mathrm{(stat)}\pm0.08\mathrm{(syst)}$ GeV & residual -0.26 GeV; no calibrated pull quoted \\
-Mass diagnostic & 125.0 GeV best grid; visual grid half-step 1.25 GeV, not stat/syst & PDG 2024: $125.20\pm0.11$ GeV world average & residual -0.20 GeV; no calibrated pull quoted \\
+Mass diagnostic & 124.75 GeV fine-grid center; 0.125 GeV grid half-step, not stat/syst & CMS-HIG-16-041: $125.26\pm0.20\mathrm{(stat)}\pm0.08\mathrm{(syst)}$ GeV & residual -0.51 GeV; no calibrated pull quoted \\
+Mass diagnostic & 124.75 GeV fine-grid center; 0.125 GeV grid half-step, not stat/syst & PDG 2024: $125.20\pm0.11$ GeV world average & residual -0.45 GeV; no calibrated pull quoted \\
 Fiducial cross section & not extracted & CMS-HIG-16-041 and CMS-HIG-19-001 fiducial results & unavailable in this detector-level analysis \\
 Width & not extracted & CMS-HIG-16-041: $\Gamma_H<1.10$ GeV & unavailable \\
 VBF categories & downscoped & CMS production-sensitive categories & unavailable without jets \\
@@ -708,7 +712,7 @@ Reducible background & DY+jets MC proxy & CMS data-driven Z+X & approximated \\
 \begin{figure}[p]
 \centering
 \includegraphics[width=0.92\linewidth,height=0.70\textheight,keepaspectratio]{figures/doc4c_reference_comparison.pdf}
-\caption{Full-data signal-strength and mass-diagnostic comparison with public CMS and PDG references. The labels state the center-of-mass energy and luminosity for dataset-specific entries; the PDG entry is labeled as a world average rather than a dataset. The signal-strength pulls are 1.79 standard deviations relative to CMS-HIG-16-041 and 1.96 standard deviations relative to CMS-HIG-19-001. In the mass panel, CMS-HIG-16-041 shows separate statistical and systematic uncertainty bars plus the total uncertainty, while this analysis is shown with a coarse grid half-step only to emphasize that the shifted-template scan is diagnostic and not a calibrated mass measurement.}
+\caption{Full-data signal-strength and mass-diagnostic comparison with public CMS and PDG references. This comparison figure is part of the main result narrative; the labels state the center-of-mass energy and luminosity for dataset-specific entries, while the PDG entry is labeled as a world average. The signal-strength pulls are 1.79 standard deviations relative to CMS-HIG-16-041 and 1.96 standard deviations relative to CMS-HIG-19-001. In the mass panel, CMS-HIG-16-041 uses an inner capped horizontal bar for the statistical uncertainty and an uncapped horizontal systematic component; this analysis is shown only with a diagnostic fine-grid half-step because no stat/syst split is calibrated for the shifted-template scan.}
 \label{fig:doc4c-reference-comparison}
 \end{figure}
 
@@ -722,7 +726,7 @@ Reducible background & DY+jets MC proxy & CMS data-driven Z+X & approximated \\
 \section{Conclusions}
 The final Doc 4c detector-level open-data result is $\mu=2.4776^{+0.8388}_{-0.7139}$ in the active $70<m_{4\ell}<170$ GeV final-state template fit. The post-fit goodness of fit is non-pathological, $\chi^2/\mathrm{ndf}=47.326/38$ with $p=0.1427$, and the fit triviality gate passes. The result is compatible with the Phase 4a expected baseline at 1.535 standard deviations and with the fixed-seed 10\% validation result at 1.587 standard deviations.
 
-The measurement is honest about its scope. It is detector-level, statistically limited, and not competitive with official CMS precision: the uncertainty is 4.31 times the symmetrized CMS-HIG-16-041 uncertainty. The dominant data-sensitive nuisance impact is the DY fake-proxy normalization, while the total variance is dominated by statistical uncertainty. The shifted-template mass scan finds best grid point 125.0 GeV, but it remains a diagnostic because the analysis lacks independent mass-hypothesis MC and official calibration inputs.
+The measurement is honest about its scope. It is detector-level, statistically limited, and not competitive with official CMS precision: the uncertainty is 4.31 times the symmetrized CMS-HIG-16-041 uncertainty. The dominant data-sensitive nuisance impact is the DY fake-proxy normalization, while the total variance is dominated by statistical uncertainty. The shifted-template mass scan finds a refined fine-grid center at 124.75 GeV, but it remains a diagnostic because the analysis lacks independent mass-hypothesis MC and official calibration inputs.
 
 VBF and MVA categories are not part of the nominal result. The allowed flat ntuples do not contain recoverable jet or VBF information, so VBF is formally downscoped. The repaired MVA is no longer random and reaches useful broad-window separation, but it is not promoted because score-shape, category viability, and mass-sculpting gates fail. The active result therefore remains the reviewed S1 final-state category fit.
 
@@ -951,30 +955,37 @@ All staged figure PDFs are included or preserved for audit: upstream selection a
 
 \begin{figure}[p]
 \centering
-\includegraphics[width=0.92\linewidth,height=0.70\textheight,keepaspectratio]{figures/mva_roc_bdt.pdf}
-\caption{BDT classifier ROC curve for the S2 attempt. The repaired broad-window MVA is diagnostic rather than random, but S2 is not promoted because score-shape, category viability, and mass-sculpting gates fail.}
-\label{fig:mva-roc-bdt}
+\includegraphics[width=0.92\linewidth,height=0.70\textheight,keepaspectratio]{figures/mva_roc_bdt_mass_safe.pdf}
+\caption{Repaired mass-safe BDT ROC curve for the S2 attempt. The model is trained and evaluated in the broad $80<m_{4\ell}<170$ GeV MVA window while excluding $m_{4\ell}$ from the inputs, and it reaches AUC 0.7929. It is the best repaired classifier, but S2 is not promoted because score-shape, category viability, and mass-sculpting gates fail.}
+\label{fig:mva-roc-bdt-mass-safe}
 \end{figure}
 
 \begin{figure}[p]
 \centering
-\includegraphics[width=0.92\linewidth,height=0.70\textheight,keepaspectratio]{figures/mva_roc_bdt_tuned.pdf}
-\caption{Tuned BDT classifier ROC curve for the S2 attempt. The repaired broad-window training demonstrates useful separation, but the active result remains S1 final-state categories because the full promotion gate is not satisfied.}
-\label{fig:mva-roc-bdt-tuned}
+\includegraphics[width=0.92\linewidth,height=0.70\textheight,keepaspectratio]{figures/mva_roc_bdt_jhep_like_diagnostic.pdf}
+\caption{JHEP-like diagnostic BDT ROC curve for the S2 attempt. This diagnostic reaches AUC 0.9176 because it includes mass-like variables such as $m_{Z1}$ and $m_{Z2}$, so it is not used to define nominal categories for the mass-spectrum fit.}
+\label{fig:mva-roc-bdt-jhep-like-diagnostic}
 \end{figure}
 
 \begin{figure}[p]
 \centering
-\includegraphics[width=0.92\linewidth,height=0.70\textheight,keepaspectratio]{figures/mva_roc_logistic.pdf}
-\caption{Logistic classifier ROC curve for the S2 attempt. This diagnostic baseline is retained for transparency; no classifier category enters the nominal likelihood.}
-\label{fig:mva-roc-logistic}
+\includegraphics[width=0.92\linewidth,height=0.70\textheight,keepaspectratio]{figures/mva_roc_logistic_mass_safe.pdf}
+\caption{Repaired mass-safe logistic ROC curve for the S2 attempt. The logistic baseline reaches AUC 0.7430 in the broad training window and is retained as a transparent cross-check of the BDT separation. No classifier category enters the nominal likelihood.}
+\label{fig:mva-roc-logistic-mass-safe}
 \end{figure}
 
 \begin{figure}[p]
 \centering
-\includegraphics[width=0.92\linewidth,height=0.70\textheight,keepaspectratio]{figures/mva_roc_small_nn.pdf}
-\caption{Small NN classifier ROC curve for the S2 attempt. The neural-network route is preserved as rejected-approach evidence and is not used to define the active signal-strength categories.}
-\label{fig:mva-roc-small-nn}
+\includegraphics[width=0.92\linewidth,height=0.70\textheight,keepaspectratio]{figures/mva_roc_logistic_jhep_like_diagnostic.pdf}
+\caption{JHEP-like diagnostic logistic ROC curve for the S2 attempt. This diagnostic reaches AUC 0.8428 with mass-like inputs and is shown only to document why the safer classifier definition is used for promotion decisions.}
+\label{fig:mva-roc-logistic-jhep-like-diagnostic}
+\end{figure}
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.92\linewidth,height=0.70\textheight,keepaspectratio]{figures/mva_best_score_datamc.pdf}
+\caption{Best repaired MVA score data/MC comparison. The best mass-safe BDT has a 19.0\% precision-proxy improvement relative to S1, but the score-shape validation fails and the promotion decision remains \texttt{promote\_s2=false}.}
+\label{fig:mva-best-score-datamc}
 \end{figure}
 
 

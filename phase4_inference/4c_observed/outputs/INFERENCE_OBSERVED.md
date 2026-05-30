@@ -1,7 +1,7 @@
 # Phase 4c Observed-Data Inference
 
 Session: `zoran_44a0`
-Created: 2026-05-30T06:45:12+00:00
+Created: 2026-05-30T07:47:12+00:00
 
 ## Summary
 
@@ -20,7 +20,8 @@ The full-data observed result is:
 - compatibility with Phase 4a expected within 2 sigma: `True`
 - compatibility with Phase 4b 10% result within 2 sigma: `True`
 - viability verdict: `PASS`
-- observed shifted-template mass best grid point: `125 GeV`
+- observed shifted-template mass fine-grid best: `124.8 GeV`
+- diagnostic grid half-step: `0.125 GeV`
 
 ## Full Dataset
 
@@ -153,34 +154,62 @@ fit bins, but the Z peak region is excluded from the Higgs mass-hypothesis grid.
 | --- | --- |
 | scan min GeV | 110 |
 | scan max GeV | 150 |
-| scan step GeV | 2.5 |
-| best mass grid GeV | 125 |
-| best profiled mu | 2.478 |
-| uncertainty meaningful | False |
-| grid interval GeV | [125.0, 125.0] |
+| coarse scan step GeV | 2.5 |
+| fine scan min GeV | 122 |
+| fine scan max GeV | 128 |
+| fine scan step GeV | 0.25 |
+| coarse best mass grid GeV | 125 |
+| fine-grid best mass GeV | 124.8 |
+| diagnostic grid half-step GeV | 0.125 |
+| diagnostic parabolic best GeV | 125.4 |
+| best profiled mu | 2.403 |
+| uncertainty meaningful | True |
+| grid interval GeV | [124.75, 125.5] |
 | promoted to nominal mass measurement | False |
 
-| mH hypothesis GeV | profiled mu | delta -2lnL | GoF p | fit status |
-| --- | --- | --- | --- | --- |
-| 110 | n/a | n/a | n/a | failed_after_all_fallbacks_FailedMinimization |
-| 112.5 | n/a | n/a | n/a | failed_after_all_fallbacks_FailedMinimization |
-| 115 | n/a | n/a | n/a | failed_after_all_fallbacks_FailedMinimization |
-| 117.5 | n/a | n/a | n/a | failed_after_all_fallbacks_FailedMinimization |
-| 120 | 1.743 | 140.4 | 1e-30 | full_nuisance_fit |
-| 122.5 | 2.99 | 40.18 | 3.576e-06 | full_nuisance_fit |
-| 125 | 2.478 | 0 | 0.1427 | full_nuisance_fit |
-| 127.5 | 1.81 | 19.75 | 0.000926 | full_nuisance_fit |
-| 130 | 1.287 | 50.89 | 3.365e-11 | full_nuisance_fit |
-| 132.5 | 0.97 | 95.44 | 1.532e-26 | full_nuisance_fit |
-| 135 | 0.5096 | 128.9 | 1.981e-38 | full_nuisance_fit |
-| 137.5 | 0.2085 | 185.2 | 4.741e-53 | full_nuisance_fit |
-| 140 | 0 | 272.4 | 1.987e-84 | full_nuisance_fit |
-| 142.5 | 0 | 357.2 | 4.075e-174 | full_nuisance_fit |
-| 145 | n/a | n/a | n/a | failed_after_all_fallbacks_FailedMinimization |
-| 147.5 | n/a | n/a | n/a | failed_after_all_fallbacks_FailedMinimization |
-| 150 | n/a | n/a | n/a | failed_after_all_fallbacks_FailedMinimization |
+| mH hypothesis GeV | grid | profiled mu | delta -2lnL | GoF p | fit status |
+| --- | --- | --- | --- | --- | --- |
+| 110 | coarse | n/a | n/a | n/a | failed_after_all_fallbacks_FailedMinimization |
+| 112.5 | coarse | n/a | n/a | n/a | failed_after_all_fallbacks_FailedMinimization |
+| 115 | coarse | n/a | n/a | n/a | failed_after_all_fallbacks_FailedMinimization |
+| 117.5 | coarse | n/a | n/a | n/a | failed_after_all_fallbacks_FailedMinimization |
+| 120 | coarse | 1.743 | 140.6 | 1e-30 | full_nuisance_fit |
+| 122.5 | coarse | 2.99 | 40.42 | 3.576e-06 | full_nuisance_fit |
+| 125 | coarse | 2.478 | 0.2386 | 0.1427 | full_nuisance_fit |
+| 127.5 | coarse | 1.81 | 19.99 | 0.000926 | full_nuisance_fit |
+| 130 | coarse | 1.287 | 51.13 | 3.365e-11 | full_nuisance_fit |
+| 132.5 | coarse | 0.97 | 95.68 | 1.532e-26 | full_nuisance_fit |
+| 135 | coarse | 0.5096 | 129.1 | 1.981e-38 | full_nuisance_fit |
+| 137.5 | coarse | 0.2085 | 185.5 | 4.741e-53 | full_nuisance_fit |
+| 140 | coarse | 0 | 272.7 | 1.987e-84 | full_nuisance_fit |
+| 142.5 | coarse | 0 | 357.4 | 4.075e-174 | full_nuisance_fit |
+| 145 | coarse | n/a | n/a | n/a | failed_after_all_fallbacks_FailedMinimization |
+| 147.5 | coarse | n/a | n/a | n/a | failed_after_all_fallbacks_FailedMinimization |
+| 150 | coarse | n/a | n/a | n/a | failed_after_all_fallbacks_FailedMinimization |
+| 122 | fine | 2.942 | 57.51 | 8.586e-09 | full_nuisance_fit |
+| 122.2 | fine | 2.991 | 47.49 | 3.913e-07 | full_nuisance_fit |
+| 122.8 | fine | 3 | 34.47 | 1.733e-05 | full_nuisance_fit |
+| 123 | fine | 2.94 | 29.05 | 9.007e-05 | full_nuisance_fit |
+| 123.2 | fine | 2.569 | 21.33 | 0.001532 | full_nuisance_fit |
+| 123.5 | fine | 2.492 | 16.86 | 0.004199 | full_nuisance_fit |
+| 123.8 | fine | 2.286 | 10.36 | 0.03019 | full_nuisance_fit |
+| 124 | fine | 2.276 | 7.031 | 0.05714 | full_nuisance_fit |
+| 124.2 | fine | 2.29 | 4.867 | 0.07972 | full_nuisance_fit |
+| 124.5 | fine | 2.294 | 1.123 | 0.1424 | full_nuisance_fit |
+| 124.8 | fine | 2.403 | 0 | 0.1645 | full_nuisance_fit |
+| 125.2 | fine | 2.542 | 0.769 | 0.1275 | full_nuisance_fit |
+| 125.5 | fine | 2.705 | 0.4624 | 0.132 | full_nuisance_fit |
+| 125.8 | fine | 2.729 | 1.157 | 0.1203 | full_nuisance_fit |
+| 126 | fine | 2.722 | 2.561 | 0.09188 | full_nuisance_fit |
+| 126.2 | fine | 2.727 | 4.588 | 0.06459 | full_nuisance_fit |
+| 126.5 | fine | 2.688 | 7.271 | 0.04177 | full_nuisance_fit |
+| 126.8 | fine | 2.646 | 11.46 | 0.0112 | full_nuisance_fit |
+| 127 | fine | 2.54 | 14.09 | 0.004766 | full_nuisance_fit |
+| 127.2 | fine | 2.384 | 17.76 | 0.001129 | full_nuisance_fit |
+| 127.8 | fine | 1.556 | 22.91 | 0.0003276 | full_nuisance_fit |
+| 128 | fine | 1.47 | 26.48 | 0.0001564 | full_nuisance_fit |
 
-Limitations: The scan is grid-level and model-limited: only M125 signal MC is available, the Z-peak region is excluded from Higgs mass hypotheses, and any interval is a shifted-template diagnostic rather than a calibrated mass uncertainty.
+Limitations: The scan is grid-level and model-limited: only M125 signal MC is available, the Z-peak region is excluded from Higgs mass hypotheses, and any interval or interpolation is a shifted-template diagnostic rather than a calibrated mass uncertainty.
 
 ## Figures
 

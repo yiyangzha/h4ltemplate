@@ -41,7 +41,7 @@
     "partial_comparison_done": true,
     "split_check_done": true
   },
-  "created_utc": "2026-05-30T06:42:51+00:00",
+  "created_utc": "2026-05-30T07:40:21+00:00",
   "deterministic_split_consistency": {
     "delta_mu": -0.262091133805022,
     "limitation": "This is not a true CMS run-period split; no run/lumi/event-period branch is present in the Phase 3 event handoff.",

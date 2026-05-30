@@ -53,7 +53,7 @@ def main() -> None:
     ]
     fig_rows = [[fig["id"], fig["png"], fig["pdf"]] for fig in figures]
     mass_rows = [
-        [row["mass_hypothesis_GeV"], row["mu_hat"], row["delta_twice_nll"], row["p_value_chi2"], row["fit_status"]]
+        [row["mass_hypothesis_GeV"], row.get("grid", "coarse"), row["mu_hat"], row["delta_twice_nll"], row["p_value_chi2"], row["fit_status"]]
         for row in mass_scan["scan_rows"]
     ]
     text = f"""# Phase 4c Observed-Data Inference
@@ -78,7 +78,8 @@ The full-data observed result is:
 - compatibility with Phase 4a expected within 2 sigma: `{expected['compatible_with_expected_2sigma']}`
 - compatibility with Phase 4b 10% result within 2 sigma: `{expected['compatible_with_partial_2sigma']}`
 - viability verdict: `{viability['viability_verdict']}`
-- observed shifted-template mass best grid point: `{fmt(mass_scan['best_mass_grid_GeV'])} GeV`
+- observed shifted-template mass fine-grid best: `{fmt(mass_scan['best_mass_GeV'])} GeV`
+- diagnostic grid half-step: `{fmt(mass_scan['diagnostic_grid_half_step_GeV'])} GeV`
 
 ## Full Dataset
 
@@ -187,15 +188,21 @@ fit bins, but the Z peak region is excluded from the Higgs mass-hypothesis grid.
 {table(['quantity', 'value'], [
     ['scan min GeV', mass_scan['scan_range_GeV']['min']],
     ['scan max GeV', mass_scan['scan_range_GeV']['max']],
-    ['scan step GeV', mass_scan['scan_range_GeV']['step']],
-    ['best mass grid GeV', mass_scan['best_mass_grid_GeV']],
+    ['coarse scan step GeV', mass_scan['coarse_scan_range_GeV']['step']],
+    ['fine scan min GeV', mass_scan['fine_scan_range_GeV']['min']],
+    ['fine scan max GeV', mass_scan['fine_scan_range_GeV']['max']],
+    ['fine scan step GeV', mass_scan['fine_scan_range_GeV']['step']],
+    ['coarse best mass grid GeV', mass_scan['coarse_best_mass_grid_GeV']],
+    ['fine-grid best mass GeV', mass_scan['best_mass_GeV']],
+    ['diagnostic grid half-step GeV', mass_scan['diagnostic_grid_half_step_GeV']],
+    ['diagnostic parabolic best GeV', mass_scan['diagnostic_parabolic_interpolation']['best_mass_GeV']],
     ['best profiled mu', mass_scan['best_mu_hat']],
     ['uncertainty meaningful', mass_scan['uncertainty']['meaningful']],
     ['grid interval GeV', mass_scan['uncertainty']['interval_GeV']],
     ['promoted to nominal mass measurement', mass_scan['promoted_to_nominal_mass_measurement']],
 ])}
 
-{table(['mH hypothesis GeV', 'profiled mu', 'delta -2lnL', 'GoF p', 'fit status'], mass_rows)}
+{table(['mH hypothesis GeV', 'grid', 'profiled mu', 'delta -2lnL', 'GoF p', 'fit status'], mass_rows)}
 
 Limitations: {mass_scan['limitations']}
 

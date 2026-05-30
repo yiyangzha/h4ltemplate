@@ -1260,3 +1260,52 @@
 
 - Marked remaining feasible final commitments resolved or formally downscoped.
 - Remaining unchecked top-level checklist items after update: 0.
+
+## 2026-05-30 — Phase 4c full-data observed inference
+
+- Executor `zoran_44a0` applied the latest user-requested Phase 4c instruction: the observed-data fit window is `70 < m4l < 170 GeV`, including the Z peak.
+- Full data kept 203 of 203 selected data events.
+- MC templates used full luminosity `10.0` fb^-1 with no data-integral normalization.
+- Observed `mu = 2.478` with symmetric uncertainty `0.7763376700295836`; expected-vs-observed pull `1.54` and partial-vs-observed pull `1.59`.
+- Added an observed shifted-template mass scan over `110.0-150.0` GeV in `2.5` GeV coarse steps plus a local `122.0-128.0` GeV fine scan in `0.25` GeV steps around the coarse best. The refined fine-grid center is `124.75` GeV with profiled `mu = 2.403`. The Z peak region is excluded from Higgs mass hypotheses, and the result is not promoted to an official CMS-quality mass measurement.
+
+## 2026-05-30 — Phase 4c observed figures
+
+- Wrote and registered 9 full observed-data inference figures, including broad m4l, category overlays, expected comparison, nuisance diagnostics, split/stability checks, and the observed shifted-template mass scan.
+
+## 2026-05-30 — Phase 4c observed artifact
+
+- Built `phase4_inference/4c_observed/outputs/INFERENCE_OBSERVED.md` from full observed-data result JSONs.
+
+## 2026-05-30 — Phase 4c commitments update
+
+- Marked remaining feasible final commitments resolved or formally downscoped.
+- Remaining unchecked top-level checklist items after update: 0.
+
+## 2026-05-30 — Phase 4c full-data observed inference
+
+- Executor `zoran_44a0` applied the latest user-requested Phase 4c instruction: the observed-data fit window is `70 < m4l < 170 GeV`, including the Z peak.
+- Full data kept 203 of 203 selected data events.
+- MC templates used full luminosity `10.0` fb^-1 with no data-integral normalization.
+- Observed `mu = 2.478` with symmetric uncertainty `0.7763376700295836`; expected-vs-observed pull `1.54` and partial-vs-observed pull `1.59`.
+- Added an observed shifted-template mass scan over `110.0-150.0` GeV in `2.5` GeV coarse steps plus a local `122.0-128.0` GeV fine scan in `0.25` GeV steps around the coarse best. The refined fine-grid center is `124.75` GeV with profiled `mu = 2.403`. The Z peak region is excluded from Higgs mass hypotheses, and the result is not promoted to an official CMS-quality mass measurement.
+
+## 2026-05-30 — Phase 4c observed figures
+
+- Wrote and registered 9 full observed-data inference figures, including broad m4l, category overlays, expected comparison, nuisance diagnostics, split/stability checks, and the observed shifted-template mass scan.
+
+## 2026-05-30 — Phase 4c observed artifact
+
+- Built `phase4_inference/4c_observed/outputs/INFERENCE_OBSERVED.md` from full observed-data result JSONs.
+
+## 2026-05-30 — Phase 4c commitments update
+
+- Marked remaining feasible final commitments resolved or formally downscoped.
+- Remaining unchecked top-level checklist items after update: 0.
+## 2026-05-30 — Doc 4c targeted mass/MVA comparison fix
+
+- Fixer `viktor_9f5e` refined the Phase 4c observed shifted-template mass scan: coarse `110-150` GeV in `2.5` GeV steps plus a local `122-128` GeV fine grid in `0.25` GeV steps around the coarse best. The reported diagnostic fine-grid center is `mH = 124.75` GeV with grid half-step `0.125` GeV; the quadratic interpolation `125.4239052495179` GeV is labeled diagnostic only.
+- The active signal-strength fit window remains `70 < m4l < 170 GeV`, including the Z peak. The Higgs mass-hypothesis scan avoids the Z peak and remains based on shifted M125 templates, not independent mass-hypothesis MC.
+- Doc 4c now uses the repaired Phase 3 MVA artifacts: `bdt_mass_safe` AUC `0.7929042332570392`, relative precision-proxy improvement `0.1902098976350023`, and `promote_s2=false`; stale old MVA figure names were removed.
+- Regenerated `doc4c_reference_comparison` in the main Comparison section. CMS-HIG-16-041/JHEP mass is shown as `125.26 +/- 0.20(stat) +/- 0.08(syst)` GeV with component styling; this analysis is shown with diagnostic fine-grid resolution only, not fabricated stat/syst.
+- `pixi run p4c-all`, `pixi run tectonic --outdir analysis_note analysis_note/ANALYSIS_NOTE_doc4c_v1.tex`, and `pixi run lint-plots` completed. Verification evidence is in `analysis_note/review/doc4c/VERIFY_viktor_9f5e_2026-05-30.md`.

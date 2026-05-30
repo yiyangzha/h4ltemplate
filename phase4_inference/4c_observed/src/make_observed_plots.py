@@ -240,15 +240,20 @@ def plot_mass_scan() -> dict:
     rows = [row for row in mass["scan_rows"] if row.get("fit_succeeded")]
     x = np.asarray([row["mass_hypothesis_GeV"] for row in rows], dtype=float)
     y = np.asarray([row["delta_twice_nll"] for row in rows], dtype=float)
+    coarse = np.asarray([row["grid"] == "coarse" for row in rows], dtype=bool)
     fig, ax = plt.subplots(figsize=(7, 4))
-    ax.errorbar(x, y, yerr=np.zeros_like(y), fmt="o-", color="black")
+    order = np.argsort(x)
+    ax.plot(x[order], y[order], color="black", linewidth=1)
+    ax.errorbar(x[coarse], y[coarse], yerr=np.zeros_like(y[coarse]), fmt="o", color="black", label="coarse grid")
+    ax.errorbar(x[~coarse], y[~coarse], yerr=np.zeros_like(y[~coarse]), fmt=".", color="#4878a8", label="local fine grid")
     ax.axhline(1.0, color="gray", linewidth=1, linestyle="--")
-    ax.axvline(mass["best_mass_grid_GeV"], color="#4878a8", linewidth=1)
+    ax.axvline(mass["best_mass_GeV"], color="#4878a8", linewidth=1)
     ax.set_xlabel(r"Shifted-template $m_H$ hypothesis [GeV]")
     ax.set_ylabel(r"$\Delta(-2\log L)$")
-    mh.label.add_text(f"best grid: {mass['best_mass_grid_GeV']:.1f} GeV", ax=ax)
+    ax.legend(loc="upper right", fontsize="x-small")
+    mh.label.add_text(f"fine-grid best: {mass['best_mass_GeV']:.2f} GeV", ax=ax)
     mh.cms.label("Open Data", data=True, lumi=10.0, com=13, ax=ax)
-    return register("observed_mass_scan", "Observed full-data shifted-template mass scan with signal strength profiled at each mass hypothesis; the Z-peak region is excluded from Higgs mass hypotheses and the result is an approximate detector-level diagnostic.", {"best_mass_grid_GeV": mass["best_mass_grid_GeV"], "scan_range_GeV": mass["scan_range_GeV"], "uncertainty": mass["uncertainty"]}, "analysis_note/results/observed_mass_scan.json")
+    return register("observed_mass_scan", "Observed full-data shifted-template mass scan with signal strength profiled at each mass hypothesis; the Z-peak region is excluded from Higgs mass hypotheses and the result is an approximate detector-level diagnostic.", {"best_mass_GeV": mass["best_mass_GeV"], "coarse_best_mass_grid_GeV": mass["coarse_best_mass_grid_GeV"], "scan_range_GeV": mass["scan_range_GeV"], "uncertainty": mass["uncertainty"]}, "analysis_note/results/observed_mass_scan.json")
 
 
 def main() -> None:

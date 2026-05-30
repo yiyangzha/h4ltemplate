@@ -1,8 +1,8 @@
 # Session State
 
-Last updated: 2026-05-30T06:46:00Z
-Current phase: Phase 4c — Full Data Inference / 70-170 fit-window regression
-Step in loop: ITERATE — targeted expected/observed refresh complete; awaiting orchestrator VERIFY/review decision
+Last updated: 2026-05-30T07:48:00Z
+Current phase: Phase 4c + Doc 4c — targeted mass/MVA/reference comparison fix
+Step in loop: ITERATE — fixer `viktor_9f5e` completed targeted corrections; awaiting review/commit boundary
 Iteration count: 0
 
 ## Completed phases (commit hashes)
@@ -96,9 +96,13 @@ archived. Next step: run Phase 4c full-data inference using the current
 `70 < m4l < 170 GeV` fit-window instruction unless superseded.
 
 Phase 4c full-data inference is committed through `bee3081`, with observed
-`mu = 2.4776 -0.7139 +0.8388` and an observed shifted-template mass scan whose
-best grid point is `125.0 GeV`. The user then requested a fast targeted MVA
-training audit because the previous classifier behaved nearly randomly.
+`mu = 2.4776 -0.7139 +0.8388`. Fixer `viktor_9f5e` refined the observed
+shifted-template mass scan from the coarse `110-150 GeV` grid to a local
+`122-128 GeV` grid in `0.25 GeV` steps around the coarse `125.0 GeV` minimum.
+The reported diagnostic fine-grid center is `124.75 GeV` with grid half-step
+`0.125 GeV`; the quadratic interpolation `125.4239052495179 GeV` is labeled
+diagnostic only. The user then requested a fast targeted MVA training audit
+because the previous classifier behaved nearly randomly.
 
 The targeted MVA regression found the root cause: the D7 gate was used as a hard
 feature whitelist, leaving only `lead_abs_eta` and `phi1`. The repaired MVA now
@@ -119,6 +123,14 @@ window. `pixi run p4a-all`, `pixi run p4c-all`, and `pixi run lint-plots`
 completed; Phase 4a/4c figure registries have zero missing files and zero orphan
 PNGs. Active-output stale-window grep is clean; remaining old-window references
 are historical review/fix logs and `phase4_inference/4a_expected/plan.md`.
+
+Doc 4c targeted fix `viktor_9f5e` refreshed the MVA content to the repaired
+Phase 3 artifacts, regenerated `doc4c_reference_comparison` in the main
+Comparison section, and compiled `analysis_note/ANALYSIS_NOTE_doc4c_v1.pdf`.
+`pixi run p4c-all`, `pixi run tectonic --outdir analysis_note
+analysis_note/ANALYSIS_NOTE_doc4c_v1.tex`, and `pixi run lint-plots` pass.
+Verification evidence is in
+`analysis_note/review/doc4c/VERIFY_viktor_9f5e_2026-05-30.md`.
 
 ## Pending Decisions For Human
 
