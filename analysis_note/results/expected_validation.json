@@ -1,0 +1,184 @@
+{
+  "alternative_binning_stability": [
+    {
+      "bin_edges": [
+        105.0,
+        112.0,
+        118.0,
+        122.0,
+        126.0,
+        130.0,
+        140.0
+      ],
+      "bins_below_5": 17,
+      "channels": [
+        "4mu",
+        "4e",
+        "2e2mu"
+      ],
+      "combined_chi2": 0.0,
+      "combined_ndf": 17,
+      "combined_p_value": 1.0,
+      "configuration": "final_state_nominal",
+      "min_expected_bin": 0.6875956068251003,
+      "mu_hat": 1.0,
+      "mu_uncertainty": 0.5723579328235826,
+      "total_bins": 18
+    },
+    {
+      "bin_edges": [
+        105.0,
+        112.0,
+        118.0,
+        122.0,
+        126.0,
+        130.0,
+        140.0
+      ],
+      "bins_below_5": 0,
+      "channels": [
+        "inclusive"
+      ],
+      "combined_chi2": 0.0,
+      "combined_ndf": 5,
+      "combined_p_value": 1.0,
+      "configuration": "inclusive_nominal",
+      "min_expected_bin": 7.408362846393145,
+      "mu_hat": 1.0,
+      "mu_uncertainty": 0.5754539025760244,
+      "total_bins": 6
+    },
+    {
+      "bin_edges": [
+        105.0,
+        118.0,
+        122.0,
+        126.0,
+        140.0
+      ],
+      "bins_below_5": 0,
+      "channels": [
+        "inclusive"
+      ],
+      "combined_chi2": 0.0,
+      "combined_ndf": 3,
+      "combined_p_value": 1.0,
+      "configuration": "inclusive_coarse",
+      "min_expected_bin": 8.847565033481395,
+      "mu_hat": 1.0,
+      "mu_uncertainty": 0.5867959543075851,
+      "total_bins": 4
+    },
+    {
+      "bin_edges": [
+        105.0,
+        122.0,
+        126.0,
+        140.0
+      ],
+      "bins_below_5": 0,
+      "channels": [
+        "inclusive"
+      ],
+      "combined_chi2": 0.0,
+      "combined_ndf": 2,
+      "combined_p_value": 1.0,
+      "configuration": "inclusive_peak_side",
+      "min_expected_bin": 8.847565033481395,
+      "mu_hat": 1.0,
+      "mu_uncertainty": 0.5895033645790071,
+      "total_bins": 3
+    }
+  ],
+  "closure_sensitivity": {
+    "passes": true,
+    "rows": [
+      {
+        "corruption": "m4l_scale_factor_0.8",
+        "deviance": 13.47136390295552,
+        "ndf": 5,
+        "p_value": 0.01934008970762087,
+        "passes_failure_requirement": true
+      },
+      {
+        "corruption": "m4l_scale_factor_1.2",
+        "deviance": 91.59556067192092,
+        "ndf": 5,
+        "p_value": 3.1049330873040137e-18,
+        "passes_failure_requirement": true
+      }
+    ],
+    "test": "mass-response corruption sensitivity"
+  },
+  "completion_verdicts": {
+    "asimov_only": true,
+    "corruption_tests_fail_as_required": true,
+    "injection_bias_lt_20pct": true,
+    "low_count_validated": true
+  },
+  "created_utc": "2026-05-30T00:37:53+00:00",
+  "low_count_validation": {
+    "decision": "retain_final_state_simultaneous_model_for_expected_Asimov_fit",
+    "input_handoff": {
+      "final_state_bins_below_5_expected": 17,
+      "final_state_fraction_below_5_expected": 0.9444444444444444,
+      "final_state_total_bins": 18,
+      "inclusive_bins_below_5_expected": 0,
+      "inclusive_total_bins": 6
+    },
+    "toy_validation": {
+      "fit_failures": 0,
+      "fit_success_fraction": 1.0,
+      "mean_mu": 1.02125847598412,
+      "median_bias": -0.06064996537909362,
+      "median_mu": 0.9393500346209064,
+      "n_toys": 80,
+      "passes_bias_gate": true,
+      "passes_fit_success_gate": true,
+      "seed": 4269,
+      "std_mu": 0.5972534571136956
+    }
+  },
+  "phase": "4a_expected",
+  "precision_comparison": {
+    "ratio_gt_5x": false,
+    "ratio_this_over_reference": 3.192990241669998,
+    "reference": "CMS-HIG-16-041 mu uncertainty symmetrized from +0.19/-0.17",
+    "reference_uncertainty": 0.18,
+    "this_expected_total_uncertainty": 0.5747382435005995
+  },
+  "signal_injection": [
+    {
+      "bias": 5.390643701715379e-21,
+      "fitted_mu": 5.390643701715379e-21,
+      "injected_mu": 0.0,
+      "passes_20pct_gate": true,
+      "relative_bias_for_gate": 5.390643701715379e-21,
+      "twice_nll": 100.8340172768057
+    },
+    {
+      "bias": 0.0,
+      "fitted_mu": 1.0,
+      "injected_mu": 1.0,
+      "passes_20pct_gate": true,
+      "relative_bias_for_gate": 0.0,
+      "twice_nll": 104.17723150400087
+    },
+    {
+      "bias": -4.472401583077712e-06,
+      "fitted_mu": 1.999995527598417,
+      "injected_mu": 2.0,
+      "passes_20pct_gate": true,
+      "relative_bias_for_gate": 2.236200791538856e-06,
+      "twice_nll": 106.36313395214238
+    },
+    {
+      "bias": -7.575552047356382e-05,
+      "fitted_mu": 4.999924244479526,
+      "injected_mu": 5.0,
+      "passes_20pct_gate": true,
+      "relative_bias_for_gate": 1.5151104094712763e-05,
+      "twice_nll": 110.71866999435662
+    }
+  ]
+}

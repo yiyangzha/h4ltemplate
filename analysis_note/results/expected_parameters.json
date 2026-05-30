@@ -1,0 +1,208 @@
+{
+  "asimov_observation": "nominal model expectation including auxiliary data; no observed Open Data counts used",
+  "created_utc": "2026-05-30T00:37:53+00:00",
+  "fit_model": "pyhf simultaneous final-state template likelihood",
+  "fit_status": {
+    "bestfit": [
+      0.0,
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "boundary_check": "PASS: mu and retained nuisance central values are not at configured bounds in the Asimov fit.",
+    "converged": true,
+    "parameter_names": [
+      "m4l_scale_shape",
+      "mu",
+      "background_ZZ_2e2mu_mcstat",
+      "lepton_eff",
+      "lumi",
+      "qqZZ_norm",
+      "background_ggZZ_2e2mu_mcstat",
+      "ggZZ_norm",
+      "background_reducible_2e2mu_mcstat",
+      "dy_fake_norm",
+      "ttbar_omission",
+      "signal_VBF_2e2mu_mcstat",
+      "signal_VBF_theory",
+      "signal_VH_2e2mu_mcstat",
+      "signal_VH_theory",
+      "signal_ggH_2e2mu_mcstat",
+      "signal_ggH_theory",
+      "background_ZZ_4e_mcstat",
+      "background_ggZZ_4e_mcstat",
+      "background_reducible_4e_mcstat",
+      "signal_VBF_4e_mcstat",
+      "signal_VH_4e_mcstat",
+      "signal_ggH_4e_mcstat",
+      "background_ZZ_4mu_mcstat",
+      "background_ggZZ_4mu_mcstat",
+      "background_reducible_4mu_mcstat",
+      "signal_VBF_4mu_mcstat",
+      "signal_VH_4mu_mcstat",
+      "signal_ggH_4mu_mcstat"
+    ],
+    "twice_nll": 104.17723150400087
+  },
+  "gof": {
+    "by_channel": {
+      "2e2mu": {
+        "chi2": 0.0,
+        "deviance": 0.0,
+        "ndf": 5,
+        "p_value_chi2": 1.0,
+        "p_value_deviance": 1.0
+      },
+      "4e": {
+        "chi2": 0.0,
+        "deviance": 0.0,
+        "ndf": 5,
+        "p_value_chi2": 1.0,
+        "p_value_deviance": 1.0
+      },
+      "4mu": {
+        "chi2": 0.0,
+        "deviance": 0.0,
+        "ndf": 5,
+        "p_value_chi2": 1.0,
+        "p_value_deviance": 1.0
+      }
+    },
+    "combined": {
+      "asimov_expected_zero_deviance": true,
+      "chi2": 0.0,
+      "deviance": 0.0,
+      "ndf": 17,
+      "p_value_chi2": 1.0,
+      "p_value_deviance": 1.0
+    }
+  },
+  "mu": {
+    "uncertainty_minus": 0.51674064615437,
+    "uncertainty_plus": 0.6327358408468291,
+    "uncertainty_symmetric": 0.5747382435005995,
+    "value": 1.0
+  },
+  "nominal_categories": [
+    "4mu",
+    "4e",
+    "2e2mu"
+  ],
+  "nuisance_impacts": [
+    {
+      "max_abs_impact": 0.14269027229254605,
+      "mu_shift_down": 0.14269027229254605,
+      "mu_shift_up": -0.060928672043763066,
+      "nuisance": "dy_fake_norm"
+    },
+    {
+      "max_abs_impact": 0.08391635453844803,
+      "mu_shift_down": 0.08391635453844803,
+      "mu_shift_up": -0.08206769140854497,
+      "nuisance": "qqZZ_norm"
+    },
+    {
+      "max_abs_impact": 0.05804170324720004,
+      "mu_shift_down": 0.05804170324720004,
+      "mu_shift_up": -0.053821303911318896,
+      "nuisance": "lepton_eff"
+    },
+    {
+      "max_abs_impact": 0.05273190146555429,
+      "mu_shift_down": -0.009583427288887503,
+      "mu_shift_up": -0.05273190146555429,
+      "nuisance": "m4l_scale_shape"
+    },
+    {
+      "max_abs_impact": 0.0461990587230503,
+      "mu_shift_down": 0.0461990587230503,
+      "mu_shift_up": -0.042371355524448484,
+      "nuisance": "signal_ggH_theory"
+    },
+    {
+      "max_abs_impact": 0.014973160084841064,
+      "mu_shift_down": 0.014973160084841064,
+      "mu_shift_up": -0.014755809731585412,
+      "nuisance": "lumi"
+    },
+    {
+      "max_abs_impact": 0.004350786851686772,
+      "mu_shift_down": 0.004350786851686772,
+      "mu_shift_up": -0.00428271641879141,
+      "nuisance": "ggZZ_norm"
+    },
+    {
+      "max_abs_impact": 0.004307523144551295,
+      "mu_shift_down": 0.004307523144551295,
+      "mu_shift_up": -0.004222904563489949,
+      "nuisance": "signal_VBF_theory"
+    },
+    {
+      "max_abs_impact": 0.003187412620197172,
+      "mu_shift_down": 0.003187412620197172,
+      "mu_shift_up": -0.0026492842677856565,
+      "nuisance": "ttbar_omission"
+    },
+    {
+      "max_abs_impact": 0.0013262390690129688,
+      "mu_shift_down": 0.0013262390690129688,
+      "mu_shift_up": -0.001318332224187646,
+      "nuisance": "signal_VH_theory"
+    }
+  ],
+  "phase": "4a_expected",
+  "poi": "mu",
+  "workspace_summary": {
+    "bin_edges": [
+      105.0,
+      112.0,
+      118.0,
+      122.0,
+      126.0,
+      130.0,
+      140.0
+    ],
+    "channels": [
+      "4mu",
+      "4e",
+      "2e2mu"
+    ],
+    "modifiers": [
+      "dy_norm",
+      "ggzz_norm",
+      "lepton_eff",
+      "lumi",
+      "m4l_scale",
+      "mc_stat",
+      "signal_theory",
+      "ttbar_omission",
+      "zz_norm"
+    ],
+    "source_fit_inputs": "/sandbox/work/jfc/analyses/higgs_4lep_mass/phase3_selection/outputs/fit_inputs_s1.json"
+  }
+}

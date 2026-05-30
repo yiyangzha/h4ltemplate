@@ -641,3 +641,9 @@
 ## 2026-05-29 — Phase 3 commitment update
 
 - Updated `COMMITMENTS.md` for Phase 3-resolved proof artifacts and formal VBF downscope items.
+
+## 2026-05-30 — Phase 4a expected inference workspace
+
+- Executor `edmund_69a2` built the expected pyhf model from Phase 3 fit inputs using Asimov observations only.
+- Expected `mu = 1 +/- 0.5747` with final-state categories before review.
+- Low-count toy validation used 80 toys with seed 4269; success fraction 1.000, median bias -0.06065.

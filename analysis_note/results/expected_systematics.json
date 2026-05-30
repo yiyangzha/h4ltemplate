@@ -1,0 +1,126 @@
+{
+  "created_utc": "2026-05-30T00:37:53+00:00",
+  "phase": "4a_expected",
+  "sources": [
+    {
+      "conventions": "SP1",
+      "key": "lumi",
+      "ref_1": "https://cms-results.web.cern.ch/cms-results/public-results/preliminary-results/LUM-20-001/",
+      "ref_2": "CMS-PAS-LUM-20-001 public summary, 2017 full-year luminosity 42.12 +/- 0.34 fb^-1; used as a scale reference for the user-provided 10 fb^-1 subset.",
+      "relative_variation": 0.008072174738841406,
+      "source": "Integrated luminosity",
+      "status": "implemented",
+      "this_analysis": "Propagated in pyhf model"
+    },
+    {
+      "conventions": "SP4",
+      "key": "lepton_eff",
+      "ref_1": "phase3_selection/outputs/cut_motivation_diagnostics.json",
+      "ref_2": "Phase 3 cut-motivation closure: largest final-state lepton-ID data/MC step-efficiency discrepancy is about 3 percent; propagated as a rate envelope.",
+      "relative_variation": 0.03,
+      "source": "Lepton reconstruction/ID/trigger efficiency",
+      "status": "implemented",
+      "this_analysis": "Propagated in pyhf model"
+    },
+    {
+      "conventions": "SP7",
+      "key": "signal_theory",
+      "ref_1": "https://cms-results.web.cern.ch/cms-results/public-results/publications/HIG-16-041/",
+      "ref_2": "CMS-HIG-16-041 and CMS-HIG-19-001 normalize H(125) signal to SM expectations; prompt effective signal cross sections are user-provided, so a 5 percent composition prior is scanned and marked fallback.",
+      "relative_variation": 0.05,
+      "source": "Signal production normalization/composition",
+      "status": "implemented",
+      "this_analysis": "Propagated in pyhf model"
+    },
+    {
+      "conventions": "SP9",
+      "key": "zz_norm",
+      "ref_1": "https://cms-results.web.cern.ch/cms-results/public-results/publications/HIG-19-001/",
+      "ref_2": "Open-data fallback for prompt effective ZZ cross section; CMS references estimate ZZ from simulation and treat background normalization as a systematic source.",
+      "relative_variation": 0.1,
+      "source": "qqZZ background normalization",
+      "status": "implemented",
+      "this_analysis": "Propagated in pyhf model"
+    },
+    {
+      "conventions": "SP9",
+      "key": "ggzz_norm",
+      "ref_1": "https://cms-results.web.cern.ch/cms-results/public-results/publications/HIG-19-001/",
+      "ref_2": "Open-data fallback for small loop-induced ggZZ component; prior is wider than qqZZ because only prompt effective cross sections are available in this sandbox.",
+      "relative_variation": 0.2,
+      "source": "ggZZ background normalization",
+      "status": "implemented",
+      "this_analysis": "Propagated in pyhf model"
+    },
+    {
+      "conventions": "SP10",
+      "key": "dy_norm",
+      "ref_1": "phase3_selection/outputs/sideband_fake_diagnostics.json",
+      "ref_2": "Phase 3 sideband fake diagnostics show only 11 DY+jets raw entries in the two sidebands after selection, so the DY fake proxy is weakly constrained and assigned a broad fallback prior.",
+      "relative_variation": 0.5,
+      "source": "DY+jets fake-proxy normalization",
+      "status": "implemented",
+      "this_analysis": "Propagated in pyhf model"
+    },
+    {
+      "conventions": "SP11",
+      "key": "ttbar_omission",
+      "ref_1": "phase3_selection/outputs/sideband_fake_diagnostics.json",
+      "ref_2": "Phase 3 TTBar/DY weighted-yield diagnostic in the signal window; TTBar is below promotion threshold and propagated as an omission envelope on reducible background.",
+      "relative_variation": 0.04440264879971137,
+      "source": "TTBar omission diagnostic",
+      "status": "implemented",
+      "this_analysis": "Propagated in pyhf model"
+    },
+    {
+      "conventions": "SP5",
+      "key": "m4l_scale",
+      "ref_1": "https://cds.cern.ch/record/1279137",
+      "ref_2": "CMS momentum-scale public performance context reports per-mille-level deviations; propagated by shifting m4l templates by +/-0.1 percent.",
+      "relative_variation": 0.001,
+      "source": "Lepton momentum scale/resolution shape",
+      "status": "implemented",
+      "this_analysis": "Propagated in pyhf model"
+    },
+    {
+      "conventions": "SP3",
+      "key": "mc_stat",
+      "ref_1": "phase3_selection/outputs/fit_inputs_s1.json",
+      "ref_2": "Derived from Phase 3 per-bin sumw2 templates. Implemented as group/category normalization nuisances and tested with alternative-bin stability because full per-bin staterror profiling is computationally impractical in this sandbox.",
+      "relative_variation": null,
+      "source": "MC statistical uncertainty",
+      "status": "implemented",
+      "this_analysis": "Propagated in pyhf model"
+    },
+    {
+      "conventions": "SP8",
+      "key": "higgs_branching_fraction",
+      "ref_1": "https://pdg.lbl.gov/2024/tables/rpp2024-sum-gauge-higgs-bosons.pdf",
+      "ref_2": "PDG H->ZZ* fraction retained for cross-section conversions",
+      "relative_variation": null,
+      "source": "Higgs branching fraction",
+      "status": "not_applicable_no_cross_section_conversion",
+      "this_analysis": "Not used because Phase 4a reports detector-level mu only"
+    },
+    {
+      "conventions": "SP12",
+      "key": "classifier_migration",
+      "ref_1": "phase3_selection/outputs/approach_comparison.json",
+      "ref_2": "S2 classifier categories rejected",
+      "relative_variation": null,
+      "source": "Classifier/category migration",
+      "status": "not_applicable_mva_rejected",
+      "this_analysis": "No MVA categories used"
+    },
+    {
+      "conventions": "SP13",
+      "key": "angular_reconstruction",
+      "ref_1": "phase3_selection/outputs/angular_closure.json",
+      "ref_2": "Angular inputs not used in nominal fit after S2 rejection",
+      "relative_variation": null,
+      "source": "Angular reconstruction",
+      "status": "documented_not_propagated_no_angular_categories",
+      "this_analysis": "Closure retained as Phase 3 evidence"
+    }
+  ]
+}

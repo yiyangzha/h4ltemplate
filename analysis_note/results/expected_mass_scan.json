@@ -1,0 +1,84 @@
+{
+  "closure": [
+    {
+      "bias_GeV": 0.0,
+      "injected_mass_GeV": 124.0,
+      "passes_bias_gate": true,
+      "recovered_mass_grid_GeV": 124.0
+    },
+    {
+      "bias_GeV": 0.0,
+      "injected_mass_GeV": 125.0,
+      "passes_bias_gate": true,
+      "recovered_mass_grid_GeV": 125.0
+    },
+    {
+      "bias_GeV": 0.0,
+      "injected_mass_GeV": 126.0,
+      "passes_bias_gate": true,
+      "recovered_mass_grid_GeV": 126.0
+    }
+  ],
+  "downgrade_reason": null,
+  "mass_grid_GeV": [
+    123.0,
+    123.5,
+    124.0,
+    124.5,
+    125.0,
+    125.5,
+    126.0,
+    126.5,
+    127.0
+  ],
+  "method": "inclusive shifted-template mass-profile attempt with mu profiled in each shifted template fit",
+  "phase": "4a_expected",
+  "promoted_to_nominal_mass_measurement": true,
+  "scan_rows": [
+    {
+      "mass_hypothesis_GeV": 123.0,
+      "mu_hat": 1.0,
+      "twice_nll": 27.769571700321997
+    },
+    {
+      "mass_hypothesis_GeV": 123.5,
+      "mu_hat": 1.0,
+      "twice_nll": 27.844452408887506
+    },
+    {
+      "mass_hypothesis_GeV": 124.0,
+      "mu_hat": 1.0,
+      "twice_nll": 27.813289516641483
+    },
+    {
+      "mass_hypothesis_GeV": 124.5,
+      "mu_hat": 1.0,
+      "twice_nll": 27.97777991796479
+    },
+    {
+      "mass_hypothesis_GeV": 125.0,
+      "mu_hat": 1.0,
+      "twice_nll": 28.07745816576238
+    },
+    {
+      "mass_hypothesis_GeV": 125.5,
+      "mu_hat": 1.0,
+      "twice_nll": 27.972512061922664
+    },
+    {
+      "mass_hypothesis_GeV": 126.0,
+      "mu_hat": 1.0,
+      "twice_nll": 27.93953763337678
+    },
+    {
+      "mass_hypothesis_GeV": 126.5,
+      "mu_hat": 1.0,
+      "twice_nll": 27.831957676125825
+    },
+    {
+      "mass_hypothesis_GeV": 127.0,
+      "mu_hat": 1.0,
+      "twice_nll": 27.707492621736186
+    }
+  ]
+}
