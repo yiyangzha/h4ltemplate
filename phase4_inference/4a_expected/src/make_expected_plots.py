@@ -289,7 +289,7 @@ def plot_mass_scan(mass_scan: dict[str, Any]) -> int:
 
 
 def plot_reference(validation: dict[str, Any], parameters: dict[str, Any]) -> int:
-    labels = ["This expected", "CMS HIG 16 041", "CMS HIG 19 001"]
+    labels = ["This analysis (expected)", "CMS-HIG-16-041", "CMS-HIG-19-001"]
     central = np.asarray([parameters["mu"]["value"], 1.05, 0.94], dtype=float)
     err = np.asarray([parameters["mu"]["uncertainty_symmetric"], 0.18, (0.07**2 + 0.085**2) ** 0.5], dtype=float)
     y = np.arange(len(labels), dtype=float)[::-1]
@@ -303,7 +303,8 @@ def plot_reference(validation: dict[str, Any], parameters: dict[str, Any]) -> in
     mh.label.exp_label(exp="CMS", text="", loc=2, data=True, llabel="Open Simulation and public references", rlabel=r"$13$ TeV", ax=ax)
     caption = (
         "Expected Phase 4a signal-strength precision compared with public CMS H to ZZ to four-lepton references. "
-        f"The expected uncertainty/reference ratio for CMS-HIG-16-041 is {validation['precision_comparison']['ratio_this_over_reference']:.3g}."
+        f"The expected uncertainty/reference ratio {validation['precision_comparison']['ratio_this_over_reference']:.3g} is computed relative to CMS-HIG-16-041 only; "
+        "CMS-HIG-19-001 is shown as an additional public comparison."
     )
     save_and_register(fig, "expected_reference_comparison", caption, "analysis_note/results/expected_validation.json", validation["precision_comparison"])
     return 1
@@ -311,7 +312,7 @@ def plot_reference(validation: dict[str, Any], parameters: dict[str, Any]) -> in
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Produce Phase 4a expected-inference plots.")
-    parser.add_argument("--only", choices=["expected_binning_stability"], help="Regenerate one plot without touching unrelated figure timestamps.")
+    parser.add_argument("--only", choices=["expected_binning_stability", "expected_reference_comparison"], help="Regenerate one plot without touching unrelated figure timestamps.")
     args = parser.parse_args()
     ensure_dirs()
     setup_logging()
@@ -326,6 +327,16 @@ def main() -> None:
         made += plot_binning_stability(validation)
         append_session(f"Expected plot fix written\n\n- Regenerated `{args.only}` PNG/PDF pair and updated its `outputs/FIGURES.json` entry.")
         append_experiment(f"## 2026-05-30 — Phase 4a expected binning-stability layout fix\n\n- Regenerated `expected_binning_stability` with a shorter x-axis label and wider right margin to resolve right-edge clipping.")
+        return
+    if args.only == "expected_reference_comparison":
+        stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+        expected_common.SESSION_LOG = expected_common.LOG_DIR / f"fixer_fiona_24f0_{stamp}.md"
+        made += plot_reference(validation, parameters)
+        append_session(f"Expected plot fix written\n\n- Regenerated `{args.only}` PNG/PDF pair and updated its `outputs/FIGURES.json` entry.")
+        append_experiment(
+            "## 2026-05-30 — Phase 4a expected reference-comparison label fix\n\n"
+            "- Regenerated `expected_reference_comparison` with publication-standard reference labels and caption metadata clarifying that the 3.19 precision ratio is relative to CMS-HIG-16-041 only."
+        )
         return
     made += plot_expected_m4l()
     made += plot_mu_scan(parameters)

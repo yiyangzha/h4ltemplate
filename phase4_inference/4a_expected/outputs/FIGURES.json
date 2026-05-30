@@ -369,9 +369,9 @@
     "source": "analysis_note/results/expected_mass_scan.json"
   },
   {
-    "caption": "Expected Phase 4a signal-strength precision compared with public CMS H to ZZ to four-lepton references. The expected uncertainty/reference ratio for CMS-HIG-16-041 is 3.19.",
-    "created_utc": "2026-05-30T01:37:33+00:00",
-    "description": "Expected Phase 4a signal-strength precision compared with public CMS H to ZZ to four-lepton references. The expected uncertainty/reference ratio for CMS-HIG-16-041 is 3.19.",
+    "caption": "Expected Phase 4a signal-strength precision compared with public CMS H to ZZ to four-lepton references. The expected uncertainty/reference ratio 3.19 is computed relative to CMS-HIG-16-041 only; CMS-HIG-19-001 is shown as an additional public comparison.",
+    "created_utc": "2026-05-30T02:02:53+00:00",
+    "description": "Expected Phase 4a signal-strength precision compared with public CMS H to ZZ to four-lepton references. The expected uncertainty/reference ratio 3.19 is computed relative to CMS-HIG-16-041 only; CMS-HIG-19-001 is shown as an additional public comparison.",
     "id": "expected_reference_comparison",
     "metadata": {
       "ratio_gt_5x": false,
