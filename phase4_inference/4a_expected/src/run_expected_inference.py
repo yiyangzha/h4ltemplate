@@ -413,6 +413,17 @@ def nuisance_impacts(fit: dict[str, Any]) -> list[dict[str, Any]]:
     return sorted(impacts, key=lambda row: -1.0 if row["max_abs_impact"] is None else -row["max_abs_impact"])
 
 
+def mu_profile_scan(fit: dict[str, Any]) -> list[dict[str, float]]:
+    grid = np.linspace(0.0, 3.0, 61)
+    return [
+        {
+            "mu": float(mu),
+            "delta_twice_nll": profile_q(fit["model"], fit["data"], float(mu), fit["best_nll"]),
+        }
+        for mu in grid
+    ]
+
+
 def uncertainty_breakdown(grouped: dict[str, dict[str, Any]], channels: tuple[str, ...], active_systematics: set[str], m4l_up, m4l_down) -> dict[str, Any]:
     stat_only = fit_configuration(grouped, channels, set(), include_staterror=False)
     mc_stat = fit_configuration(grouped, channels, {"mc_stat"}, include_staterror=True)
@@ -566,6 +577,7 @@ def main() -> None:
     breakdown = uncertainty_breakdown(nominal_grouped, CHANNELS, active_systematics, m4l_up, m4l_down)
     full_fit = breakdown.pop("full_fit")
     impacts = nuisance_impacts(full_fit)
+    mu_scan = mu_profile_scan(full_fit)
     toys = toy_validation(nominal_grouped, CHANNELS, active_systematics, n_toys=80, seed=RANDOM_SEED, m4l_up=m4l_up, m4l_down=m4l_down)
     injections = injection_tests(nominal_grouped, CHANNELS, active_systematics, m4l_up=m4l_up, m4l_down=m4l_down)
     stability = binning_stability(fit_inputs, events, active_systematics)
@@ -595,6 +607,7 @@ def main() -> None:
         },
         "gof": full_fit["gof"],
         "nuisance_impacts": impacts,
+        "mu_profile_scan": mu_scan,
         "workspace_summary": {
             "channels": list(CHANNELS),
             "bin_edges": FIT_BINS.tolist(),

@@ -1,1 +1,285 @@
-[]
+[
+  {
+    "caption": "Expected Asimov four-lepton mass templates in the final-state categories used by the Phase 4a simultaneous fit. Points show cumulative component expectations and the total model expectation; no observed Open Data counts are used as pseudo-data.",
+    "created_utc": "2026-05-30T00:48:27+00:00",
+    "description": "Expected Asimov four-lepton mass templates in the final-state categories used by the Phase 4a simultaneous fit. Points show cumulative component expectations and the total model expectation; no observed Open Data counts are used as pseudo-data.",
+    "id": "expected_m4l_final_state_templates",
+    "metadata": {
+      "channels": [
+        "4mu",
+        "4e",
+        "2e2mu"
+      ]
+    },
+    "pdf": "figures/expected_m4l_final_state_templates.pdf",
+    "png": "figures/expected_m4l_final_state_templates.png",
+    "source": "phase3_selection/outputs/fit_inputs_s1.json"
+  },
+  {
+    "caption": "Expected profile-likelihood scan for the global Higgs signal-strength parameter. The Asimov best fit is mu = 1 with symmetric expected uncertainty 0.575.",
+    "created_utc": "2026-05-30T00:48:27+00:00",
+    "description": "Expected profile-likelihood scan for the global Higgs signal-strength parameter. The Asimov best fit is mu = 1 with symmetric expected uncertainty 0.575.",
+    "id": "expected_mu_profile_scan",
+    "metadata": {
+      "uncertainty_minus": 0.51674064615437,
+      "uncertainty_plus": 0.6327358408468291,
+      "uncertainty_symmetric": 0.5747382435005995,
+      "value": 1.0
+    },
+    "pdf": "figures/expected_mu_profile_scan.pdf",
+    "png": "figures/expected_mu_profile_scan.png",
+    "source": "analysis_note/results/expected_parameters.json"
+  },
+  {
+    "caption": "Expected nuisance impact ranking on the global signal strength, evaluated by fixing each nuisance at plus or minus one standard deviation and refitting the Asimov model.",
+    "created_utc": "2026-05-30T00:48:28+00:00",
+    "description": "Expected nuisance impact ranking on the global signal strength, evaluated by fixing each nuisance at plus or minus one standard deviation and refitting the Asimov model.",
+    "id": "expected_nuisance_impacts",
+    "metadata": {
+      "shown": [
+        "dy fake norm",
+        "qqZZ norm",
+        "lepton eff",
+        "m4l scale shape",
+        "signal ggH theory",
+        "lumi",
+        "ggZZ norm",
+        "signal VBF theory",
+        "ttbar omission",
+        "signal VH theory"
+      ]
+    },
+    "pdf": "figures/expected_nuisance_impacts.pdf",
+    "png": "figures/expected_nuisance_impacts.png",
+    "source": "analysis_note/results/expected_parameters.json"
+  },
+  {
+    "caption": "Expected uncertainty breakdown for the Phase 4a Asimov signal-strength fit, derived from the stat-only, MC-stat, and full nuisance fits.",
+    "created_utc": "2026-05-30T00:48:28+00:00",
+    "description": "Expected uncertainty breakdown for the Phase 4a Asimov signal-strength fit, derived from the stat-only, MC-stat, and full nuisance fits.",
+    "id": "expected_uncertainty_breakdown",
+    "metadata": {
+      "mc_stat": 0.0029560843175981955,
+      "stat": 0.3063689401723719,
+      "syst_total_including_mc_stat": 0.023955108369782596,
+      "total": 0.33032404854215447
+    },
+    "pdf": "figures/expected_uncertainty_breakdown.pdf",
+    "png": "figures/expected_uncertainty_breakdown.png",
+    "source": "analysis_note/results/expected_covariance.json"
+  },
+  {
+    "caption": "Signal injection and recovery test at mu = 0, 1, 2, and 5. All injected Asimov configurations are refit with the same nuisance model and checked against the 20 percent bias gate.",
+    "created_utc": "2026-05-30T00:48:29+00:00",
+    "description": "Signal injection and recovery test at mu = 0, 1, 2, and 5. All injected Asimov configurations are refit with the same nuisance model and checked against the 20 percent bias gate.",
+    "id": "expected_signal_injection_recovery",
+    "metadata": {
+      "rows": [
+        {
+          "bias": 5.390643701715379e-21,
+          "fitted_mu": 5.390643701715379e-21,
+          "injected_mu": 0.0,
+          "passes_20pct_gate": true,
+          "relative_bias_for_gate": 5.390643701715379e-21,
+          "twice_nll": 100.8340172768057
+        },
+        {
+          "bias": 0.0,
+          "fitted_mu": 1.0,
+          "injected_mu": 1.0,
+          "passes_20pct_gate": true,
+          "relative_bias_for_gate": 0.0,
+          "twice_nll": 104.17723150400087
+        },
+        {
+          "bias": -4.472401583077712e-06,
+          "fitted_mu": 1.999995527598417,
+          "injected_mu": 2.0,
+          "passes_20pct_gate": true,
+          "relative_bias_for_gate": 2.236200791538856e-06,
+          "twice_nll": 106.36313395214238
+        },
+        {
+          "bias": -7.575552047356382e-05,
+          "fitted_mu": 4.999924244479526,
+          "injected_mu": 5.0,
+          "passes_20pct_gate": true,
+          "relative_bias_for_gate": 1.5151104094712763e-05,
+          "twice_nll": 110.71866999435662
+        }
+      ]
+    },
+    "pdf": "figures/expected_signal_injection_recovery.pdf",
+    "png": "figures/expected_signal_injection_recovery.png",
+    "source": "analysis_note/results/expected_validation.json"
+  },
+  {
+    "caption": "Low-count toy and closure-sensitivity validation summary. The intentionally corrupted mass-response tests fall below p = 0.05, demonstrating that the closure test is sensitive to a 20 percent model corruption.",
+    "created_utc": "2026-05-30T00:48:29+00:00",
+    "description": "Low-count toy and closure-sensitivity validation summary. The intentionally corrupted mass-response tests fall below p = 0.05, demonstrating that the closure test is sensitive to a 20 percent model corruption.",
+    "id": "expected_low_count_validation",
+    "metadata": {
+      "corruption": [
+        {
+          "corruption": "m4l_scale_factor_0.8",
+          "deviance": 13.47136390295552,
+          "ndf": 5,
+          "p_value": 0.01934008970762087,
+          "passes_failure_requirement": true
+        },
+        {
+          "corruption": "m4l_scale_factor_1.2",
+          "deviance": 91.59556067192092,
+          "ndf": 5,
+          "p_value": 3.1049330873040137e-18,
+          "passes_failure_requirement": true
+        }
+      ],
+      "toy": {
+        "fit_failures": 0,
+        "fit_success_fraction": 1.0,
+        "mean_mu": 1.02125847598412,
+        "median_bias": -0.06064996537909362,
+        "median_mu": 0.9393500346209064,
+        "n_toys": 80,
+        "passes_bias_gate": true,
+        "passes_fit_success_gate": true,
+        "seed": 4269,
+        "std_mu": 0.5972534571136956
+      }
+    },
+    "pdf": "figures/expected_low_count_validation.pdf",
+    "png": "figures/expected_low_count_validation.png",
+    "source": "analysis_note/results/expected_validation.json"
+  },
+  {
+    "caption": "Alternative-binning stability comparison for the expected signal-strength fit. The final-state nominal configuration is retained for the Asimov result after low-count toy validation, while inclusive/coarse variants provide stability cross-checks.",
+    "created_utc": "2026-05-30T00:48:30+00:00",
+    "description": "Alternative-binning stability comparison for the expected signal-strength fit. The final-state nominal configuration is retained for the Asimov result after low-count toy validation, while inclusive/coarse variants provide stability cross-checks.",
+    "id": "expected_binning_stability",
+    "metadata": {
+      "rows": [
+        {
+          "bin_edges": [
+            105.0,
+            112.0,
+            118.0,
+            122.0,
+            126.0,
+            130.0,
+            140.0
+          ],
+          "bins_below_5": 17,
+          "channels": [
+            "4mu",
+            "4e",
+            "2e2mu"
+          ],
+          "combined_chi2": 0.0,
+          "combined_ndf": 17,
+          "combined_p_value": 1.0,
+          "configuration": "final_state_nominal",
+          "min_expected_bin": 0.6875956068251002,
+          "mu_hat": 1.0,
+          "mu_uncertainty": 0.5723579328235826,
+          "total_bins": 18
+        },
+        {
+          "bin_edges": [
+            105.0,
+            112.0,
+            118.0,
+            122.0,
+            126.0,
+            130.0,
+            140.0
+          ],
+          "bins_below_5": 0,
+          "channels": [
+            "inclusive"
+          ],
+          "combined_chi2": 0.0,
+          "combined_ndf": 5,
+          "combined_p_value": 1.0,
+          "configuration": "inclusive_nominal",
+          "min_expected_bin": 7.408362846393145,
+          "mu_hat": 1.0,
+          "mu_uncertainty": 0.5754539025760244,
+          "total_bins": 6
+        },
+        {
+          "bin_edges": [
+            105.0,
+            118.0,
+            122.0,
+            126.0,
+            140.0
+          ],
+          "bins_below_5": 0,
+          "channels": [
+            "inclusive"
+          ],
+          "combined_chi2": 0.0,
+          "combined_ndf": 3,
+          "combined_p_value": 1.0,
+          "configuration": "inclusive_coarse",
+          "min_expected_bin": 8.847565033481395,
+          "mu_hat": 1.0,
+          "mu_uncertainty": 0.5867959543075851,
+          "total_bins": 4
+        },
+        {
+          "bin_edges": [
+            105.0,
+            122.0,
+            126.0,
+            140.0
+          ],
+          "bins_below_5": 0,
+          "channels": [
+            "inclusive"
+          ],
+          "combined_chi2": 0.0,
+          "combined_ndf": 2,
+          "combined_p_value": 1.0,
+          "configuration": "inclusive_peak_side",
+          "min_expected_bin": 8.847565033481395,
+          "mu_hat": 1.0,
+          "mu_uncertainty": 0.5895033645790071,
+          "total_bins": 3
+        }
+      ]
+    },
+    "pdf": "figures/expected_binning_stability.pdf",
+    "png": "figures/expected_binning_stability.png",
+    "source": "analysis_note/results/expected_validation.json"
+  },
+  {
+    "caption": "Detector-level shifted-template mass-profile attempt with mu profiled. This is retained as method-parity evidence; it is not promoted to an official-quality mass measurement unless the injected-mass closure gate passes.",
+    "created_utc": "2026-05-30T00:48:30+00:00",
+    "description": "Detector-level shifted-template mass-profile attempt with mu profiled. This is retained as method-parity evidence; it is not promoted to an official-quality mass measurement unless the injected-mass closure gate passes.",
+    "id": "expected_mass_profile_attempt",
+    "metadata": {
+      "promoted": true
+    },
+    "pdf": "figures/expected_mass_profile_attempt.pdf",
+    "png": "figures/expected_mass_profile_attempt.png",
+    "source": "analysis_note/results/expected_mass_scan.json"
+  },
+  {
+    "caption": "Expected Phase 4a signal-strength precision compared with public CMS H to ZZ to four-lepton references. The expected uncertainty/reference ratio for CMS-HIG-16-041 is 3.19.",
+    "created_utc": "2026-05-30T00:48:30+00:00",
+    "description": "Expected Phase 4a signal-strength precision compared with public CMS H to ZZ to four-lepton references. The expected uncertainty/reference ratio for CMS-HIG-16-041 is 3.19.",
+    "id": "expected_reference_comparison",
+    "metadata": {
+      "ratio_gt_5x": false,
+      "ratio_this_over_reference": 3.192990241669998,
+      "reference": "CMS-HIG-16-041 mu uncertainty symmetrized from +0.19/-0.17",
+      "reference_uncertainty": 0.18,
+      "this_expected_total_uncertainty": 0.5747382435005995
+    },
+    "pdf": "figures/expected_reference_comparison.pdf",
+    "png": "figures/expected_reference_comparison.png",
+    "source": "analysis_note/results/expected_validation.json"
+  }
+]

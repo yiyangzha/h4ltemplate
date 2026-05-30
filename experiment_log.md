@@ -647,3 +647,8 @@
 - Executor `edmund_69a2` built the expected pyhf model from Phase 3 fit inputs using Asimov observations only.
 - Expected `mu = 1 +/- 0.5747` with final-state categories before review.
 - Low-count toy validation used 80 toys with seed 4269; success fraction 1.000, median bias -0.06065.
+
+## 2026-05-30 — Phase 4a expected plots
+
+- Produced 9 expected-inference figures and registered them in `phase4_inference/4a_expected/outputs/FIGURES.json`.
+- Resolved watcher layout blockers for the m4l template, signal-injection, and binning-stability figures; `pixi run lint-plots` and the figure-registry smoke test passed.
