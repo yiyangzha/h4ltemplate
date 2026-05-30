@@ -1034,6 +1034,14 @@
 - Marked remaining feasible final commitments resolved or formally downscoped.
 - Remaining unchecked top-level checklist items after update: 0.
 
+## 2026-05-30 — Phase 4a/4c broad-window expected refresh
+
+- Fixer `fiona_2385` repaired Phase 4a expected inference so nominal fit bins are derived from `phase3_selection/outputs/fit_inputs_s1.json` instead of the obsolete local `105-140 GeV` bin constant.
+- Regenerated `pixi run p4a-all`; expected signal-strength outputs now use `70 < m4l < 170 GeV`, including the Z peak. The expected mass scan remains a Higgs-neighborhood shifted-template closure with a narrower hypothesis range, not a signal-strength fit-window claim.
+- Because Phase 4a changed shared `analysis_note/results`, reran `pixi run p4c-all` to refresh Phase 4c observed outputs. The observed mass-scan fallback path logged pyhf minimization failures for some shifted-template hypotheses but completed and wrote refreshed JSON, figures, artifact, and commitments.
+- `pixi run lint-plots` passed with no plotting violations. Figure registry smoke checks passed for Phase 4a and Phase 4c with zero missing/zero-size files and zero orphan PNGs.
+- Active-output stale-window grep found no current `105 < m4l < 140 GeV` signal-strength fit-window references in Phase 4a outputs, Phase 4c outputs, or `analysis_note/results`; remaining hits are historical review/fix logs and `phase4_inference/4a_expected/plan.md`.
+
 ## 2026-05-30 — Phase 4c full-data observed inference
 
 - Executor `zoran_44a0` applied the latest user-requested Phase 4c instruction: the observed-data fit window is `70 < m4l < 170 GeV`, including the Z peak.
@@ -1191,3 +1199,42 @@
 ## 2026-05-29 — Phase 3 selection artifact
 
 - Built `phase3_selection/outputs/SELECTION.md` from Phase 3 JSON/NPZ outputs.
+
+## 2026-05-30 — Phase 4a expected inference workspace
+
+- Executor `edmund_69a2` built the expected pyhf model from Phase 3 fit inputs using Asimov observations only.
+- Expected `mu = 1 +/- 0.5687` with final-state categories before review.
+- Low-count toy validation used 80 toys with seed 4269; success fraction 1.000, median bias 0.03016.
+
+## 2026-05-30 — Phase 4a expected plots
+
+- Produced 12 expected-inference figures and registered them in `phase4_inference/4a_expected/outputs/FIGURES.json`.
+
+## 2026-05-30 — Phase 4a expected inference artifact
+
+- Built `phase4_inference/4a_expected/outputs/INFERENCE_EXPECTED.md` from expected-result JSON files.
+
+## 2026-05-30 — Phase 4a commitment update
+
+- Updated `COMMITMENTS.md` for Phase 4a expected-inference evidence and formal classifier-migration downscope.
+
+## 2026-05-30 — Phase 4c full-data observed inference
+
+- Executor `zoran_44a0` applied the latest user-requested Phase 4c instruction: the observed-data fit window is `70 < m4l < 170 GeV`, including the Z peak.
+- Full data kept 203 of 203 selected data events.
+- MC templates used full luminosity `10.0` fb^-1 with no data-integral normalization.
+- Observed `mu = 2.478` with symmetric uncertainty `0.7763376700295836`; expected-vs-observed pull `1.54` and partial-vs-observed pull `1.59`.
+- Added an observed shifted-template mass scan over `110.0-150.0` GeV in `2.5` GeV steps; best grid point `125.0` GeV with profiled `mu = 2.478`. The Z peak region is excluded from Higgs mass hypotheses, and the result is not promoted to an official CMS-quality mass measurement.
+
+## 2026-05-30 — Phase 4c observed figures
+
+- Wrote and registered 9 full observed-data inference figures, including broad m4l, category overlays, expected comparison, nuisance diagnostics, split/stability checks, and the observed shifted-template mass scan.
+
+## 2026-05-30 — Phase 4c observed artifact
+
+- Built `phase4_inference/4c_observed/outputs/INFERENCE_OBSERVED.md` from full observed-data result JSONs.
+
+## 2026-05-30 — Phase 4c commitments update
+
+- Marked remaining feasible final commitments resolved or formally downscoped.
+- Remaining unchecked top-level checklist items after update: 0.

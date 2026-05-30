@@ -25,13 +25,6 @@ SESSION_LOG = LOG_DIR / "executor_edmund_69a2_20260530T002413Z.md"
 
 CHANNELS = ("4mu", "4e", "2e2mu")
 CHANNEL_CODE = {"4mu": 0, "4e": 1, "2e2mu": 2}
-FIT_BINS = np.array([105.0, 112.0, 118.0, 122.0, 126.0, 130.0, 140.0])
-ALT_BINS = {
-    "final_state_nominal": FIT_BINS,
-    "inclusive_nominal": FIT_BINS,
-    "inclusive_coarse": np.array([105.0, 118.0, 122.0, 126.0, 140.0]),
-    "inclusive_peak_side": np.array([105.0, 122.0, 126.0, 140.0]),
-}
 RANDOM_SEED = 4269
 
 SIGNAL_GROUPS = {"signal_ggH", "signal_VBF", "signal_VH"}
@@ -75,6 +68,40 @@ def to_jsonable(value: Any) -> Any:
 
 def read_json(path: Path) -> Any:
     return json.loads(path.read_text())
+
+
+def fit_bins_from_inputs() -> np.ndarray:
+    fit_inputs = read_json(PHASE3_OUT / "fit_inputs_s1.json")
+    edges = np.asarray(fit_inputs["bin_edges"], dtype=float)
+    window = fit_inputs.get("fit_window")
+    if window is not None:
+        lo, hi = float(window[0]), float(window[1])
+        if not (np.isclose(edges[0], lo) and np.isclose(edges[-1], hi)):
+            raise ValueError(
+                "Phase 3 fit-input bin edges do not span the declared fit window: "
+                f"edges={edges.tolist()}, fit_window={window}"
+            )
+    return edges
+
+
+def alternative_bins(fit_bins: np.ndarray) -> dict[str, np.ndarray]:
+    if len(fit_bins) < 3:
+        raise ValueError(f"Need at least two fit bins, got edges={fit_bins.tolist()}")
+    coarse = np.unique(np.concatenate([fit_bins[::2], fit_bins[-1:]])).astype(float)
+    peak_mask = (fit_bins >= 105.0) & (fit_bins <= 140.0)
+    peak_side = fit_bins[peak_mask]
+    if len(peak_side) < 3:
+        peak_side = coarse
+    return {
+        "final_state_nominal": fit_bins,
+        "inclusive_nominal": fit_bins,
+        "inclusive_coarse": coarse,
+        "inclusive_higgs_region_scan_bins": peak_side,
+    }
+
+
+FIT_BINS = fit_bins_from_inputs()
+ALT_BINS = alternative_bins(FIT_BINS)
 
 
 def write_json(path: Path, payload: Any) -> None:

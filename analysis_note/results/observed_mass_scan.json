@@ -2,7 +2,7 @@
   "best_mass_grid_GeV": 125.0,
   "best_mu_hat": 2.4776040008517612,
   "best_twice_nll": 215.2210333698157,
-  "created_utc": "2026-05-30T06:27:18+00:00",
+  "created_utc": "2026-05-30T06:45:06+00:00",
   "downgrade_reason": "Observed mass scan uses shifted detector-level M125 templates rather than independent mass-hypothesis MC and official lepton calibration/morphing; classify as approximated evidence, not an official CMS-quality mass measurement.",
   "excluded_ranges_GeV": [
     {

@@ -1,8 +1,8 @@
 {
-  "created_utc": "2026-05-30T03:32:37+00:00",
+  "created_utc": "2026-05-30T06:41:52+00:00",
   "mc_stat": [
     [
-      0.0029560843175981955
+      0.0023110896694251704
     ]
   ],
   "mc_stat_treatment": "group_category_normsys_from_sumw2; not full bin-by-bin HistFactory staterror profiling",
@@ -12,135 +12,135 @@
   "per_systematic": {
     "dy_norm": [
       [
-        0.007550313794961905
+        0.0066774831206343754
       ]
     ],
     "ggzz_norm": [
       [
-        3.836713417015858e-05
+        4.07576700612311e-05
       ]
     ],
     "lepton_eff": [
       [
-        0.005159018544340921
+        0.004743366699772378
       ]
     ],
     "lumi": [
       [
-        0.0003837356654103341
+        0.0003956294038373054
       ]
     ],
     "m4l_scale": [
       [
-        0.002038162254275333
+        0.0018991912080044693
       ]
     ],
     "mc_stat": [
       [
-        0.0029560843175981955
+        0.0023110896694251704
       ]
     ],
     "signal_theory": [
       [
-        0.0024705383179492446
+        0.0024704222778204055
       ]
     ],
     "ttbar_omission": [
       [
-        0.00017993666653914886
+        0.00018128623184476833
       ]
     ],
     "zz_norm": [
       [
-        0.00939126129924922
+        0.00469732078915075
       ]
     ]
   },
   "phase": "4a_expected",
   "stat": [
     [
-      0.3063689401723719
+      0.30630588207246134
     ]
   ],
   "syst": [
     [
-      0.023955108369782596
+      0.017156745469607992
     ]
   ],
   "total": [
     [
-      0.33032404854215447
+      0.32346262754206934
     ]
   ],
   "uncertainty_breakdown": {
     "full": {
-      "err_hi": 0.6327358408468291,
-      "err_lo": 0.51674064615437,
-      "err_sym": 0.5747382435005995,
+      "err_hi": 0.6265284179710924,
+      "err_lo": 0.5109470807401006,
+      "err_sym": 0.5687377493555965,
       "muhat": 1.0,
-      "scan_hi": 1.632735840846829,
-      "scan_lo": 0.48325935384563007
+      "scan_hi": 1.6265284179710924,
+      "scan_lo": 0.48905291925989935
     },
     "per_systematic": {
       "dy_norm": {
-        "uncertainty": 0.5602849756751771,
-        "variance_increment_over_stat": 0.007550313794961905
+        "uncertainty": 0.5594491622954634,
+        "variance_increment_over_stat": 0.0066774831206343754
       },
       "ggzz_norm": {
-        "uncertainty": 0.5535407006775039,
-        "variance_increment_over_stat": 3.836713417015858e-05
+        "uncertainty": 0.5534858984134308,
+        "variance_increment_over_stat": 4.07576700612311e-05
       },
       "lepton_eff": {
-        "uncertainty": 0.5581468970770265,
-        "variance_increment_over_stat": 0.005159018544340921
+        "uncertainty": 0.5577178935377937,
+        "variance_increment_over_stat": 0.004743366699772378
       },
       "lumi": {
-        "uncertainty": 0.5538525759060638,
-        "variance_increment_over_stat": 0.0003837356654103341
+        "uncertainty": 0.5538063844668989,
+        "variance_increment_over_stat": 0.0003956294038373054
       },
       "m4l_scale": {
-        "uncertainty": 0.5553441297309689,
-        "variance_increment_over_stat": 0.002038162254275333
+        "uncertainty": 0.5551622044776335,
+        "variance_increment_over_stat": 0.0018991912080044693
       },
       "mc_stat": {
         "treatment": "group_category_normsys_from_sumw2",
-        "uncertainty": 0.5561699600751285,
-        "variance_increment_over_stat": 0.0029560843175981955
+        "uncertainty": 0.5555330518897021,
+        "variance_increment_over_stat": 0.0023110896694251704
       },
       "signal_theory": {
-        "uncertainty": 0.5557332799916891,
-        "variance_increment_over_stat": 0.0024705383179492446
+        "uncertainty": 0.5556764385416046,
+        "variance_increment_over_stat": 0.0024704222778204055
       },
       "ttbar_omission": {
-        "uncertainty": 0.5536685622634818,
-        "variance_increment_over_stat": 0.00017993666653914886
+        "uncertainty": 0.553612832496056,
+        "variance_increment_over_stat": 0.00018128623184476833
       },
       "zz_norm": {
-        "uncertainty": 0.5619254412033869,
-        "variance_increment_over_stat": 0.00939126129924922
+        "uncertainty": 0.5576766113632632,
+        "variance_increment_over_stat": 0.00469732078915075
       }
     },
     "stat_only": {
-      "err_hi": 0.6083881793592201,
-      "err_lo": 0.498623907607082,
-      "err_sym": 0.553506043483151,
+      "err_hi": 0.6083097896682257,
+      "err_lo": 0.49858836657282857,
+      "err_sym": 0.5534490781205271,
       "muhat": 1.0,
-      "scan_hi": 1.60838817935922,
-      "scan_lo": 0.501376092392918
+      "scan_hi": 1.6083097896682257,
+      "scan_lo": 0.5014116334271714
     },
     "stat_plus_mcstat": {
-      "err_hi": 0.6118464639846666,
-      "err_lo": 0.5004934561655905,
-      "err_sym": 0.5561699600751285,
+      "err_hi": 0.611010156475295,
+      "err_lo": 0.5000559473041093,
+      "err_sym": 0.5555330518897021,
       "muhat": 1.0,
-      "scan_hi": 1.6118464639846666,
-      "scan_lo": 0.4995065438344095
+      "scan_hi": 1.611010156475295,
+      "scan_lo": 0.4999440526958907
     },
     "variance_components": {
-      "mc_stat": 0.0029560843175981955,
-      "stat": 0.3063689401723719,
-      "syst_total_including_mc_stat": 0.023955108369782596,
-      "total": 0.33032404854215447
+      "mc_stat": 0.0023110896694251704,
+      "stat": 0.30630588207246134,
+      "syst_total_including_mc_stat": 0.017156745469607992,
+      "total": 0.32346262754206934
     }
   }
 }

@@ -1,7 +1,7 @@
 # Phase 4c Observed-Data Inference
 
 Session: `zoran_44a0`
-Created: 2026-05-30T06:27:27+00:00
+Created: 2026-05-30T06:45:12+00:00
 
 ## Summary
 
@@ -15,7 +15,7 @@ The full-data observed result is:
 
 - `mu = 2.478 -0.7139 +0.8388`
 - symmetric uncertainty: `0.7763`
-- expected-vs-observed pull: `1.53`
+- expected-vs-observed pull: `1.535`
 - partial-vs-observed pull: `1.587`
 - compatibility with Phase 4a expected within 2 sigma: `True`
 - compatibility with Phase 4b 10% result within 2 sigma: `True`
@@ -57,12 +57,12 @@ self-consistency check. The `zero_chi2_warning` flag is
 | quantity | value |
 | --- | --- |
 | Phase 4a expected mu | 1 |
-| Phase 4a expected uncertainty | 0.5747 |
+| Phase 4a expected uncertainty | 0.5687 |
 | Phase 4b partial mu | 0 |
 | Phase 4b partial uncertainty | 1.355 |
 | Phase 4c observed mu | 2.478 |
 | Phase 4c observed uncertainty | 0.7763 |
-| pull vs expected | 1.53 |
+| pull vs expected | 1.535 |
 | pull vs partial | 1.587 |
 | any comparison over 2 sigma | False |
 

@@ -1,8 +1,8 @@
 # Session State
 
-Last updated: 2026-05-30T06:29:07Z
+Last updated: 2026-05-30T06:46:00Z
 Current phase: Phase 4c — Full Data Inference / 70-170 fit-window regression
-Step in loop: ITERATE — regression rerun complete; awaiting orchestrator VERIFY/review decision
+Step in loop: ITERATE — targeted expected/observed refresh complete; awaiting orchestrator VERIFY/review decision
 Iteration count: 0
 
 ## Completed phases (commit hashes)
@@ -108,6 +108,17 @@ curated mass-safe angular/kinematic feature set. Best nominal model is
 but S2 remains rejected because score-shape, low-stat/category, and/or
 mass-sculpting gates fail. The active Phase 4c result remains S1 because the
 MVA is not promoted.
+
+Fixer `fiona_2385` repaired the stale Phase 4a expected-inference binning after
+the Phase 3/4c broad-window update. Phase 4a now derives nominal signal-strength
+fit bins from `phase3_selection/outputs/fit_inputs_s1.json`, so current expected
+outputs use `70 < m4l < 170 GeV` including the Z peak. The Higgs mass scan uses a
+Phase-3-derived Higgs-region template subset only for shifted-template closure
+and no longer claims that `105 < m4l < 140 GeV` is the signal-strength fit
+window. `pixi run p4a-all`, `pixi run p4c-all`, and `pixi run lint-plots`
+completed; Phase 4a/4c figure registries have zero missing files and zero orphan
+PNGs. Active-output stale-window grep is clean; remaining old-window references
+are historical review/fix logs and `phase4_inference/4a_expected/plan.md`.
 
 ## Pending Decisions For Human
 

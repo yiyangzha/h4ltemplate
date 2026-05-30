@@ -136,7 +136,7 @@ Phase 4a reports expected-only inference using MC/Asimov observations. The
 fit observation is the nominal model expectation plus pyhf auxiliary data; no
 real Open Data event counts are used as pseudo-data. The nominal handoff is the
 Phase 3 S1 final-state categorization (`4mu`, `4e`, `2e2mu`) in
-`105 < m4l < 140 GeV`.
+`70 < m4l < 170 GeV`, including the Z peak neighborhood.
 
 The global signal-strength result is:
 

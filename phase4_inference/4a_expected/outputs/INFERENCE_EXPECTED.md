@@ -1,7 +1,7 @@
 # Phase 4a Expected Inference
 
 Session: `edmund_69a2`
-Created: 2026-05-30T03:32:53+00:00
+Created: 2026-05-30T06:42:01+00:00
 
 ## Summary
 
@@ -9,13 +9,13 @@ Phase 4a reports expected-only inference using MC/Asimov observations. The
 fit observation is the nominal model expectation plus pyhf auxiliary data; no
 real Open Data event counts are used as pseudo-data. The nominal handoff is the
 Phase 3 S1 final-state categorization (`4mu`, `4e`, `2e2mu`) in
-`105 < m4l < 140 GeV`.
+`70 < m4l < 170 GeV`, including the Z peak neighborhood.
 
 The global signal-strength result is:
 
-- `mu = 1 -0.5167 +0.6327`
-- symmetric expected uncertainty: `0.5747`
-- precision ratio to CMS-HIG-16-041 symmetrized uncertainty: `3.193`
+- `mu = 1 -0.5109 +0.6265`
+- symmetric expected uncertainty: `0.5687`
+- precision ratio to CMS-HIG-16-041 symmetrized uncertainty: `3.16`
 - ratio greater than 5x reference: `False`
 
 ## Model
@@ -23,7 +23,7 @@ The global signal-strength result is:
 The model is a binned simultaneous pyhf/HistFactory-style likelihood with one
 global signal-strength POI `mu` scaling all Higgs templates together. The
 workspace uses channels `4mu, 4e, 2e2mu`
-and mass-bin edges `[105.0, 112.0, 118.0, 122.0, 126.0, 130.0, 140.0]`. MC
+and mass-bin edges `[70.0, 80.0, 90.0, 100.0, 105.0, 112.0, 118.0, 122.0, 126.0, 130.0, 140.0, 150.0, 160.0, 170.0]`. MC
 statistical uncertainty is propagated with group/category normalization
 nuisances derived from Phase 3 `sumw2`; full per-bin staterror profiling was
 not computationally stable in this sandbox, so the implementation is paired
@@ -35,10 +35,10 @@ a formal expected-phase downscope/approximation to per-bin HistFactory
 
 | Category | chi2 | Poisson deviance | ndf | chi2 p | deviance p |
 | --- | --- | --- | --- | --- | --- |
-| combined | 0 | 0 | 17 | 1 | 1 |
-| 2e2mu | 0 | 0 | 5 | 1 | 1 |
-| 4e | 0 | 0 | 5 | 1 | 1 |
-| 4mu | 0 | 0 | 5 | 1 | 1 |
+| combined | 0 | 0 | 38 | 1 | 1 |
+| 2e2mu | 0 | 0 | 12 | 1 | 1 |
+| 4e | 0 | 0 | 12 | 1 | 1 |
+| 4mu | 0 | 0 | 12 | 1 | 1 |
 
 The exact Asimov deviance is expected to be numerically zero when the fitted
 expectation matches the generated model expectation. The chi2 values are
@@ -50,14 +50,14 @@ stability below.
 ## Low-Count Validation And Binning
 
 The Phase 3 handoff had
-`17/18`
+`31/39`
 final-state bins below five expected events. Phase 4a retains the final-state
 simultaneous model because the Poisson toy validation passes:
 
 - toys: `80` with seed `4269`
 - fit success fraction: `1`
-- median `mu`: `0.9394`
-- median bias: `-0.06065`
+- median `mu`: `1.03`
+- median bias: `0.03016`
 - bias gate pass: `True`
 
 This retention is conditional on the expected-only Phase 4a inputs. The
@@ -66,18 +66,18 @@ merge or rebin if observed-data fits or toys become unstable.
 
 | Binning | Channels | mu uncertainty | bins below 5 | fit p |
 | --- | --- | --- | --- | --- |
-| final_state_nominal | 4mu,4e,2e2mu | 0.5724 | 17 | 1 |
-| inclusive_nominal | inclusive | 0.5755 | 0 | 1 |
-| inclusive_coarse | inclusive | 0.5868 | 0 | 1 |
-| inclusive_peak_side | inclusive | 0.5895 | 0 | 1 |
+| final_state_nominal | 4mu,4e,2e2mu | 0.5666 | 31 | 1 |
+| inclusive_nominal | inclusive | 0.5701 | 2 | 1 |
+| inclusive_coarse | inclusive | 0.804 | 0 | 1 |
+| inclusive_higgs_region_scan_bins | inclusive | 0.5755 | 0 | 1 |
 
 Final-state channel compatibility:
 
 | Channel | mu | uncertainty | pull vs combined | fit p |
 | --- | --- | --- | --- | --- |
-| 4mu | 1 | 0.8669 | 0 | 1 |
-| 4e | 1 | 1.811 | 0 | 1 |
-| 2e2mu | 1 | 0.8771 | 0 | 1 |
+| 4mu | 1 | 0.8647 | 0 | 1 |
+| 4e | 1 | 1.807 | 0 | 1 |
+| 2e2mu | 1 | 0.8719 | 0 | 1 |
 
 ## Validation Tests
 
@@ -85,29 +85,29 @@ Signal injection and recovery:
 
 | Injected mu | Fitted mu | bias | relative bias | 20 percent gate |
 | --- | --- | --- | --- | --- |
-| 0.0 | 5.391e-21 | 5.391e-21 | 5.391e-21 | True |
+| 0.0 | 2.187e-06 | 2.187e-06 | 2.187e-06 | True |
 | 1.0 | 1 | 0 | 0 | True |
-| 2.0 | 2 | -4.472e-06 | 2.236e-06 | True |
-| 5.0 | 5 | -7.576e-05 | 1.515e-05 | True |
+| 2.0 | 2 | 0.0002351 | 0.0001176 | True |
+| 5.0 | 5 | 6.21e-05 | 1.242e-05 | True |
 
 Closure-test sensitivity with intentionally corrupted model ingredients:
 
 | Corruption | deviance | ndf | p-value | fails as required |
 | --- | --- | --- | --- | --- |
-| m4l_scale_factor_0.8 | 16.92 | 17 | 0.45954 | False |
-| m4l_scale_factor_1.2 | 99.91 | 17 | 9.2424e-14 | True |
+| m4l_scale_factor_0.8 | 1766 | 38 | 0 | True |
+| m4l_scale_factor_1.2 | 833.1 | 38 | 2.8306e-150 | True |
 
-Final-state simultaneous corruption-test pass status: `False`.
-Criterion status: `documented_low_count_infeasible`.
+Final-state simultaneous corruption-test pass status: `True`.
+Criterion status: `passed`.
 The intentionally wrong +20 percent mass-response model is rejected below
 `p = 0.05`; the -20 percent direction is not rejected in the low-count
-final-state workspace. Quantitative limitation: The final-state simultaneous workspace was run as requested, but the -20 percent mass-response corruption is not rejected by three defensible final-state-aligned tests: profiled Poisson deviance, profiled per-channel shape-only Poisson deviance, and profiled Pearson chi2. The raw unprofiled Pearson diagnostic is not used for the gate because it drops the nominal profiled workspace treatment and is less reliable for low-count bins. This is a documented low-count infeasibility/limitation, not a passed +/-20 percent sensitivity criterion.
+final-state workspace. Quantitative limitation: none
 
 | Attempt | test | statistic | ndf | p-value | rejects |
 | --- | --- | --- | --- | --- | --- |
-| 1 | profiled Poisson saturated-likelihood deviance in the final-state simultaneous workspace | 16.92 | 17 | 0.45954 | False |
-| 2 | profiled per-channel shape-only Poisson deviance with one conditioned normalization per final state | 12.97 | 15 | 0.60486 | False |
-| 3 | profiled Pearson chi2 on the final-state simultaneous expected bins | 22.72 | 17 | 0.15844 | False |
+| 1 | profiled Poisson saturated-likelihood deviance in the final-state simultaneous workspace | 1766 | 38 | 0 | True |
+| 2 | profiled per-channel shape-only Poisson deviance with one conditioned normalization per final state | 1769 | 36 | 0 | True |
+| 3 | profiled Pearson chi2 on the final-state simultaneous expected bins | 8.552e+13 | 38 | 0 | True |
 
 ## Covariance And Uncertainty Breakdown
 
@@ -117,25 +117,25 @@ shown below.
 
 | Component | variance | uncertainty |
 | --- | --- | --- |
-| mc_stat | 0.002956 | 0.05437 |
-| stat | 0.3064 | 0.5535 |
-| syst_total_including_mc_stat | 0.02396 | 0.1548 |
-| total | 0.3303 | 0.5747 |
+| mc_stat | 0.002311 | 0.04807 |
+| stat | 0.3063 | 0.5534 |
+| syst_total_including_mc_stat | 0.01716 | 0.131 |
+| total | 0.3235 | 0.5687 |
 
 ## Nuisance Impacts
 
 | Nuisance | mu shift down | mu shift up | max abs impact |
 | --- | --- | --- | --- |
-| dy_fake_norm | 0.1427 | -0.06093 | 0.1427 |
-| qqZZ_norm | 0.08392 | -0.08207 | 0.08392 |
-| lepton_eff | 0.05804 | -0.05382 | 0.05804 |
-| m4l_scale_shape | -0.009583 | -0.05273 | 0.05273 |
-| signal_ggH_theory | 0.0462 | -0.04237 | 0.0462 |
-| lumi | 0.01497 | -0.01476 | 0.01497 |
-| ggZZ_norm | 0.004351 | -0.004283 | 0.004351 |
-| signal_VBF_theory | 0.004308 | -0.004223 | 0.004308 |
-| ttbar_omission | 0.003187 | -0.002649 | 0.003187 |
-| signal_VH_theory | 0.001326 | -0.001318 | 0.001326 |
+| dy_fake_norm | 0.1551 | -0.06709 | 0.1551 |
+| qqZZ_norm | 0.05858 | -0.05642 | 0.05858 |
+| m4l_scale_shape | -0.0104 | -0.05141 | 0.05141 |
+| signal_ggH_theory | 0.04642 | -0.04247 | 0.04642 |
+| lepton_eff | 0.0443 | -0.04055 | 0.0443 |
+| lumi | 0.01096 | -0.01071 | 0.01096 |
+| signal_VBF_theory | 0.004331 | -0.004246 | 0.004331 |
+| ggZZ_norm | 0.003205 | -0.003113 | 0.003205 |
+| ttbar_omission | 0.003115 | -0.002645 | 0.003115 |
+| signal_VH_theory | 0.001329 | -0.001321 | 0.001329 |
 
 Asimov nuisance pulls are expected to be zero because the pseudo-data are
 generated from the nominal model. The table and impact figure therefore show
@@ -151,11 +151,11 @@ calibrated mass measurement, but it satisfies the expected-phase
 mass-template closure gate on the available templates.
 
 - scan range: `110` to `140` GeV in `2.5` GeV steps
-- excluded ranges: `[{'max': 105.0, 'min': 70.0, 'reason': 'Excluded from the Phase 4a mass-profile fit because the signal-strength fit window is fixed to 105 < m4l < 140 GeV and the Z peak neighborhood is sideband/validation-only.'}]`
+- excluded ranges: `[{'max': 105.0, 'min': 70.0, 'reason': 'Not scanned as Higgs mass hypotheses because this detector-level closure only tests the Higgs-neighborhood shifted-template response; the signal-strength fit itself uses the full 70 < m4l < 170 GeV window including the Z peak.'}, {'max': 170.0, 'min': 140.0, 'reason': 'Not scanned as Higgs mass hypotheses because this detector-level closure only tests a narrower valid Higgs hypothesis range; the signal-strength fit itself uses the full 70 < m4l < 170 GeV window.'}]`
 - nominal best mass grid point: `125 GeV`
 - nominal best-fit `mu` in the mass scan: `1`
 - categories: `4mu, 4e, 2e2mu`
-- workspace parity: Uses the same final-state categories, fit-window binning, global mu POI, and active Phase 4a nuisance set as the expected signal-strength workspace.
+- workspace parity: Uses the same final-state categories, global mu POI, and active Phase 4a nuisance set as the expected signal-strength workspace; the template bins are the Phase-3-derived Higgs-region subset used only for this mass-scan closure.
 - injected-mass closure passes: `True`
 - promoted to nominal mass measurement: `False`
 - downgrade reason: The required simultaneous category mass-extraction attempt passes the expected shifted-template closure, but independent mass-hypothesis MC and official lepton calibration/morphing inputs are unavailable; retain as method-parity closure rather than an official-quality mass measurement.

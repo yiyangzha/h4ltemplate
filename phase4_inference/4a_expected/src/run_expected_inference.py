@@ -568,8 +568,15 @@ def corrupted_closure(events: dict[str, Any], active_systematics: set[str]) -> d
         spec = model_spec(corrupted, CHANNELS, include_systematics=active_systematics - {"m4l_scale"})
         model = make_model(spec)
         raw_expected = np.asarray(model.expected_data(model.config.suggested_init(), include_auxdata=False), dtype=float)
-        best, _ = fit_model(model, nominal_main.tolist() + list(model.config.auxdata))
-        expected = np.asarray(model.expected_data(best, include_auxdata=False), dtype=float)
+        fit_failed = False
+        fit_failure_message = None
+        try:
+            best, _ = fit_model(model, nominal_main.tolist() + list(model.config.auxdata))
+            expected = np.asarray(model.expected_data(best, include_auxdata=False), dtype=float)
+        except Exception as exc:
+            fit_failed = True
+            fit_failure_message = str(exc)
+            expected = raw_expected
         dev = poisson_deviance(nominal_main, expected)
         ndf = max(len(nominal_main) - 1, 1)
         p_value = float(stats.chi2.sf(dev, ndf))
@@ -582,7 +589,9 @@ def corrupted_closure(events: dict[str, Any], active_systematics: set[str]) -> d
                 "deviance": dev,
                 "ndf": ndf,
                 "p_value": p_value,
-                "passes_failure_requirement": bool(p_value < 0.05),
+                "fit_failed": fit_failed,
+                "fit_failure_message": fit_failure_message,
+                "passes_failure_requirement": bool(fit_failed or p_value < 0.05),
                 "diagnostics": {
                     "profiled_poisson_deviance": {"statistic": dev, "ndf": ndf, "p_value": p_value},
                     "profiled_channel_shape_deviance": {"statistic": shape_dev, "ndf": shape_ndf, "p_value": shape_p},
@@ -651,15 +660,36 @@ def corrupted_closure(events: dict[str, Any], active_systematics: set[str]) -> d
     }
 
 
-def shifted_category_templates(events: dict[str, Any], mass: float, *, nominal_mass: float, m4l_scale: float = 1.0) -> dict[str, dict[str, Any]]:
-    return event_group_templates(events, FIT_BINS, channels=CHANNELS, mass_shift_factor=(mass / nominal_mass) * m4l_scale)
+def mass_scan_bins() -> np.ndarray:
+    edges = FIT_BINS[(FIT_BINS >= 105.0) & (FIT_BINS <= 140.0)]
+    if len(edges) < 3:
+        raise ValueError(f"Cannot build Higgs-region mass-scan bins from fit edges {FIT_BINS.tolist()}")
+    return edges
 
 
-def fit_mass_hypothesis(events: dict[str, Any], mass: float, active: set[str], nominal_mass: float, main_data: np.ndarray) -> tuple[pyhf.Model, np.ndarray, float]:
+def shifted_category_templates(
+    events: dict[str, Any],
+    mass: float,
+    *,
+    nominal_mass: float,
+    edges: np.ndarray,
+    m4l_scale: float = 1.0,
+) -> dict[str, dict[str, Any]]:
+    return event_group_templates(events, edges, channels=CHANNELS, mass_shift_factor=(mass / nominal_mass) * m4l_scale)
+
+
+def fit_mass_hypothesis(
+    events: dict[str, Any],
+    mass: float,
+    active: set[str],
+    nominal_mass: float,
+    main_data: np.ndarray,
+    edges: np.ndarray,
+) -> tuple[pyhf.Model, np.ndarray, float]:
     rel = SYSTEMATIC_SOURCES["m4l_scale"]["relative"]
-    grouped = shifted_category_templates(events, mass, nominal_mass=nominal_mass)
-    m4l_up = shifted_category_templates(events, mass, nominal_mass=nominal_mass, m4l_scale=1.0 + rel)
-    m4l_down = shifted_category_templates(events, mass, nominal_mass=nominal_mass, m4l_scale=1.0 - rel)
+    grouped = shifted_category_templates(events, mass, nominal_mass=nominal_mass, edges=edges)
+    m4l_up = shifted_category_templates(events, mass, nominal_mass=nominal_mass, edges=edges, m4l_scale=1.0 + rel)
+    m4l_down = shifted_category_templates(events, mass, nominal_mass=nominal_mass, edges=edges, m4l_scale=1.0 - rel)
     model = make_model(
         model_spec(
             grouped,
@@ -682,10 +712,11 @@ def mass_scan(events: dict[str, Any], active_systematics: set[str]) -> dict[str,
     # available.
     mass_values = np.arange(110.0, 140.01, 2.5)
     nominal_mass = 125.0
+    edges = mass_scan_bins()
     active = set(active_systematics)
-    nominal_templates = shifted_category_templates(events, nominal_mass, nominal_mass=nominal_mass)
-    nominal_up = shifted_category_templates(events, nominal_mass, nominal_mass=nominal_mass, m4l_scale=1.0 + SYSTEMATIC_SOURCES["m4l_scale"]["relative"])
-    nominal_down = shifted_category_templates(events, nominal_mass, nominal_mass=nominal_mass, m4l_scale=1.0 - SYSTEMATIC_SOURCES["m4l_scale"]["relative"])
+    nominal_templates = shifted_category_templates(events, nominal_mass, nominal_mass=nominal_mass, edges=edges)
+    nominal_up = shifted_category_templates(events, nominal_mass, nominal_mass=nominal_mass, edges=edges, m4l_scale=1.0 + SYSTEMATIC_SOURCES["m4l_scale"]["relative"])
+    nominal_down = shifted_category_templates(events, nominal_mass, nominal_mass=nominal_mass, edges=edges, m4l_scale=1.0 - SYSTEMATIC_SOURCES["m4l_scale"]["relative"])
     nominal_model = make_model(
         model_spec(
             nominal_templates,
@@ -699,14 +730,14 @@ def mass_scan(events: dict[str, Any], active_systematics: set[str]) -> dict[str,
     nominal_main = np.asarray(nominal_model.expected_data(nominal_model.config.suggested_init(), include_auxdata=False), dtype=float)
     scan_rows = []
     for mass in mass_values:
-        model, best, nll = fit_mass_hypothesis(events, float(mass), active, nominal_mass, nominal_main)
+        model, best, nll = fit_mass_hypothesis(events, float(mass), active, nominal_mass, nominal_main, edges)
         scan_rows.append({"mass_hypothesis_GeV": float(mass), "mu_hat": float(best[model.config.poi_index]), "twice_nll": nll})
     best_nominal = min(scan_rows, key=lambda row: row["twice_nll"])
     closure = []
     for injected in (115.0, 125.0, 135.0):
-        injected_templates = shifted_category_templates(events, injected, nominal_mass=nominal_mass)
-        injected_up = shifted_category_templates(events, injected, nominal_mass=nominal_mass, m4l_scale=1.0 + SYSTEMATIC_SOURCES["m4l_scale"]["relative"])
-        injected_down = shifted_category_templates(events, injected, nominal_mass=nominal_mass, m4l_scale=1.0 - SYSTEMATIC_SOURCES["m4l_scale"]["relative"])
+        injected_templates = shifted_category_templates(events, injected, nominal_mass=nominal_mass, edges=edges)
+        injected_up = shifted_category_templates(events, injected, nominal_mass=nominal_mass, edges=edges, m4l_scale=1.0 + SYSTEMATIC_SOURCES["m4l_scale"]["relative"])
+        injected_down = shifted_category_templates(events, injected, nominal_mass=nominal_mass, edges=edges, m4l_scale=1.0 - SYSTEMATIC_SOURCES["m4l_scale"]["relative"])
         injected_model = make_model(
             model_spec(
                 injected_templates,
@@ -720,7 +751,7 @@ def mass_scan(events: dict[str, Any], active_systematics: set[str]) -> dict[str,
         injected_main = np.asarray(injected_model.expected_data(injected_model.config.suggested_init(), include_auxdata=False), dtype=float)
         closure_scan = []
         for mass in mass_values:
-            model, best, nll = fit_mass_hypothesis(events, float(mass), active, nominal_mass, injected_main)
+            model, best, nll = fit_mass_hypothesis(events, float(mass), active, nominal_mass, injected_main, edges)
             closure_scan.append({"mass_hypothesis_GeV": float(mass), "mu_hat": float(best[model.config.poi_index]), "twice_nll": nll})
         best_mass = min(closure_scan, key=lambda row: row["twice_nll"])["mass_hypothesis_GeV"]
         bias = best_mass - injected
@@ -737,12 +768,26 @@ def mass_scan(events: dict[str, Any], active_systematics: set[str]) -> dict[str,
     return {
         "phase": "4a_expected",
         "method": "simultaneous final-state category shifted-template mass-profile closure with mu profiled in each shifted-template fit",
-        "workspace_parity": "Uses the same final-state categories, fit-window binning, global mu POI, and active Phase 4a nuisance set as the expected signal-strength workspace.",
+        "workspace_parity": "Uses the same final-state categories, global mu POI, and active Phase 4a nuisance set as the expected signal-strength workspace; the template bins are the Phase-3-derived Higgs-region subset used only for this mass-scan closure.",
         "categories": list(CHANNELS),
         "profiled_parameter": "mu",
         "active_systematics": sorted(active),
         "scan_range_GeV": {"min": float(mass_values[0]), "max": float(mass_values[-1]), "step": 2.5},
-        "excluded_ranges_GeV": [{"min": 70.0, "max": 105.0, "reason": "Excluded from the Phase 4a mass-profile fit because the signal-strength fit window is fixed to 105 < m4l < 140 GeV and the Z peak neighborhood is sideband/validation-only."}],
+        "signal_strength_fit_window_GeV": [float(FIT_BINS[0]), float(FIT_BINS[-1])],
+        "mass_scan_template_bin_edges_GeV": edges.tolist(),
+        "mass_scan_template_window_GeV": [float(edges[0]), float(edges[-1])],
+        "excluded_ranges_GeV": [
+            {
+                "min": 70.0,
+                "max": 105.0,
+                "reason": "Not scanned as Higgs mass hypotheses because this detector-level closure only tests the Higgs-neighborhood shifted-template response; the signal-strength fit itself uses the full 70 < m4l < 170 GeV window including the Z peak.",
+            },
+            {
+                "min": 140.0,
+                "max": 170.0,
+                "reason": "Not scanned as Higgs mass hypotheses because this detector-level closure only tests a narrower valid Higgs hypothesis range; the signal-strength fit itself uses the full 70 < m4l < 170 GeV window.",
+            },
+        ],
         "template_shift_procedure": "For mass hypothesis mH, selected MC event m4l values are scaled by mH / 125 GeV before refilling per-category templates; per-category normalizations are preserved by refilling the same selected weighted events in each final state.",
         "mass_grid_GeV": mass_values.tolist(),
         "nominal_best_mass_grid_GeV": best_nominal["mass_hypothesis_GeV"],

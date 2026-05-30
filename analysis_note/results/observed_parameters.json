@@ -1,16 +1,16 @@
 {
-  "created_utc": "2026-05-30T06:25:18+00:00",
+  "created_utc": "2026-05-30T06:43:12+00:00",
   "expected_partial_observed_comparison": {
     "any_comparison_over_2sigma": false,
     "compatible_with_expected_2sigma": true,
     "compatible_with_partial_2sigma": true,
     "expected_mu": 1.0,
-    "expected_uncertainty": 0.5747382435005995,
+    "expected_uncertainty": 0.5687377493555965,
     "observed_mu": 2.4776040008517612,
     "observed_uncertainty": 0.7763376700295836,
     "partial_mu": 0.0,
     "partial_uncertainty": 1.3548619813595435,
-    "pull_vs_expected": 1.5297187786595783,
+    "pull_vs_expected": 1.5353747369536923,
     "pull_vs_partial": 1.5866596142632463
   },
   "expected_vs_observed": {
@@ -18,12 +18,12 @@
     "compatible_with_expected_2sigma": true,
     "compatible_with_partial_2sigma": true,
     "expected_mu": 1.0,
-    "expected_uncertainty": 0.5747382435005995,
+    "expected_uncertainty": 0.5687377493555965,
     "observed_mu": 2.4776040008517612,
     "observed_uncertainty": 0.7763376700295836,
     "partial_mu": 0.0,
     "partial_uncertainty": 1.3548619813595435,
-    "pull_vs_expected": 1.5297187786595783,
+    "pull_vs_expected": 1.5353747369536923,
     "pull_vs_partial": 1.5866596142632463
   },
   "fit_model": "pyhf simultaneous final-state template likelihood",

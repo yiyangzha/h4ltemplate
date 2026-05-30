@@ -1,7 +1,7 @@
 [
   {
     "caption": "Phase 4c fit-window 70-170 GeV four-lepton mass distribution for all 203 selected data events compared with MC scaled to full-data luminosity; the ratio uses no data-integral normalization.",
-    "created_utc": "2026-05-30T06:27:23+00:00",
+    "created_utc": "2026-05-30T06:45:09+00:00",
     "description": "Phase 4c fit-window 70-170 GeV four-lepton mass distribution for all 203 selected data events compared with MC scaled to full-data luminosity; the ratio uses no data-integral normalization.",
     "id": "observed_m4l_broad_inclusive",
     "metadata": {
@@ -18,7 +18,7 @@
   },
   {
     "caption": "Phase 4c fit-window 70-170 GeV final-state category templates for full data and MC scaled to full-data luminosity.",
-    "created_utc": "2026-05-30T06:27:25+00:00",
+    "created_utc": "2026-05-30T06:45:10+00:00",
     "description": "Phase 4c fit-window 70-170 GeV final-state category templates for full data and MC scaled to full-data luminosity.",
     "id": "observed_m4l_70_170_categories",
     "metadata": {
@@ -38,7 +38,7 @@
   },
   {
     "caption": "Comparison of Phase 4a expected, Phase 4b 10% observed, and Phase 4c full observed signal-strength results.",
-    "created_utc": "2026-05-30T06:27:25+00:00",
+    "created_utc": "2026-05-30T06:45:10+00:00",
     "description": "Comparison of Phase 4a expected, Phase 4b 10% observed, and Phase 4c full observed signal-strength results.",
     "id": "observed_expected_mu_comparison",
     "metadata": {
@@ -47,12 +47,12 @@
         "compatible_with_expected_2sigma": true,
         "compatible_with_partial_2sigma": true,
         "expected_mu": 1.0,
-        "expected_uncertainty": 0.5747382435005995,
+        "expected_uncertainty": 0.5687377493555965,
         "observed_mu": 2.4776040008517612,
         "observed_uncertainty": 0.7763376700295836,
         "partial_mu": 0.0,
         "partial_uncertainty": 1.3548619813595435,
-        "pull_vs_expected": 1.5297187786595783,
+        "pull_vs_expected": 1.5353747369536923,
         "pull_vs_partial": 1.5866596142632463
       }
     },
@@ -62,7 +62,7 @@
   },
   {
     "caption": "Observed full-data nuisance best-fit values for the nominal final-state workspace; grouped MC-stat parameters are omitted from the display.",
-    "created_utc": "2026-05-30T06:27:25+00:00",
+    "created_utc": "2026-05-30T06:45:11+00:00",
     "description": "Observed full-data nuisance best-fit values for the nominal final-state workspace; grouped MC-stat parameters are omitted from the display.",
     "id": "observed_nuisance_pulls",
     "metadata": {
@@ -85,7 +85,7 @@
   },
   {
     "caption": "Largest fixed-nuisance impacts on the full observed-data signal-strength fit.",
-    "created_utc": "2026-05-30T06:27:26+00:00",
+    "created_utc": "2026-05-30T06:45:11+00:00",
     "description": "Largest fixed-nuisance impacts on the full observed-data signal-strength fit.",
     "id": "observed_nuisance_impacts",
     "metadata": {
@@ -97,7 +97,7 @@
   },
   {
     "caption": "Low-count stability check comparing nominal final-state and merged/inclusive fallback binnings on all selected full-data events.",
-    "created_utc": "2026-05-30T06:27:26+00:00",
+    "created_utc": "2026-05-30T06:45:11+00:00",
     "description": "Low-count stability check comparing nominal final-state and merged/inclusive fallback binnings on all selected full-data events.",
     "id": "observed_binning_stability",
     "metadata": {
@@ -217,7 +217,7 @@
   },
   {
     "caption": "Deterministic half-split proxy consistency check for the full observed-data subsample; true CMS run-period metadata is unavailable.",
-    "created_utc": "2026-05-30T06:27:26+00:00",
+    "created_utc": "2026-05-30T06:45:11+00:00",
     "description": "Deterministic half-split proxy consistency check for the full observed-data subsample; true CMS run-period metadata is unavailable.",
     "id": "observed_split_consistency",
     "metadata": {
@@ -255,7 +255,7 @@
   },
   {
     "caption": "Observed uncertainty breakdown and 50% relative-uncertainty viability threshold for the full-data signal-strength result.",
-    "created_utc": "2026-05-30T06:27:26+00:00",
+    "created_utc": "2026-05-30T06:45:12+00:00",
     "description": "Observed uncertainty breakdown and 50% relative-uncertainty viability threshold for the full-data signal-strength result.",
     "id": "observed_uncertainty_viability",
     "metadata": {
@@ -286,7 +286,7 @@
   },
   {
     "caption": "Observed full-data shifted-template mass scan with signal strength profiled at each mass hypothesis; the Z-peak region is excluded from Higgs mass hypotheses and the result is an approximate detector-level diagnostic.",
-    "created_utc": "2026-05-30T06:27:27+00:00",
+    "created_utc": "2026-05-30T06:45:12+00:00",
     "description": "Observed full-data shifted-template mass scan with signal strength profiled at each mass hypothesis; the Z-peak region is excluded from Higgs mass hypotheses and the result is an approximate detector-level diagnostic.",
     "id": "observed_mass_scan",
     "metadata": {

@@ -242,7 +242,12 @@
     {
       "max": 105.0,
       "min": 70.0,
-      "reason": "Excluded from the Phase 4a mass-profile fit because the signal-strength fit window is fixed to 105 < m4l < 140 GeV and the Z peak neighborhood is sideband/validation-only."
+      "reason": "Not scanned as Higgs mass hypotheses because this detector-level closure only tests the Higgs-neighborhood shifted-template response; the signal-strength fit itself uses the full 70 < m4l < 170 GeV window including the Z peak."
+    },
+    {
+      "max": 170.0,
+      "min": 140.0,
+      "reason": "Not scanned as Higgs mass hypotheses because this detector-level closure only tests a narrower valid Higgs hypothesis range; the signal-strength fit itself uses the full 70 < m4l < 170 GeV window."
     }
   ],
   "limitations": "Uses shifted detector-level M125 templates because independent mass-hypothesis MC and official lepton calibration/morphing inputs are unavailable in the sandbox.",
@@ -259,6 +264,19 @@
     132.5,
     135.0,
     137.5,
+    140.0
+  ],
+  "mass_scan_template_bin_edges_GeV": [
+    105.0,
+    112.0,
+    118.0,
+    122.0,
+    126.0,
+    130.0,
+    140.0
+  ],
+  "mass_scan_template_window_GeV": [
+    105.0,
     140.0
   ],
   "method": "simultaneous final-state category shifted-template mass-profile closure with mu profiled in each shifted-template fit",
@@ -339,6 +357,10 @@
       "twice_nll": 130.60914029141924
     }
   ],
+  "signal_strength_fit_window_GeV": [
+    70.0,
+    170.0
+  ],
   "template_shift_procedure": "For mass hypothesis mH, selected MC event m4l values are scaled by mH / 125 GeV before refilling per-category templates; per-category normalizations are preserved by refilling the same selected weighted events in each final state.",
-  "workspace_parity": "Uses the same final-state categories, fit-window binning, global mu POI, and active Phase 4a nuisance set as the expected signal-strength workspace."
+  "workspace_parity": "Uses the same final-state categories, global mu POI, and active Phase 4a nuisance set as the expected signal-strength workspace; the template bins are the Phase-3-derived Higgs-region subset used only for this mass-scan closure."
 }

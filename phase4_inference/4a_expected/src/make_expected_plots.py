@@ -145,15 +145,14 @@ def plot_expected_m4l_broad() -> int:
     safe_mpl_magic(ax)
     mh.label.exp_label(exp="CMS", text="", loc=2, data=True, llabel="Open Simulation", rlabel=r"$13$ TeV, 10 fb$^{-1}$", ax=ax)
     caption = (
-        "Expected inclusive four-lepton mass distribution in the broad validation range 70 < m4l < 170 GeV. "
-        "The broad display is used for validation/sideband context; the signal-strength fit window remains 105 < m4l < 140 GeV."
+        "Expected inclusive four-lepton mass distribution in the signal-strength fit and display range 70 < m4l < 170 GeV, including the Z peak neighborhood for broad-window validation context."
     )
     save_and_register(
         fig,
         "expected_m4l_broad_inclusive",
         caption,
         "phase3_selection/outputs/fit_inputs_s1.json",
-        {"window": "broad_window", "display_range_GeV": [70.0, 170.0], "fit_window_GeV": [105.0, 140.0]},
+        {"window": "fit_window", "display_range_GeV": [float(edges[0]), float(edges[-1])], "fit_window_GeV": [float(edges[0]), float(edges[-1])]},
     )
     return 1
 
