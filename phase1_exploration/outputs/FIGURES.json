@@ -1,7 +1,7 @@
 [
   {
     "caption": "$m_{4\\ell}$ [GeV] small-slice shape comparison. The distributions use at most 1000 entries per primary ROOT file and are area-normalized only for Phase 1 shape reconnaissance, not for yield validation. Large differences here flag candidate variables for Phase 2/3 data-MC quality checks rather than final selection conclusions.",
-    "created_utc": "2026-05-29T19:32:23.114210+00:00",
+    "created_utc": "2026-05-30T00:11:16.243751+00:00",
     "description": "$m_{4\\ell}$ [GeV] small-slice shape comparison. The distributions use at most 1000 entries per primary ROOT file and are area-normalized only for Phase 1 shape reconnaissance, not for yield validation. Large differences here flag candidate variables for Phase 2/3 data-MC quality checks rather than final selection conclusions.",
     "id": "phase1_m4l_small_slice_shapes",
     "observable": "m4l",
@@ -21,7 +21,7 @@
   },
   {
     "caption": "$m_{Z1}$ [GeV] small-slice shape comparison. The distributions use at most 1000 entries per primary ROOT file and are area-normalized only for Phase 1 shape reconnaissance, not for yield validation. Large differences here flag candidate variables for Phase 2/3 data-MC quality checks rather than final selection conclusions.",
-    "created_utc": "2026-05-29T19:32:24.170114+00:00",
+    "created_utc": "2026-05-30T00:11:17.303172+00:00",
     "description": "$m_{Z1}$ [GeV] small-slice shape comparison. The distributions use at most 1000 entries per primary ROOT file and are area-normalized only for Phase 1 shape reconnaissance, not for yield validation. Large differences here flag candidate variables for Phase 2/3 data-MC quality checks rather than final selection conclusions.",
     "id": "phase1_z1_mass_small_slice_shapes",
     "observable": "z1_mass",
@@ -41,7 +41,7 @@
   },
   {
     "caption": "$m_{Z2}$ [GeV] small-slice shape comparison. The distributions use at most 1000 entries per primary ROOT file and are area-normalized only for Phase 1 shape reconnaissance, not for yield validation. Large differences here flag candidate variables for Phase 2/3 data-MC quality checks rather than final selection conclusions.",
-    "created_utc": "2026-05-29T19:32:25.203284+00:00",
+    "created_utc": "2026-05-30T00:11:18.316283+00:00",
     "description": "$m_{Z2}$ [GeV] small-slice shape comparison. The distributions use at most 1000 entries per primary ROOT file and are area-normalized only for Phase 1 shape reconnaissance, not for yield validation. Large differences here flag candidate variables for Phase 2/3 data-MC quality checks rather than final selection conclusions.",
     "id": "phase1_z2_mass_small_slice_shapes",
     "observable": "z2_mass",
@@ -61,7 +61,7 @@
   },
   {
     "caption": "$p_T^{4\\ell}$ [GeV] small-slice shape comparison. The distributions use at most 1000 entries per primary ROOT file and are area-normalized only for Phase 1 shape reconnaissance, not for yield validation. Large differences here flag candidate variables for Phase 2/3 data-MC quality checks rather than final selection conclusions.",
-    "created_utc": "2026-05-29T19:32:26.073486+00:00",
+    "created_utc": "2026-05-30T00:11:19.149425+00:00",
     "description": "$p_T^{4\\ell}$ [GeV] small-slice shape comparison. The distributions use at most 1000 entries per primary ROOT file and are area-normalized only for Phase 1 shape reconnaissance, not for yield validation. Large differences here flag candidate variables for Phase 2/3 data-MC quality checks rather than final selection conclusions.",
     "id": "phase1_pt4l_small_slice_shapes",
     "observable": "pt4l",
@@ -81,7 +81,7 @@
   },
   {
     "caption": "$\\eta_{4\\ell}$ small-slice shape comparison. The distributions use at most 1000 entries per primary ROOT file and are area-normalized only for Phase 1 shape reconnaissance, not for yield validation. Large differences here flag candidate variables for Phase 2/3 data-MC quality checks rather than final selection conclusions.",
-    "created_utc": "2026-05-29T19:32:27.124648+00:00",
+    "created_utc": "2026-05-30T00:11:20.203990+00:00",
     "description": "$\\eta_{4\\ell}$ small-slice shape comparison. The distributions use at most 1000 entries per primary ROOT file and are area-normalized only for Phase 1 shape reconnaissance, not for yield validation. Large differences here flag candidate variables for Phase 2/3 data-MC quality checks rather than final selection conclusions.",
     "id": "phase1_eta4l_small_slice_shapes",
     "observable": "eta4l",
@@ -101,7 +101,7 @@
   },
   {
     "caption": "Leading lepton $p_T$ [GeV] small-slice shape comparison. The distributions use at most 1000 entries per primary ROOT file and are area-normalized only for Phase 1 shape reconnaissance, not for yield validation. Large differences here flag candidate variables for Phase 2/3 data-MC quality checks rather than final selection conclusions.",
-    "created_utc": "2026-05-29T19:32:28.017947+00:00",
+    "created_utc": "2026-05-30T00:11:21.085712+00:00",
     "description": "Leading lepton $p_T$ [GeV] small-slice shape comparison. The distributions use at most 1000 entries per primary ROOT file and are area-normalized only for Phase 1 shape reconnaissance, not for yield validation. Large differences here flag candidate variables for Phase 2/3 data-MC quality checks rather than final selection conclusions.",
     "id": "phase1_leading_lepton_pt_small_slice_shapes",
     "observable": "leading_lepton_pt",

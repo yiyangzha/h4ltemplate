@@ -1,5 +1,5 @@
 {
-  "created_utc": "2026-05-29T23:44:21+00:00",
+  "created_utc": "2026-05-30T00:12:12+00:00",
   "discarded_without_gate": {
     "m4l": "Excluded from classifier inputs to avoid mass sculpting in the mass-shape fit.",
     "max_pf_rel_iso03": "Not a Phase 2 default classifier input; miniRelIso tails were flagged in Phase 1 and isolation is kept out of S2.",

@@ -318,6 +318,22 @@
   have PASS validation on the final committed image set. Summary:
   `phase3_selection/review/validation/PERFIG_VALIDATION_SUMMARY_2026-05-29.md`.
 
+## 2026-05-29 — Phase 3 review PASS boundary
+
+- Phase 3 initial review returned ITERATE: plot label issue in
+  `sideband_dy_ttbar_diagnostics`, low-count final-state binning handoff
+  wording, non-standard JSON `NaN` values, and missing cut-motivation
+  diagnostics.
+- Executor `magnus_d784` resolved all review findings in commit `01b0066`.
+- Verification arbiter `sally_2377` marked all targeted findings FIXED in
+  `PHASE3_FIX_VERIFICATION_sally_2377_2026-05-29.md`.
+- Fresh Phase 3 critical reviewer `ursula_0b8b` returned PASS with no A/B
+  findings. Fresh Level 3 plot validator `vera_6cf0` returned PASS for all
+  30 registered figures.
+- Regression/maximality check written to `REGRESSION_CHECK_phase3.md`; no
+  regression trigger remains. Phase 4a can begin with a conditional low-count
+  final-state handoff.
+
 ## 2026-05-29 — Phase 3 VBF recovery/downscope gate
 
 - Checked primary and local branch inventories plus ntuplizer provenance for jet/VBF content. Decision: formal VBF downscope; no lepton-only category will be labeled VBF.
@@ -517,6 +533,74 @@
 ## 2026-05-29 — Phase 3 selection artifact
 
 - Built `phase3_selection/outputs/SELECTION.md` from Phase 3 JSON/NPZ outputs.
+
+## 2026-05-29 — Phase 3 baseline selection and provenance
+
+- Built Phase 3 primary-path provenance, MC normalization, cutflow, cut-motivation diagnostics, sideband diagnostics, S1 fit-ready histograms, and compact broad-window event arrays using primary prompt ROOT files only.
+
+## 2026-05-29 — Phase 3 VBF recovery/downscope gate
+
+- Checked primary and local branch inventories plus ntuplizer provenance for jet/VBF content. Decision: formal VBF downscope; no lepton-only category will be labeled VBF.
+
+## 2026-05-29 — Phase 3 angular reconstruction closure
+
+- Recomputed broad-window four-lepton and Z-candidate masses from retained lepton four-vectors, computed detector-level angular candidates, and wrote physical-range closure outputs.
+
+## 2026-05-29 — Phase 3 input-variable modeling gate
+
+- Computed D7 data/MC shape gates for 14 candidate S2 variables; 2 passed before classifier training.
+
+## 2026-05-29 — Phase 3 S2 classifier attempt
+
+- Trained logistic, BDT, and small NN alternatives with fixed seed; best model `small_nn` promotion decision: False.
+
+## 2026-05-29 — Phase 3 approach comparison
+
+- Compared S1 and S2 on common expected precision and validation gates; selected `S1_reference_like_final_state_categories`.
+
+## 2026-05-29 — Phase 3 input-validation figures
+
+- Produced 14 D7 input-validation figures and updated `FIGURES.json`.
+
+## 2026-05-29 — Phase 3 selection figures
+
+- Produced 16 selection/sideband/MVA diagnostic figures and updated `FIGURES.json`.
+
+## 2026-05-29 — Phase 3 selection artifact
+
+- Built `phase3_selection/outputs/SELECTION.md` from Phase 3 JSON/NPZ outputs.
+
+## 2026-05-29 — Phase 3 commitment update
+
+- Updated `COMMITMENTS.md` for Phase 3-resolved proof artifacts and formal VBF downscope items.
+
+## 2026-05-29 — Phase 1 metadata inventory
+
+- Inspected 24 ROOT files structurally with uproot and wrote `phase1_exploration/outputs/root_metadata.json`.
+
+## 2026-05-29 — Phase 1 small-slice reconnaissance
+
+- Surveyed branch ranges, NaN/inf counts, and integer/flag unique values on at most 1000 entries per primary tree.
+
+## 2026-05-29 — Phase 1 coverage check
+
+- Summed MC Metadata generated-event counts where available and computed prompt-luminosity nominal MC weights for downstream validation.
+
+## 2026-05-29 — Phase 1 histogram summaries
+
+- Produced small-slice histogram summaries for available 4l mass, Z mass, jet, and discriminant candidate branches.
+
+## 2026-05-29 — Phase 1 exploration figures
+
+- Produced 6 small-slice exploration figures and updated `phase1_exploration/outputs/FIGURES.json`.
+
+## 2026-05-29 — Phase 1 PDF toolchain test
+
+- Ran `pixi run build-pdf /sandbox/work/jfc/analyses/higgs_4lep_mass/analysis_note/test_build.tex`; passed=True; temporary stub removed.
+
+## 2026-05-29 — Phase 1 artifacts built
+
+- Built Phase 1 markdown artifacts from metadata, small-slice surveys, coverage checks, figure registry, and public literature source notes.
 
 ## 2026-05-29 — Phase 3 baseline selection and provenance
 

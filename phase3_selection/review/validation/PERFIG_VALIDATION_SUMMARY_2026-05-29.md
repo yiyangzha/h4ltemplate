@@ -5,8 +5,8 @@ Scope: Level 2 VERIFY plot validation for `phase3_selection/outputs/FIGURES.json
 
 ## Registry
 
-- Final registry entries: 29
-- Final registered files: 29 PNG + 29 PDF
+- Final registry entries: 30 after review iteration commit `01b0066`
+- Final registered files: 30 PNG + 30 PDF
 - Final smoke test: no missing files, no zero-byte files, no stale PNGs, no orphan PNGs
 - Final `pixi run lint-plots`: PASS, no plotting violations in 20 files
 
@@ -29,10 +29,12 @@ Scope: Level 2 VERIFY plot validation for `phase3_selection/outputs/FIGURES.json
 
 ## Final PASS Coverage
 
-All 29 final registry figures have PASS validation on the final committed image
+All 30 final registry figures have PASS validation on the final committed image
 set. Some older `PERFIG_FINAL_*` files record pre-fix FAIL verdicts; those are
 superseded by the corresponding `PERFIG_FINAL_RECHECK_*` PASS files listed
-below.
+below. The fresh Level 3 plot validator report
+`PHASE3_PLOT_VALIDATION2_vera_6cf0_2026-05-29.md` independently inspected all
+30 figures after the review-iteration fixes.
 
 Final direct PASS reports:
 
@@ -55,6 +57,7 @@ Final direct PASS reports:
 - `category_viability_s1`
 - `approach_comparison_mu_proxy`
 - `sideband_dy_ttbar_diagnostics`
+- `cut_motivation_efficiencies`
 
 Final recheck PASS reports after fixes:
 

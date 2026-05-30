@@ -1,5 +1,5 @@
 {
-  "created_utc": "2026-05-29T23:44:15+00:00",
+  "created_utc": "2026-05-30T00:12:06+00:00",
   "formula_note": "Angles are detector-level candidates reconstructed from retained lepton four-vectors; use requires data/MC input-validation gates.",
   "overall_pass": true,
   "samples": [
