@@ -1058,3 +1058,33 @@
 
 - Marked remaining feasible final commitments resolved or formally downscoped.
 - Remaining unchecked top-level checklist items after update: 0.
+
+## 2026-05-30 — Phase 3 MVA regression repair
+
+- Restored `phase3_selection/src/train_mva.py` with weighted `80 < m4l < 170 GeV` training and broad-window `70 < m4l < 170 GeV` evaluation.
+- Nominal repaired feature set: pt4l, lead_abs_eta, sublead_abs_eta, cos_theta1, cos_theta2, channel_code.
+- Best repaired model `bdt_mass_safe` reached weighted AUC 0.7300.
+
+## 2026-05-30 — Phase 3 MVA regression repair
+
+- Restored `phase3_selection/src/train_mva.py` with weighted `80 < m4l < 170 GeV` training and evaluation.
+- Best nominal repaired model `bdt_mass_safe` used: pt4l, eta4l, lead_lepton_pt, sublead_lepton_pt, lead_abs_eta, sublead_abs_eta, cos_theta_star, cos_theta1, cos_theta2, phi, phi1, channel_code.
+- Weighted AUC = 0.7929; S2 promotion = False.
+
+## 2026-05-29 — Phase 3 approach comparison
+
+- Compared S1 and S2 on common expected precision and validation gates; selected `S1_reference_like_final_state_categories`.
+
+## 2026-05-29 — Phase 3 approach comparison
+
+- Compared S1 and S2 on common expected precision and validation gates; selected `S1_reference_like_final_state_categories`.
+
+## 2026-05-30 — Phase 3 MVA regression repair
+
+- Restored `phase3_selection/src/train_mva.py` with weighted `80 < m4l < 170 GeV` training and evaluation.
+- Best nominal repaired model `bdt_mass_safe` used: pt4l, eta4l, lead_lepton_pt, sublead_lepton_pt, lead_abs_eta, sublead_abs_eta, cos_theta_star, cos_theta1, cos_theta2, phi, phi1, channel_code.
+- Weighted AUC = 0.7929; S2 promotion = False.
+
+## 2026-05-29 — Phase 3 approach comparison
+
+- Compared S1 and S2 on common expected precision and validation gates; selected `S1_reference_like_final_state_categories`.

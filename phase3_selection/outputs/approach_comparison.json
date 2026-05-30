@@ -210,16 +210,16 @@
       "observed_data": 69.0
     },
     "S2_angular_kinematic_classifier_categories": {
-      "best_high_score_mu_uncertainty_proxy": 1.2025396225702243,
-      "best_model": "small_nn",
+      "best_high_score_mu_uncertainty_proxy": 1.4744959927649335,
+      "best_model": "bdt_mass_safe",
       "promote_s2": false,
-      "reason": "S2 promoted only if best model passes score/viability/overtraining gates and improves expected mu uncertainty proxy by >10%.",
-      "relative_improvement": -0.23586239385184005,
-      "s1_mu_uncertainty_proxy": 0.9730368272006741
+      "reason": "S2 is promoted only if the repaired mass-safe classifier passes score-shape, broad-window low-stat, mass-sculpting, and overtraining gates while improving the 80 < m4l < 170 GeV precision proxy by more than 10%.",
+      "relative_improvement": 0.1902098976350023,
+      "s1_mu_uncertainty_proxy": 1.8208372619752422
     }
   },
   "common_metric": "Asimov counting precision proxy sqrt(S+B)/S in 105 < m4l < 140 GeV, plus broad-window 70 < m4l < 170 GeV MVA D7/GoF/category gates",
-  "created_utc": "2026-05-30T03:08:59+00:00",
+  "created_utc": "2026-05-30T05:55:52+00:00",
   "selected_configuration": "S1_reference_like_final_state_categories",
   "selection_reason": "S1 retained because S2 did not pass all input, score-shape, low-stat, overtraining, or >10% improvement gates; final-state binning is a conditional low-count Phase 4 handoff."
 }

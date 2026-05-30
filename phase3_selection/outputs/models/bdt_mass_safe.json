@@ -1,0 +1,18 @@
+{
+  "description": "Weighted histogram gradient-boosted classifier on the repaired broad-window mass-safe feature set.",
+  "features": [
+    "pt4l",
+    "eta4l",
+    "lead_lepton_pt",
+    "sublead_lepton_pt",
+    "lead_abs_eta",
+    "sublead_abs_eta",
+    "cos_theta_star",
+    "cos_theta1",
+    "cos_theta2",
+    "phi",
+    "phi1",
+    "channel_code"
+  ],
+  "model": "bdt_mass_safe"
+}

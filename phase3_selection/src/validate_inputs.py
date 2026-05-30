@@ -2,9 +2,11 @@ from __future__ import annotations
 
 import numpy as np
 from scipy.stats import chi2
+from sklearn.metrics import roc_auc_score
 
 from selection_common import (
     OUT,
+    TRAINING_WINDOW,
     VARIABLE_LABELS,
     append_experiment,
     append_session,
@@ -15,6 +17,15 @@ from selection_common import (
     setup_logging,
     write_json,
 )
+
+NOMINAL_MASS_SAFE_FEATURES = {
+    "pt4l",
+    "lead_abs_eta",
+    "sublead_abs_eta",
+    "cos_theta1",
+    "cos_theta2",
+    "channel_code",
+}
 
 
 VARIABLE_BINS = {
@@ -77,6 +88,7 @@ def main() -> None:
     events = np.load(OUT / "selection_events.npz", allow_pickle=True)
     angles = np.load(OUT / "angular_variables.npz", allow_pickle=True)
     is_data = events["is_data"].astype(bool)
+    is_signal = events["is_signal"].astype(bool)
     weights = events["weight"].astype(float)
     payload = {"created_utc": now(), "variables": {}, "discarded_without_gate": {}}
     for name, edges in VARIABLE_BINS.items():
@@ -84,14 +96,26 @@ def main() -> None:
         source = angles if name in angles.files else events
         values = source[name].astype(float)
         result = hist_pair(values, is_data, weights, edges)
+        train_mc = (~is_data) & (events["m4l"].astype(float) > TRAINING_WINDOW[0]) & (events["m4l"].astype(float) < TRAINING_WINDOW[1])
+        labels = is_signal[train_mc].astype(int)
+        result["weighted_univariate_auc"] = float(
+            max(
+                roc_auc_score(labels, values[train_mc], sample_weight=weights[train_mc]),
+                roc_auc_score(labels, -values[train_mc], sample_weight=weights[train_mc]),
+            )
+        )
         result["label"] = VARIABLE_LABELS.get(name, name)
         result["source"] = "angular_variables.npz" if source is angles else "selection_events.npz"
+        result["nominal_mass_safe_candidate"] = name in NOMINAL_MASS_SAFE_FEATURES
         payload["variables"][name] = result
     payload["discarded_without_gate"] = {
         "m4l": "Excluded from classifier inputs to avoid mass sculpting in the mass-shape fit.",
         "max_pf_rel_iso03": "Not a Phase 2 default classifier input; miniRelIso tails were flagged in Phase 1 and isolation is kept out of S2.",
         "max_sip3d": "Not used in S2 after baseline object selection; retained only as diagnostic if Phase 4 needs lepton efficiency envelopes.",
         "pvNdof": "Excluded by Phase 2 [A6] unless calibrated; not promoted to classifier input.",
+        "mZ1": "Strongly discriminating but not used in the nominal repaired MVA because the broad-window D7 comparison is poor and it drives clear score-mass correlation in fast diagnostics.",
+        "mZ2": "Strongly discriminating but not used in the nominal repaired MVA because it increases score-mass correlation and broad-window modeling stress; retained only as a diagnostic variable.",
+        "y4l": "Excluded because the retained branch shows pathological broad-window data/MC disagreement relative to eta4l while adding negligible discrimination beyond eta-based inputs.",
     }
     write_json(OUT / "input_validation.json", payload)
     passed = [name for name, item in payload["variables"].items() if item["passes_d7_gate"]]

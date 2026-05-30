@@ -25,6 +25,7 @@ SESSION_LOG = LOG_DIR / "executor_magnus_d784_20260529T204533Z.md"
 LUMI_PB = 10_000.0
 FIT_WINDOW = (105.0, 140.0)
 BROAD_WINDOW = (70.0, 170.0)
+TRAINING_WINDOW = (80.0, 170.0)
 LOW_SIDEBAND = (70.0, 105.0)
 HIGH_SIDEBAND = (140.0, 170.0)
 RANDOM_SEED = 42
@@ -138,13 +139,14 @@ VARIABLE_LABELS = {
     "phi": r"$\Phi$ [rad]",
     "phi1": r"$\Phi_1$ [rad]",
     "classifier_score": "Classifier score",
+    "channel_code": "Final-state channel",
 }
 
 MODEL_DISPLAY_NAMES = {
-    "bdt": "BDT",
-    "bdt_tuned": "tuned BDT",
-    "logistic": "logistic",
-    "small_nn": "small NN",
+    "bdt_mass_safe": "mass-safe BDT",
+    "logistic_mass_safe": "mass-safe logistic",
+    "bdt_jhep_like_diagnostic": "JHEP-like diagnostic BDT",
+    "logistic_jhep_like_diagnostic": "JHEP-like diagnostic logistic",
 }
 
 

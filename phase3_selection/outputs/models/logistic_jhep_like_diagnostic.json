@@ -1,0 +1,20 @@
+{
+  "description": "Weighted logistic regression on a broader JHEP-like diagnostic feature set including mZ1 and mZ2; kept diagnostic-only because of mass-sculpting risk checks.",
+  "features": [
+    "mZ1",
+    "mZ2",
+    "pt4l",
+    "eta4l",
+    "lead_lepton_pt",
+    "sublead_lepton_pt",
+    "lead_abs_eta",
+    "sublead_abs_eta",
+    "cos_theta_star",
+    "cos_theta1",
+    "cos_theta2",
+    "phi",
+    "phi1",
+    "channel_code"
+  ],
+  "model": "logistic_jhep_like_diagnostic"
+}
