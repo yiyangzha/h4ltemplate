@@ -674,6 +674,13 @@
 - Seed `9417` retained `20 / 203` selected data events and used `1.0 fb^-1` effective luminosity. MC is scaled to 10% luminosity, not normalized to data integral.
 - Per user instruction, no fresh Phase 4b review was run after this override.
 
+## 2026-05-30 — Doc 4b and human gate
+
+- Note writer `zelda_30c7` updated the analysis note to Doc 4b with the Phase 4b 10% broad-window result; final PDF is `analysis_note/ANALYSIS_NOTE_doc4b_v1.pdf`.
+- VERIFY fixed stale wording that could have implied the 10% result still used the old `105-140 GeV` window.
+- Compact gate `tomoko_c890` passed.
+- Human gate was auto-approved per the user's directive and archived in `analysis_note/review/HUMAN_GATE_doc4b_2026-05-30.md`.
+
 ## 2026-05-30 — Phase 4a per-figure validation
 
 - Completed Level 2 per-figure validation for all 10 registered expected-inference figures.

@@ -1,7 +1,7 @@
 # Session State
 
 Last updated: 2026-05-30T03:37:40Z
-Current phase: Doc 4b — 10% Analysis Note Update
+Current phase: Phase 4c — Full Data Inference
 Step in loop: ADVANCE
 Iteration count: 0
 
@@ -40,6 +40,10 @@ Iteration count: 0
 - Doc 4a fix verification: `c33a925`
 - Doc 4a PASS boundary: `829e1a9`
 - Phase 4b broad-window partial inference: `6b6d88f`
+- Phase 4b override summary: `130a316`
+- Doc 4b note update: `b497d73`
+- Doc 4b VERIFY exchange: `d631824`
+- Doc 4b compact gate: `c6ce817`
 
 ## Current Work
 
@@ -82,6 +86,11 @@ Phase 4b produced a user-requested broad-window partial fit over
 boundary; GoF `chi2/ndf = 31.755141641709276 / 38`, `p = 0.752432307059706`.
 No fresh Phase 4b review was run after this override, per the user instruction.
 
+Doc 4b updated the analysis note with the fixed-seed 10% result and passed the
+compact gate. The human gate was auto-approved per the user's directive and
+archived. Next step: run Phase 4c full-data inference using the current
+`70 < m4l < 170 GeV` fit-window instruction unless superseded.
+
 ## Pending Decisions For Human
 
 The user explicitly directed this run to pass the Phase 4b human gate without
@@ -112,3 +121,6 @@ after Doc 4b review PASS.
   `analysis_note/review/doc4a/arbiter/DOC4A_FIX_VERIFICATION_ARBITER_alfred_5984_2026-05-30.md`.
 - Phase 4b evidence is in `SESSION_SUMMARY_phase4b.md` and
   `phase4_inference/4b_partial/outputs/INFERENCE_PARTIAL.md`.
+- Doc 4b evidence is in `SESSION_SUMMARY_doc4b.md`,
+  `analysis_note/review/doc4b/arbiter/DOC4B_COMPACT_GATE_tomoko_c890_2026-05-30.md`,
+  and `analysis_note/review/HUMAN_GATE_doc4b_2026-05-30.md`.
