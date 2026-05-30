@@ -217,21 +217,27 @@ def plot_binning(validation: dict[str, Any]) -> int:
     y = np.arange(len(rows), dtype=float)[::-1]
     unc = np.asarray([row["mu_uncertainty"] for row in rows], dtype=float)
     below = np.asarray([row["bins_below_5"] for row in rows], dtype=float)
-    fig, (ax, rax) = plt.subplots(2, 1, figsize=(10, 10), gridspec_kw={"height_ratios": [1, 1]})
-    fig.subplots_adjust(hspace=0.35)
+    fig, ax = plt.subplots(figsize=(10, 10))
+    fig.subplots_adjust(left=0.32, right=0.97)
     ax.errorbar(unc, y, marker="o", linestyle="None", color="black", label=r"$\mu$ uncertainty")
     ax.set_yticks(y, labels)
-    ax.set_ylabel("Binning")
     ax.set_xlabel(r"Expected uncertainty on $\mu$")
     ax.legend(loc="lower right", fontsize="x-small")
-    rax.errorbar(below, y, marker="s", linestyle="None", color="#ff7f0e")
-    rax.set_yticks(y, labels)
-    rax.set_xlabel("Bins below five expected events")
-    rax.set_ylabel("Binning")
     mh.label.exp_label(exp="CMS", text="", loc=2, data=True, llabel="Open Simulation", rlabel=r"$13$ TeV", ax=ax)
     caption = "Alternative-binning stability comparison for the expected signal-strength fit. The final-state nominal configuration is retained for the Asimov result after low-count toy validation, while inclusive/coarse variants provide stability cross-checks."
     save_and_register(fig, "expected_binning_stability", caption, "analysis_note/results/expected_validation.json", {"rows": rows})
-    return 1
+    fig, ax = plt.subplots(figsize=(10, 10))
+    fig.subplots_adjust(left=0.32, right=0.97)
+    ax.errorbar(below, y, marker="s", linestyle="None", color="#ff7f0e")
+    ax.set_yticks(y, labels)
+    ax.set_xlabel("Bins below five expected events")
+    mh.label.exp_label(exp="CMS", text="", loc=2, data=True, llabel="Open Simulation", rlabel=r"$13$ TeV", ax=ax)
+    caption = (
+        "Low-count bin summary for the alternative-binning stability comparison. "
+        "The nominal final-state model retains low expected-count bins only after the dedicated Poisson toy validation passes."
+    )
+    save_and_register(fig, "expected_binning_low_count_summary", caption, "analysis_note/results/expected_validation.json", {"rows": rows})
+    return 2
 
 
 def plot_mass_scan(mass_scan: dict[str, Any]) -> int:

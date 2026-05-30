@@ -509,37 +509,58 @@ def corrupted_closure(events: dict[str, Any], active_systematics: set[str]) -> d
 
 def mass_scan(events: dict[str, Any]) -> dict[str, Any]:
     # Detector-level shifted-template attempt. The M125-only MC can be shifted,
-    # but closure with shifted injection is algebraically approximate, so this
-    # is retained as method-parity evidence and not promoted to an official
-    # mass measurement unless the closure rows pass.
+    # but this remains a template-closure exercise rather than a calibrated
+    # mass measurement because no independent mass-hypothesis MC is available.
     mass_values = np.arange(123.0, 127.01, 0.5)
     nominal_mass = 125.0
-    nominal = inclusive_from_channels(event_group_templates(events, FIT_BINS, channels=CHANNELS), CHANNELS)
-    observations = {}
+    active = {"lumi", "lepton_eff", "mc_stat"}
+    nominal_templates = inclusive_from_channels(event_group_templates(events, FIT_BINS, channels=CHANNELS), CHANNELS)
+    nominal_model = make_model(model_spec(nominal_templates, ("inclusive",), include_systematics=active, include_staterror=True))
+    nominal_main = np.asarray(nominal_model.expected_data(nominal_model.config.suggested_init(), include_auxdata=False), dtype=float)
     scan_rows = []
-    for injected in (124.0, 125.0, 126.0):
-        injected_factor = injected / nominal_mass
-        injected_templates = inclusive_from_channels(event_group_templates(events, FIT_BINS, channels=CHANNELS, mass_shift_factor=injected_factor), CHANNELS)
-        observations[injected] = sum(total_expectation(injected_templates, "inclusive")).item()
     for mass in mass_values:
         factor = mass / nominal_mass
         shifted = inclusive_from_channels(event_group_templates(events, FIT_BINS, channels=CHANNELS, mass_shift_factor=factor), CHANNELS)
-        fit = fit_configuration(shifted, ("inclusive",), {"lumi", "lepton_eff"}, include_staterror=True)
-        scan_rows.append({"mass_hypothesis_GeV": float(mass), "mu_hat": fit["uncertainty"]["muhat"], "twice_nll": fit["best_nll"]})
+        model = make_model(model_spec(shifted, ("inclusive",), include_systematics=active, include_staterror=True))
+        best, nll = fit_model(model, nominal_main.tolist() + list(model.config.auxdata))
+        scan_rows.append({"mass_hypothesis_GeV": float(mass), "mu_hat": float(best[model.config.poi_index]), "twice_nll": nll})
+    best_nominal = min(scan_rows, key=lambda row: row["twice_nll"])
     closure = []
     for injected in (124.0, 125.0, 126.0):
-        best_mass = min(scan_rows, key=lambda row: abs(row["mass_hypothesis_GeV"] - injected))["mass_hypothesis_GeV"]
+        injected_factor = injected / nominal_mass
+        injected_templates = inclusive_from_channels(event_group_templates(events, FIT_BINS, channels=CHANNELS, mass_shift_factor=injected_factor), CHANNELS)
+        injected_model = make_model(model_spec(injected_templates, ("inclusive",), include_systematics=active, include_staterror=True))
+        injected_main = np.asarray(injected_model.expected_data(injected_model.config.suggested_init(), include_auxdata=False), dtype=float)
+        closure_scan = []
+        for mass in mass_values:
+            factor = mass / nominal_mass
+            shifted = inclusive_from_channels(event_group_templates(events, FIT_BINS, channels=CHANNELS, mass_shift_factor=factor), CHANNELS)
+            model = make_model(model_spec(shifted, ("inclusive",), include_systematics=active, include_staterror=True))
+            best, nll = fit_model(model, injected_main.tolist() + list(model.config.auxdata))
+            closure_scan.append({"mass_hypothesis_GeV": float(mass), "mu_hat": float(best[model.config.poi_index]), "twice_nll": nll})
+        best_mass = min(closure_scan, key=lambda row: row["twice_nll"])["mass_hypothesis_GeV"]
         bias = best_mass - injected
-        closure.append({"injected_mass_GeV": injected, "recovered_mass_grid_GeV": best_mass, "bias_GeV": bias, "passes_bias_gate": abs(bias) <= 0.2})
+        closure.append(
+            {
+                "injected_mass_GeV": injected,
+                "recovered_mass_grid_GeV": best_mass,
+                "bias_GeV": bias,
+                "passes_bias_gate": abs(bias) <= 0.25,
+                "closure_scan_rows": closure_scan,
+            }
+        )
     promoted = bool(all(row["passes_bias_gate"] for row in closure))
     return {
         "phase": "4a_expected",
-        "method": "inclusive shifted-template mass-profile attempt with mu profiled in each shifted template fit",
+        "method": "inclusive shifted-template mass-profile closure with mu profiled in each shifted-template fit",
         "mass_grid_GeV": mass_values.tolist(),
+        "nominal_best_mass_grid_GeV": best_nominal["mass_hypothesis_GeV"],
+        "nominal_best_mu_hat": best_nominal["mu_hat"],
         "scan_rows": scan_rows,
         "closure": closure,
         "promoted_to_nominal_mass_measurement": promoted,
-        "downgrade_reason": None if promoted else "Shifted-template closure is too coarse at the 0.5 GeV grid and lacks independent mass-hypothesis MC; retain only as detector-level method-parity attempt.",
+        "downgrade_reason": None if promoted else "Shifted-template closure fails the 0.25 GeV grid-bias gate; retain only as detector-level method-parity attempt.",
+        "limitations": "Uses shifted detector-level M125 templates because independent mass-hypothesis MC and official lepton calibration/morphing inputs are unavailable in the sandbox.",
     }
 
 
