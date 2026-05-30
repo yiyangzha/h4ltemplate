@@ -20,7 +20,7 @@
       "combined_ndf": 17,
       "combined_p_value": 1.0,
       "configuration": "final_state_nominal",
-      "min_expected_bin": 0.6875956068251002,
+      "min_expected_bin": 0.6875956068251003,
       "mu_hat": 1.0,
       "mu_uncertainty": 0.5723579328235826,
       "total_bins": 18
@@ -116,7 +116,7 @@
     "injection_bias_lt_20pct": true,
     "low_count_validated": true
   },
-  "created_utc": "2026-05-30T01:12:39+00:00",
+  "created_utc": "2026-05-30T01:26:52+00:00",
   "final_state_channel_compatibility": {
     "max_abs_pull_vs_combined": 0.0,
     "passes": true,

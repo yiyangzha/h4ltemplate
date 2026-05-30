@@ -253,7 +253,7 @@ def plot_mass_scan(mass_scan: dict[str, Any]) -> int:
     mh.label.exp_label(exp="CMS", text="", loc=2, data=True, llabel="Open Simulation", rlabel=r"$13$ TeV", ax=ax)
     caption = (
         "Detector-level shifted-template mass-profile attempt with mu profiled. "
-        "This is retained as method-parity evidence; it is not promoted to an official-quality mass measurement unless the injected-mass closure gate passes."
+        "This is retained as method-parity evidence; it is not promoted to an official-quality mass measurement because independent mass-hypothesis MC and official calibration inputs are unavailable."
     )
     save_and_register(fig, "expected_mass_profile_attempt", caption, "analysis_note/results/expected_mass_scan.json", {"promoted": mass_scan["promoted_to_nominal_mass_measurement"]})
     return 1
