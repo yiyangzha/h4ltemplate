@@ -1,7 +1,7 @@
 # Session State
 
 Last updated: 2026-05-30T03:37:40Z
-Current phase: Phase 4b — 10% Data Inference
+Current phase: Doc 4b — 10% Analysis Note Update
 Step in loop: ADVANCE
 Iteration count: 0
 
@@ -38,6 +38,8 @@ Iteration count: 0
 - Doc 4a review findings: `435fdd4`
 - Doc 4a review fixes: `8e7dd78`
 - Doc 4a fix verification: `c33a925`
+- Doc 4a PASS boundary: `829e1a9`
+- Phase 4b broad-window partial inference: `6b6d88f`
 
 ## Current Work
 
@@ -72,7 +74,13 @@ repeat stability checks on observed subsets and merge/rebin if needed.
 
 Doc 4a passed after review and fix verification. The expected-results analysis
 note is `analysis_note/ANALYSIS_NOTE_doc4a_v1.pdf` (66 pages). Next step:
-start Phase 4b 10% data inference.
+start Doc 4b from the current Phase 4b 10% results.
+
+Phase 4b produced a user-requested broad-window partial fit over
+`70 < m4l < 170 GeV`, including the Z peak. The fixed-seed 10% result is
+`mu = 0.0 +1.3548619813595435`, with the lower interval at the physical
+boundary; GoF `chi2/ndf = 31.755141641709276 / 38`, `p = 0.752432307059706`.
+No fresh Phase 4b review was run after this override, per the user instruction.
 
 ## Pending Decisions For Human
 
@@ -102,3 +110,5 @@ after Doc 4b review PASS.
   `SESSION_SUMMARY_phase4a.md`.
 - Doc 4a PASS evidence is in `SESSION_SUMMARY_doc4a.md` and
   `analysis_note/review/doc4a/arbiter/DOC4A_FIX_VERIFICATION_ARBITER_alfred_5984_2026-05-30.md`.
+- Phase 4b evidence is in `SESSION_SUMMARY_phase4b.md` and
+  `phase4_inference/4b_partial/outputs/INFERENCE_PARTIAL.md`.

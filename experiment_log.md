@@ -667,6 +667,13 @@
 - Doc 4a review found one Category A rendering issue and B-level framing issues; fixer `wanda_5bec` resolved them in commit `8e7dd78`.
 - Targeted arbiter `alfred_5984` verified all Doc 4a review fixes. Doc 4a is passed and the analysis advances to Phase 4b.
 
+## 2026-05-30 — Phase 4b broad-window 10% data inference
+
+- Executor `yuki_9d50` implemented fixed-seed 10% data inference and then reran it after the user requested `70 < m4l < 170 GeV` as the Phase 4b fit window, including the Z peak.
+- Final Phase 4b commit `6b6d88f` reports `mu = 0.0 +1.3548619813595435`, with the lower interval at the physical boundary, and GoF `chi2/ndf = 31.755141641709276 / 38`, `p = 0.752432307059706`.
+- Seed `9417` retained `20 / 203` selected data events and used `1.0 fb^-1` effective luminosity. MC is scaled to 10% luminosity, not normalized to data integral.
+- Per user instruction, no fresh Phase 4b review was run after this override.
+
 ## 2026-05-30 — Phase 4a per-figure validation
 
 - Completed Level 2 per-figure validation for all 10 registered expected-inference figures.
