@@ -652,6 +652,12 @@
 ## 2026-05-30 — Phase 4a expected plots
 
 - Produced 10 expected-inference figures and registered them in `phase4_inference/4a_expected/outputs/FIGURES.json`.
+
+## 2026-05-30 — Phase 4a per-figure validation
+
+- Completed Level 2 per-figure validation for all 10 registered expected-inference figures.
+- Initial per-figure failures for `expected_binning_stability` and `expected_reference_comparison` were fixed in commits `1213c39` and `23f3001`, followed by full plot refresh commit `5edd995`.
+- Final summary `phase4_inference/4a_expected/review/validation/PERFIG4A_VALIDATION_SUMMARY_2026-05-30.md` reports PASS, with `pixi run lint-plots` and the figure-registry smoke test passing.
 - Resolved watcher layout blockers for the m4l template, signal-injection, and binning-stability figures; `pixi run lint-plots` and the figure-registry smoke test passed.
 - Split the binning stability display into a single-panel uncertainty figure plus a separately registered low-count-bin summary. Watcher recheck `vera_ee63` reported PASS with zero unresolved blockers.
 

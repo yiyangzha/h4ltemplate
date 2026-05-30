@@ -1,8 +1,8 @@
 # Session State
 
-Last updated: 2026-05-30T00:17:38Z
+Last updated: 2026-05-30T02:13:08Z
 Current phase: Phase 4a — Expected Inference
-Step in loop: EXECUTE
+Step in loop: REVIEW
 Iteration count: 0
 
 ## Completed phases (commit hashes)
@@ -44,8 +44,10 @@ Key Phase 3 artifacts:
 - `REGRESSION_CHECK_phase3.md`
 - `SESSION_SUMMARY_phase3.md`
 
-Next step: read Phase 4a executor/plot-watcher definitions and phase context,
-then spawn the Phase 4a executor in plan mode plus the plot watcher.
+Phase 4a expected inference execution and VERIFY are complete. Level 2
+per-figure validation passed for all 10 registered figures after two scoped plot
+fixes and a full plot refresh. Next step: spawn the blocking Phase 4a inference
+review with a critical reviewer and plot validator.
 
 ## Pending Decisions For Human
 
@@ -55,7 +57,8 @@ after Doc 4b review PASS.
 
 ## Key Results So Far
 
-- No final physics measurement result yet.
+- Phase 4a expected-only result before blocking review: expected `mu = 1.0`
+  with symmetric expected uncertainty `0.5747382435005995`.
 - Phase 1 established the data/MC inventory, input inventory, literature
   survey, six reconnaissance figures, and key Phase 2 constraints.
 - Phase 2 established the binding detector-level template-fit strategy,
@@ -65,3 +68,6 @@ after Doc 4b review PASS.
   VBF is formally downscoped; DY+jets remains the nominal reducible fake proxy;
   TTBar remains diagnostic; angular closure passed; D7 input modeling passed
   only `lead_abs_eta` and `phi1`; S2 classifier/NN was attempted and rejected.
+- Phase 4a expected inference retained final-state categories after low-count
+  toy validation: 80 toys, success fraction `1.0`, median bias
+  `-0.06064996537909362`.
