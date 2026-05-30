@@ -660,6 +660,13 @@
 - The final-state `m4l_scale_factor_0.8` corruption sensitivity did not reject after three attempts, so it is marked `documented_low_count_infeasible` rather than passed.
 - Regression gate `klaus_a64b` passed and `REGRESSION_CHECK_phase4a.md` records the Phase 4a boundary checklist.
 
+## 2026-05-30 — Doc 4a expected analysis note
+
+- Note writer `odette_354d` produced `analysis_note/ANALYSIS_NOTE_doc4a_v1.tex` and compiled `analysis_note/ANALYSIS_NOTE_doc4a_v1.pdf`.
+- VERIFY follow-ups fixed a thin Statistical Method section and caption/prose issues; final note has 66 pages, 49 staged figures, 14 tables, and 10 display equations.
+- Doc 4a review found one Category A rendering issue and B-level framing issues; fixer `wanda_5bec` resolved them in commit `8e7dd78`.
+- Targeted arbiter `alfred_5984` verified all Doc 4a review fixes. Doc 4a is passed and the analysis advances to Phase 4b.
+
 ## 2026-05-30 — Phase 4a per-figure validation
 
 - Completed Level 2 per-figure validation for all 10 registered expected-inference figures.

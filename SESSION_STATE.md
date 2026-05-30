@@ -1,7 +1,7 @@
 # Session State
 
 Last updated: 2026-05-30T03:37:40Z
-Current phase: Doc 4a — Analysis Note Draft
+Current phase: Phase 4b — 10% Data Inference
 Step in loop: ADVANCE
 Iteration count: 0
 
@@ -33,6 +33,11 @@ Iteration count: 0
 - Phase 4a regression gate: `f7c3dff`
 - Phase 4a corruption follow-up: `f214807`
 - Phase 4a PASS boundary: `e72746d`
+- Doc 4a draft note: `15ae12f`
+- Doc 4a VERIFY exchange: `0ef5388`
+- Doc 4a review findings: `435fdd4`
+- Doc 4a review fixes: `8e7dd78`
+- Doc 4a fix verification: `c33a925`
 
 ## Current Work
 
@@ -65,6 +70,10 @@ rejected, while `-20%` is not (`p = 0.45954`) after three documented attempts.
 This is marked `documented_low_count_infeasible`, not passed. Phase 4b/4c must
 repeat stability checks on observed subsets and merge/rebin if needed.
 
+Doc 4a passed after review and fix verification. The expected-results analysis
+note is `analysis_note/ANALYSIS_NOTE_doc4a_v1.pdf` (66 pages). Next step:
+start Phase 4b 10% data inference.
+
 ## Pending Decisions For Human
 
 The user explicitly directed this run to pass the Phase 4b human gate without
@@ -91,3 +100,5 @@ after Doc 4b review PASS.
   `expected_m4l_broad_inclusive`, and `expected_systematic_shift_summary`.
 - Phase 4a PASS evidence is in `REGRESSION_CHECK_phase4a.md` and
   `SESSION_SUMMARY_phase4a.md`.
+- Doc 4a PASS evidence is in `SESSION_SUMMARY_doc4a.md` and
+  `analysis_note/review/doc4a/arbiter/DOC4A_FIX_VERIFICATION_ARBITER_alfred_5984_2026-05-30.md`.
