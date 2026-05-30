@@ -1,0 +1,862 @@
+
+\documentclass[11pt]{article}
+\usepackage[margin=0.85in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{graphicx}
+\graphicspath{{analysis_note/figures/}{figures/}}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{float}
+\usepackage{placeins}
+\usepackage{amsmath,amssymb}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{needspace}
+\usepackage{enumitem}
+\usepackage[numbers,sort&compress]{natbib}
+\hypersetup{colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue}
+\newcommand{\tbd}[1]{\textcolor{red}{[TBD: #1]}}
+\setlength{\parskip}{0.55em}
+\setlength{\parindent}{0pt}
+\captionsetup{font=small,labelfont=bf}
+\title{Expected Analysis Note: H to ZZ to Four Leptons Signal-Strength Measurement with CMS 2017 Open Data}
+\author{Analysis session odette\_354d}
+\date{2026-05-30}
+\begin{document}
+\maketitle
+\begin{abstract}
+This analysis note documents the Phase 4a expected-only measurement of the Higgs-boson signal strength in the four-lepton final state using CMS 2017 Open Data flat ntuples corresponding to a user-provided target luminosity of 10 fb$^{-1}$ at $\sqrt{s}=13$ TeV. The analysis follows the CMS H to ZZ to four-lepton reference methodology where the available ntuple content allows it, using a simultaneous binned template likelihood in final-state categories over $105 < m_{4\ell} < 140$ GeV. The expected Asimov signal-strength result is $\mu=1.0^{+0.6327358408468291}_{-0.51674064615437}$, with symmetric uncertainty 0.5747382435005995. No observed-data signal-strength result is reported in this document; 10\% and full-data values are reserved for later phases.
+\end{abstract}
+\tableofcontents
+\clearpage
+\section*{Change Log}
+\addcontentsline{toc}{section}{Change Log}
+\textbf{Phase 4a v1, 2026-05-30}
+\begin{itemize}[leftmargin=*]
+\item Initial AN version for expected-only inference.
+\item Established the full document structure, staged all 49 available upstream figure PDFs, and recorded the current analysis state: final-state S1 categories nominal; VBF, classifier categories, and neural-network categories not promoted.
+\item Added the expected signal-strength result, systematic model, validation tests, comparison context, and limitations needed for Doc 4b and Doc 4c updates.
+\end{itemize}
+\clearpage
+\section{Introduction}
+The $H\to ZZ^{(*)}\to4\ell$ channel, central to the original LHC Higgs-boson observations \cite{CMSDiscovery2012,ATLASDiscovery2012}, is a high-resolution final state for Higgs-boson measurements because the four charged leptons provide a narrow reconstructed invariant-mass peak on top of a continuum $ZZ$ background. The goal of this open-data analysis is narrower than the official CMS program: it measures an expected detector-level signal strength $\mu$ in the four-lepton mass spectrum and documents which elements of the CMS reference analysis can be reproduced with the available flat ntuples.
+
+The user request asked for a CMS-HIG-16-041-like analysis, including the $105<m_{4\ell}<140$ GeV fit window, categorization, a VBF category if possible, and an angular neural-network discriminator. The analysis implements the shared signal-strength parameter and simultaneous final-state fit, but it does not claim official equivalence. The flat ntuples contain no recoverable jet or VBF discriminant information, and the classifier/neural-network route did not pass promotion gates. These outcomes are part of the result because they define what the open-data ntuple can support.
+
+The principal comparison target is CMS-HIG-16-041, published as JHEP 11 (2017) 047, which reports $\mu=1.05^{+0.19}_{-0.17}$ at $m_H=125.09$ GeV, a fiducial cross section of $2.92^{+0.48}_{-0.44}\mathrm{(stat)}^{+0.28}_{-0.24}\mathrm{(syst)}$ fb, $m_H=125.26\pm0.21$ GeV, and $\Gamma_H<1.10$ GeV at 95\% CL \cite{CMS-HIG-16-041}. A later CMS Run-2 result gives $\mu=0.94\pm0.07\mathrm{(stat)}^{+0.09}_{-0.08}\mathrm{(syst)}$ and an inclusive fiducial cross section of $2.84^{+0.23}_{-0.22}\mathrm{(stat)}^{+0.26}_{-0.21}\mathrm{(syst)}$ fb \cite{CMS-HIG-19-001}. PDG world-average values are used only as external context and validation references, not as fit inputs \cite{PDG2024}.
+\section{Data Samples}
+The analysis uses flat ntuples derived from CMS open-data-style event content and simulation workflows \cite{CMSDetector,CMSOpenData,GEANT4,PYTHIA8,POWHEG}. It uses the prompt-specified primary paths, not the local worktree copies, because Phase 1 found non-identical file sizes, metadata rows, and event entries between the two locations. The open-data file contains a single h4lTree with 854 candidate entries and metadata luminosity information. All simulated samples are normalized with the prompt-provided effective cross sections and generated-event denominators from the Metadata trees.
+
+The normalization rule is
+\begin{equation}
+ w_s = \frac{\sigma^{\mathrm{eff}}_s\,\mathcal{L}}{N^{\mathrm{Metadata}}_s},
+ \label{eq:mc-weight}
+\end{equation}
+where $\mathcal{L}=10000\,\mathrm{pb}^{-1}$ and $s$ denotes an MC sample. The data weight is one. This rule is used for fit inputs and stacked yield plots; no MC component is normalized to the observed data integral.
+
+\begin{table}[htbp]
+\centering
+\caption{Data sample summary. The luminosity is the user-provided target luminosity from the founding prompt and Phase 1 inventory.}
+\begin{tabular}{llll}
+\toprule
+Period & $\sqrt{s}$ [TeV] & Preselection entries & $\mathcal{L}$ [fb$^{-1}$] \\ 
+\midrule
+2017 CMS Open Data & 13 & 854 & 10 \\ 
+\bottomrule
+\end{tabular}
+\label{tab:data-summary}
+\end{table}
+
+\begin{longtable}{lllll}
+\caption{MC normalization inputs from machine-readable Phase 3 normalization records.}\label{tab:mc-samples}\\
+\toprule
+Sample & Group & $\sigma_{\rm eff}$ [pb] & $N_{\rm gen}$ & Weight \\ 
+\midrule
+\endfirsthead
+\toprule
+Sample & Group & $\sigma_{\rm eff}$ [pb] & $N_{\rm gen}$ & Weight \\ 
+\midrule
+\endhead
+DYJetsToLL & background reducible & 5.4e+03 & 8.24e+07 & 0.6545 \\
+GGZZ2E2Mu & background ggZZ & 0.003185 & 4.99e+05 & 6.38e-05 \\
+GGZZ4E & background ggZZ & 0.001619 & 9.93e+05 & 1.63e-05 \\
+GGZZ4Mu & background ggZZ & 0.001575 & 9.97e+05 & 1.58e-05 \\
+GluGluToHToZZ & signal ggH & 0.006024 & 9.84e+05 & 6.12e-05 \\
+TTBar & background top & 52.7 & 1.48e+07 & 0.03566 \\
+VBF\_HToZZ & signal VBF & 0.000488 & 4.98e+05 & 9.8e-06 \\
+WMHToZZ & signal VH & 6.71e-05 & 1.93e+05 & 3.47e-06 \\
+WPHToZZ & signal VH & 0.000107 & 2.95e+05 & 3.64e-06 \\
+ZHToZZ & signal VH & 9.84e-05 & 4.86e+05 & 2.02e-06 \\
+ZZTo4L & background ZZ & 1.325 & 5.21e+07 & 0.000254 \\
+\bottomrule
+\end{longtable}
+
+
+\section{Event Selection}
+The retained ntuples already contain a best four-lepton candidate. The selection therefore applies event-level checks that are auditable from retained branches: finite kinematic values, a nonzero trigger bitmask, valid final-state composition, flavor-matched lepton identification, Z-pair sanity, and the mass-window requirements. The broad validation and display range is $70<m_{4\ell}<170$ GeV; the inference range is $105<m_{4\ell}<140$ GeV.
+
+The final nominal categories are the reconstructed final states $4\mu$, $4e$, and $2e2\mu$. No lepton-only category is labeled VBF because Phase 3 found no jet branches, no VBF discriminants, no allowed upstream join source, and no safe event-key recovery path. Classifier and neural-network categories were attempted with standard boosted-tree and machine-learning tools \cite{XGBoost,ScikitLearn} after angular closure, but failed promotion because they did not improve the expected $\mu$ uncertainty by the required amount and did not satisfy all input/score/low-stat gates.
+
+\begin{table}[htbp]
+\centering
+\caption{Selection cutflow summary. Data counts are raw events and MC yields are prompt-normalized weighted yields.}
+\begin{tabular}{lll}
+\toprule
+Step & Data events & MC weighted yield \\ 
+\midrule
+all & 854 & 842 \\
+trigger bitmask nonzero & 798 & 790 \\
+flavor matched lepton ID & 467 & 466 \\
+broad validation 70-170 & 203 & 210 \\
+fit window 105-140 & 69 & 56.6 \\
+\bottomrule
+\end{tabular}
+\label{tab:cutflow}
+\end{table}
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.92\linewidth,height=0.70\textheight,keepaspectratio]{figures/cutflow_summary.pdf}
+\caption{Cumulative Phase 3 cutflow for data raw counts and prompt-normalized MC weighted yields. The rendered step labels are abbreviated for readability; 70-170 is the broad validation mass window and 105-140 is the fit window. Every sample-level cutflow is monotonic, and the fit-window endpoint is 69 data events with 56.6098 expected MC events.}
+\label{fig:cutflow-summary}
+\end{figure}
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.92\linewidth,height=0.70\textheight,keepaspectratio]{figures/m4l_fit_window_inclusive.pdf}
+\caption{Inclusive four-lepton mass distribution in the fit window. MC is normalized with prompt effective cross sections and Metadata denominators, while DY+jets remains the nominal fake proxy. The lower panel shows pulls and the fit-window version is the handoff input for downstream template fits.}
+\label{fig:m4l-fit-window-inclusive}
+\end{figure}
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.92\linewidth,height=0.70\textheight,keepaspectratio]{figures/expected_m4l_broad_inclusive.pdf}
+\caption{Expected inclusive four-lepton mass distribution in the broad validation range 70 < m4l < 170 GeV. The broad display is used for validation/sideband context; the signal-strength fit window remains 105 < m4l < 140 GeV.}
+\label{fig:expected-m4l-broad-inclusive}
+\end{figure}
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.92\linewidth,height=0.70\textheight,keepaspectratio]{figures/vbf_downscope_evidence.pdf}
+\caption{VBF recovery and downscope evidence from branch inventories and allowed join sources. No checked flat ntuple contains real jet or VBF discriminator branches, no allowed upstream join source exists, and no lepton-only category is labeled VBF.}
+\label{fig:vbf-downscope-evidence}
+\end{figure}
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.92\linewidth,height=0.70\textheight,keepaspectratio]{figures/mva_best_score_datamc.pdf}
+\caption{Best S2 classifier score data/MC comparison in the broad validation window. The score-shape gate and low-stat category viability failed, so this diagnostic is preserved as rejected-approach evidence rather than used in the nominal fit.}
+\label{fig:mva-best-score-datamc}
+\end{figure}
+
+\begin{longtable}{lllll}
+\caption{Input-variable modeling gate for classifier attempts. Only variables passing all D7 requirements were eligible, and the final classifier categories still failed promotion.}\label{tab:input-gate}\\
+\toprule
+Variable & $\chi^2$/ndf & p-value & max ratio dev. & D7 pass \\ 
+\midrule
+\endfirsthead
+\toprule
+Variable & $\chi^2$/ndf & p-value & max ratio dev. & D7 pass \\ 
+\midrule
+\endhead
+cos\_theta1 & 1.6 & 0.1562 & 0.5568 & no \\
+cos\_theta2 & 1.289 & 0.2655 & 0.4591 & no \\
+cos\_theta\_star & 1.007 & 0.4115 & 0.3637 & no \\
+eta4l & 0.4039 & 0.8464 & 0.2204 & no \\
+lead\_abs\_eta & 0.4734 & 0.7553 & 0.1931 & yes \\
+lead\_lepton\_pt & 4.056 & 0.002731 & 1 & no \\
+mZ1 & 122.1 & 6.22e-155 & 1 & no \\
+mZ2 & 32.08 & 7.49e-39 & 1 & no \\
+phi & 0.7802 & 0.5637 & 0.2509 & no \\
+phi1 & 0.1552 & 0.9785 & 0.08262 & yes \\
+pt4l & 0.3328 & 0.8934 & 0.3478 & no \\
+sublead\_abs\_eta & 1.076 & 0.3664 & 0.2433 & no \\
+sublead\_lepton\_pt & 849.5 & 0 & 1 & no \\
+y4l & 996.7 & 0 & 1 & no \\
+\bottomrule
+\end{longtable}
+
+
+\section{Corrections and Model Construction}
+This measurement is detector-level. There is no particle-level unfolding because the flat ntuples do not retain generator-level truth branches or a response matrix. The relevant correction step is MC normalization and template construction: selected MC events are weighted with Eq.~\ref{eq:mc-weight}, grouped into signal and background templates, and binned in $m_{4\ell}$ by final-state category.
+
+The expected bin content for process group $g$, category $c$, and mass bin $b$ is
+\begin{equation}
+ \nu_{gcb}(\boldsymbol{\theta}) = \sum_{s\in g}\sum_{i\in(s,c,b)} w_s\,a_{gcb}(\boldsymbol{\theta}),
+ \label{eq:template-content}
+\end{equation}
+where $a_{gcb}(\boldsymbol{\theta})$ is the nuisance-dependent rate or shape modifier. The total expected content is
+\begin{equation}
+ \lambda_{cb}(\mu,\boldsymbol{\theta}) = \mu\sum_{g\in H}\nu_{gcb}(\boldsymbol{\theta}) + \sum_{g\in B}\nu_{gcb}(\boldsymbol{\theta}).
+ \label{eq:expected-content}
+\end{equation}
+The Phase 4a observation is Asimov pseudo-data equal to the nominal expectation, not observed Open Data counts.
+
+Shape and rate variations are propagated by producing up/down shifted templates. For a rate-only systematic with relative size $\delta_k$, the variation is
+\begin{equation}
+ \nu^{\pm}_{gcb,k}=\nu^{0}_{gcb}(1\pm\delta_k),
+ \label{eq:rate-syst}
+\end{equation}
+while the $m_{4\ell}$ scale systematic is implemented as a histosys-like shifted-template variation. The grouped MC-stat approximation uses process/category normalization nuisances derived from Phase 3 sum of squared weights:
+\begin{equation}
+ \delta^{\mathrm{MCstat}}_{gc}=\frac{\sqrt{\sum_b \mathrm{sumw2}_{gcb}}}{\sum_b \nu_{gcb}}.
+ \label{eq:mcstat-grouped}
+\end{equation}
+This is formally downscoped relative to full per-bin HistFactory staterror profiling \cite{HistFactory}; alternative-binning stability is used to check that it does not dominate the expected conclusion.
+
+The template construction keeps two normalizations separate. Shape-comparison plots used during input validation may rescale MC to the data integral to expose mismodeling in candidate classifier variables, but those diagnostic scales never enter Eq.~\ref{eq:template-content}. Fit templates use only the luminosity and prompt-effective cross-section weights in Eq.~\ref{eq:mc-weight}. This separation is important because otherwise the signal-strength fit would become partly circular: a background or signal normalization inferred from observed data in the signal window would reduce the very rate information used to estimate $\mu$.
+
+The nominal grouping also preserves the distinction between physics components even when they are added in the final likelihood. The Higgs signal group contains ggH, VBF, WH, WplusH, WminusH, and ZH templates; the single POI multiplies their sum. The irreducible background is split into qqZZ and ggZZ groups because they have different production mechanisms and nuisance sizes. The reducible background remains DY+jets, with TTBar retained only as an omission diagnostic. This grouping is the minimum structure needed to compare to CMS H to four-lepton analyses without claiming production-mode measurements that the available categories cannot support.
+
+The downscope decisions enter the model construction directly. Since no VBF category is recoverable, VBF events contribute only to the inclusive signal template and no jet-energy or VBF-migration nuisance is created. Since the classifier categories are rejected, angular variables and MVA scores do not partition the likelihood. Since no particle-level response exists, the result is not unfolded and no acceptance correction is applied. These absences are encoded in the systematic-source table rather than hidden in prose.
+
+The correction/model section is intentionally explicit because it replaces an unfolding section for this detector-level analysis. The procedure is reproducible from the sample inventory, selection definitions, binning, and JSON template payloads. It also defines the main limitation: the reported $\mu$ is a signal-strength fit relative to the prompt-effective MC expectation and not a fiducial cross-section extraction with independent acceptance, branching-fraction, or particle-level corrections.
+\section{Systematic Uncertainties}
+The systematic model follows the reviewed Phase 4a expected workspace. Active sources are propagated as normalization or shape modifiers in the binned likelihood; downscoped or inapplicable sources are still documented because they affect interpretation and comparison to CMS reference analyses.
+
+The covariance decomposition for the single POI is
+\begin{equation}
+ V_{\mathrm{tot}} = V_{\mathrm{stat}} + V_{\mathrm{syst}},
+ \label{eq:cov-sum}
+\end{equation}
+with $V_{\mathrm{stat}}=0.3063689401723719$, $V_{\mathrm{syst}}=0.023955108369782596$, and $V_{\mathrm{tot}}=0.33032404854215447$ for $\mu$. The MC-stat component inside the systematic budget contributes variance 0.0029560843175981955.
+
+\begin{small}
+\begin{longtable}{p{0.08\linewidth}p{0.18\linewidth}p{0.25\linewidth}p{0.13\linewidth}p{0.20\linewidth}}
+\caption{Systematic source inventory from systematics\_sources.json.}\label{tab:syst-sources}\\
+\toprule
+Label & Key & Source & Size & Status \\ 
+\midrule
+\endfirsthead
+\toprule
+Label & Key & Source & Size & Status \\ 
+\midrule
+\endhead
+SP1 & lumi & Integrated luminosity & 0.008072 & implemented \\
+SP4 & lepton eff & Lepton reco/ID/trigger & 0.03 & implemented \\
+SP7 & signal theory & Signal production & 0.05 & fallback prior \\
+SP9 & ZZ norm & qqZZ background normalization & 0.1 & fallback prior \\
+SP9 & ggZZ norm & ggZZ background normalization & 0.2 & fallback prior \\
+SP10 & DY norm & DY+jets fake proxy & 0.5 & implemented \\
+SP11 & ttbar omission & TTBar omission diagnostic & 0.0444 & implemented \\
+SP5 & m4l scale & Lepton m4l scale & 0.001 & implemented \\
+SP3 & mc stat & MC statistical uncertainty & n/a & grouped MC-stat downscope \\
+SP2 & prompt xsecs & Prompt xsecs & per-sample prompt xsecs & implemented prompt fallback \\
+SP6 & pileup/PV & Pileup/PV & n/a & not propagated \\
+SP8 & Higgs BR & Higgs BR & n/a & not applicable \\
+SP12 & classifier & Classifier migration & n/a & not applicable \\
+SP13 & angular & Angular reco & n/a & not propagated \\
+\bottomrule
+\end{longtable}
+\end{small}
+
+\subsection{Integrated Luminosity}
+Integrated luminosity changes the normalization of all simulated templates. It is evaluated as a log-normal normalization nuisance using the public CMS 2017 luminosity uncertainty as a scale reference for the user-provided 10 fb$^{-1}$ subset. The relative variation is 0.008072174738841406, producing a small expected impact on $\mu$ because the fit uncertainty is dominated by statistical power and background modeling. This source would become more important in an observed cross-section extraction, but in Phase 4a it is propagated only as a rate uncertainty.
+
+\subsection{Prompt Effective Cross Sections}
+Prompt cross sections define nominal MC weights and are not independently tuned to data. Phase 4a mitigates this by carrying process normalization nuisances for signal and background groups and by recording the prompt source trail. The result should be interpreted as a signal strength relative to these prompt-effective sample normalizations, not as a standalone fiducial cross section.
+
+\subsection{MC Statistical Uncertainty}
+MC statistical uncertainty is propagated through grouped process/category normalization nuisances derived from Phase 3 sumw2. This is a formal downscope from full bin-by-bin HistFactory staterror profiling, which was not computationally stable in the sandbox. The grouped component contributes variance 0.0029560843175981955 and is checked through alternative binnings. Downstream observed-data phases must repeat the stability checks.
+
+\subsection{Lepton Efficiency}
+Lepton reconstruction, identification, and trigger efficiency affect every signal and background template because all selected objects are electrons or muons. The Phase 4a implementation uses a 0.03 rate envelope derived from Phase 3 trigger and flavor-matched ID data/MC step-efficiency closure. This is a detector-level envelope rather than an official CMS scale-factor chain. The expected $\mu$ impact is visible in the nuisance impact table and is subdominant to DY fake-proxy and ZZ normalization uncertainties.
+
+\subsection{Lepton Momentum Scale and Resolution}
+Lepton momentum scale and resolution influence the reconstructed four-lepton mass shape. Phase 4a propagates this as an $m_{4\ell}$ template shift corresponding to a 0.001 variation. This is not an official CMS lepton calibration; it is an external performance-envelope approximation applied to the available detector-level templates. The low-count corruption sensitivity study shows that a -20\% mass-response corruption is not rejected in the final-state workspace, so this source is also tied to a documented sensitivity limitation.
+
+\subsection{Pileup and Primary Vertex Modeling}
+Pileup and primary-vertex modeling are documented but not propagated because PV variables are not used in the nominal selection categories or fit templates. Phase 3 excluded pvNdof and related variables under the validation gate. This is an explicit not-propagated status, not a silent omission.
+
+\subsection{Signal Production Composition}
+Signal production and composition uncertainty accounts for the relative mixture of ggH, VBF, WH, WminusH, WplusH, and ZH signal templates. The flat ntuples do not provide all official generator-composition inputs, so Phase 4a uses a 0.05 fallback prior and marks it as an expected-phase approximation. It is propagated separately over signal production groups while one global $\mu$ scales the total Higgs yield. Because no VBF category is available, this source mostly changes the inclusive signal normalization rather than category migration.
+
+\subsection{Higgs Branching Fraction}
+The Higgs BR is not used in Phase 4a because no fiducial or inclusive cross-section conversion is performed. The reported quantity is detector-level $\mu$ relative to the nominal Higgs MC templates. If a later phase converts to a cross section, the branching-fraction source must be activated and cited.
+
+\subsection{qqZZ Background Normalization}
+The dominant irreducible continuum background is qqZZ. Its normalization is varied by 0.1 as a fallback prior due to unavailable campaign-specific validation of the prompt effective cross section. The variation is applied to the background ZZ template in all final states. It is one of the largest systematic variance components, which is expected because the signal region contains substantial ZZ continuum under the Higgs peak.
+
+\subsection{ggZZ Background Normalization}
+The loop-induced ggZZ background is represented by the three GGZZ final-state samples. A 0.2 fallback normalization prior is used because the small effective cross sections and prompt-provided sample definitions cannot be independently validated to official precision in this sandbox. Its expected impact on $\mu$ is small compared with qqZZ and DY because the selected ggZZ yield is small.
+
+\subsection{DY plus Jets Fake Proxy}
+DY+jets is the nominal reducible fake-background proxy by user instruction. The official CMS analyses use data-driven Z+X estimates, so this source is a comparability limitation. Phase 4a assigns a 0.5 normalization variation based on low sideband statistics and fake-model limitations. It is the largest single nuisance impact on expected $\mu$, which correctly reflects the weak constraint provided by the available DY selected sample.
+
+\subsection{TTBar Omission Diagnostic}
+TTBar is not promoted to a nominal separate fake component because its weighted yield is below the Phase 2 thresholds relative to DY+jets in the signal and sideband windows. The omission diagnostic is retained as a 0.0444 envelope on the reducible background. Its numerical impact is small, but documenting it prevents the DY-only fake proxy from being interpreted as a complete reducible-background estimate.
+
+\subsection{Classifier Migration}
+Classifier migration uncertainty is not applicable in the nominal fit because S2 classifier categories, including the neural-network attempt, were rejected. The diagnostics are retained in the appendix to show why the route was not promoted. If a later phase revisits classifier categories, this source must be reactivated with score-boundary migration variations.
+
+\subsection{Angular Reconstruction}
+Angular reco passed closure, with median mass differences far below 0.1 GeV and no out-of-range angles in checked selected events. It is not propagated as a nominal fit systematic because angular variables are not used after S2 rejection. The closure remains important evidence that the NN attempt was made on physically sensible inputs.
+
+\subsection{VBF and Jet Systematics}
+Jet/VBF category systematics are formally downscoped because there is no recoverable jet or VBF information in the allowed ntuples. No VBF category exists in the nominal model, and no lepton-only category is labeled VBF. This makes official VBF-category comparisons unavailable rather than weakly measured.
+
+\begin{table}[htbp]
+\centering
+\caption{Largest nuisance impacts on expected $\mu$. Shifts are fixed-variation expected impacts, not observed-data pulls.}
+\begin{tabular}{llll}
+\toprule
+Nuisance & Down shift & Up shift & Max impact \\ 
+\midrule
+dy\_fake\_norm & 0.1427 & -0.06093 & 0.1427 \\
+qqZZ\_norm & 0.08392 & -0.08207 & 0.08392 \\
+lepton eff & 0.05804 & -0.05382 & 0.05804 \\
+m4l scale\_shape & -0.009583 & -0.05273 & 0.05273 \\
+signal\_ggH\_theory & 0.0462 & -0.04237 & 0.0462 \\
+lumi & 0.01497 & -0.01476 & 0.01497 \\
+ggZZ\_norm & 0.004351 & -0.004283 & 0.004351 \\
+signal\_VBF\_theory & 0.004308 & -0.004223 & 0.004308 \\
+ttbar omission & 0.003187 & -0.002649 & 0.003187 \\
+signal\_VH\_theory & 0.001326 & -0.001318 & 0.001326 \\
+\bottomrule
+\end{tabular}
+\label{tab:nuisance-impacts}
+\end{table}
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.92\linewidth,height=0.70\textheight,keepaspectratio]{figures/expected_nuisance_impacts.pdf}
+\caption{Expected nuisance impact ranking on the global signal strength, evaluated by fixing each nuisance at plus or minus one standard deviation and refitting the Asimov model.}
+\label{fig:expected-nuisance-impacts}
+\end{figure}
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.92\linewidth,height=0.70\textheight,keepaspectratio]{figures/expected_uncertainty_breakdown.pdf}
+\caption{Expected uncertainty breakdown for the Phase 4a Asimov signal-strength fit, derived from the stat-only, MC-stat, and full nuisance fits.}
+\label{fig:expected-uncertainty-breakdown}
+\end{figure}
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.92\linewidth,height=0.70\textheight,keepaspectratio]{figures/expected_systematic_shift_summary.pdf}
+\caption{Per-systematic shifted-bin summary. The upper panel shows the actual m4l-scale shape-source bin shifts for one representative process/channel; the lower panel shows maximum integral effects for rate-only sources without inventing fake shape dependence.}
+\label{fig:expected-systematic-shift-summary}
+\end{figure}
+
+
+\section{Cross-checks}
+The cross-checks are designed to answer whether the low-count final-state model can be used honestly for an expected-only result. The Asimov goodness-of-fit is exactly zero by construction and is not treated as independent validation. Independent checks are low-count toys, signal injection and recovery, alternative-binning stability, channel compatibility, and corrupted-model sensitivity.
+
+For a comparison vector $\mathbf{d}-\mathbf{m}$ with covariance $C$, the generic validation statistic is
+\begin{equation}
+ \chi^2=(\mathbf{d}-\mathbf{m})^T C^{-1}(\mathbf{d}-\mathbf{m}).
+ \label{eq:chi2}
+\end{equation}
+For low-count Poisson bins the preferred diagnostic is the saturated-model deviance,
+\begin{equation}
+ D = 2\sum_b \left[n_b\log\frac{n_b}{\lambda_b} - (n_b-\lambda_b)\right],
+ \label{eq:poisson-deviance}
+\end{equation}
+with the usual zero-count convention. In Phase 4a the pseudo-data are generated by the nominal model, so observed-data GoF interpretation is deferred.
+
+\begin{table}[htbp]
+\centering
+\caption{Signal injection and recovery. All injected Asimov configurations pass the 20\% relative-bias gate.}
+\begin{tabular}{lllll}
+\toprule
+Injected $\mu$ & Fitted $\mu$ & Bias & Relative bias & Pass \\ 
+\midrule
+0 & 5.39e-21 & 5.39e-21 & 5.39e-21 & yes \\
+1 & 1 & 0 & 0 & yes \\
+2 & 2 & -4.47e-06 & 2.24e-06 & yes \\
+5 & 5 & -7.58e-05 & 1.52e-05 & yes \\
+\bottomrule
+\end{tabular}
+\label{tab:injection}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\caption{Alternative-binning stability for the expected signal-strength fit.}
+\begin{tabular}{lllll}
+\toprule
+Config. & Channels & $\sigma_\mu$ & bins $<5$ & p-value \\ 
+\midrule
+final\_state\_nominal & 4mu, 4e, 2e2mu & 0.5724 & 17 & 1 \\
+inclusive\_nominal & inclusive & 0.5755 & 0 & 1 \\
+inclusive\_coarse & inclusive & 0.5868 & 0 & 1 \\
+inclusive\_peak\_side & inclusive & 0.5895 & 0 & 1 \\
+\bottomrule
+\end{tabular}
+\label{tab:binning}
+\end{table}
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.92\linewidth,height=0.70\textheight,keepaspectratio]{figures/expected_signal_injection_recovery.pdf}
+\caption{Signal injection and recovery test at mu = 0, 1, 2, and 5. All injected Asimov configurations are refit with the same nuisance model and checked against the 20 percent bias gate.}
+\label{fig:expected-signal-injection-recovery}
+\end{figure}
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.92\linewidth,height=0.70\textheight,keepaspectratio]{figures/expected_low_count_validation.pdf}
+\caption{Low-count toy and closure-sensitivity validation summary. The final-state simultaneous corruption test rejects the +20 percent mass-response case; the -20 percent case is retained as a documented low-count sensitivity limitation in the JSON.}
+\label{fig:expected-low-count-validation}
+\end{figure}
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.92\linewidth,height=0.70\textheight,keepaspectratio]{figures/expected_binning_stability.pdf}
+\caption{Alternative-binning stability comparison for the expected signal-strength fit. The final-state nominal configuration is retained for the Asimov result after low-count toy validation, while inclusive/coarse variants provide stability cross-checks.}
+\label{fig:expected-binning-stability}
+\end{figure}
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.92\linewidth,height=0.70\textheight,keepaspectratio]{figures/expected_binning_low_count_summary.pdf}
+\caption{Low-count bin summary for the alternative-binning stability comparison. The nominal final-state model retains low expected-count bins only after the dedicated Poisson toy validation passes.}
+\label{fig:expected-binning-low-count-summary}
+\end{figure}
+
+\begin{table}[htbp]
+\centering
+\caption{Documented low-count corruption-sensitivity limitation for the -20\% mass-response test. None of the three final-state-aligned profiled tests rejects at p<0.05; this criterion is documented low-count infeasible, not passed.}
+\begin{tabular}{llllll}
+\toprule
+Attempt & Test & Statistic & ndf & p-value & Rejects \\ 
+\midrule
+1 & profiled Poisson saturated-likelihood deviance i & 16.92 & 17 & 0.4595 & no \\
+2 & profiled per-channel shape-only Poisson deviance & 12.97 & 15 & 0.6049 & no \\
+3 & profiled Pearson chi2 on the final-state simulta & 22.72 & 17 & 0.1584 & no \\
+\bottomrule
+\end{tabular}
+\label{tab:corruption}
+\end{table}
+
+
+\section{Statistical Method}
+The nominal inference uses a binned simultaneous template likelihood implemented with pyhf \cite{pyhf_joss,HistFactory}. One global parameter of interest $\mu$ scales all Higgs production templates together. The active channels are $4\mu$, $4e$, and $2e2\mu$, with mass-bin edges $[105,112,118,122,126,130,140]$ GeV.
+
+The likelihood is
+\begin{equation}
+ L(\mu,\boldsymbol{\theta}) = \prod_{c,b}\mathrm{Pois}\left(n_{cb}\mid \lambda_{cb}(\mu,\boldsymbol{\theta})\right)\prod_k \pi_k(\theta_k),
+ \label{eq:likelihood}
+\end{equation}
+where $\pi_k$ are Gaussian or log-normal constraints depending on the modifier. The profile-likelihood test statistic is
+\begin{equation}
+ q(\mu) = -2\log\frac{L(\mu,\hat{\hat{\boldsymbol{\theta}}}_{\mu})}{L(\hat{\mu},\hat{\boldsymbol{\theta}})}.
+ \label{eq:profile}
+\end{equation}
+The one-sigma interval is read from $\Delta q(\mu)=1$ on the expected profile scan. Asymptotic profile-likelihood methods and numerical minimization tools are standard for HEP measurements \cite{Cowan2011,Minuit}, but the low expected bin counts are why the note also reports toy and binning-stability diagnostics \cite{Cowan2011}.
+
+The parameter convention is deliberately simple. A single global signal-strength POI multiplies all Higgs production components, so the fit measures the total Higgs yield relative to the nominal prompt-normalized MC expectation. The production-mode labels are retained inside the template model only so that signal-composition uncertainties can be propagated. They are not independent POIs, and the note does not quote ggH, VBF, or VH signal strengths. This avoids over-interpreting the open-data sample and the lepton-only categories.
+
+The nuisance parameters are interpreted differently in expected and observed phases. In Phase 4a the Asimov pseudo-data are generated from the same nominal model that is fitted, so nuisance best fits at their nominal values are expected and are not evidence that the data constrain those systematics. The nuisance-impact table instead answers a different question: if a source is shifted by its prescribed prior variation and the model is refit, how much can the expected signal-strength estimate move? That is why the impact ranking is meaningful in Phase 4a even though the nuisance pulls themselves are not observed-data measurements.
+
+The goodness-of-fit numbers are also staged quantities. The nominal Asimov deviance and chi-squared are zero by construction when the fitted expectation equals the generated expectation, so a reported $p=1$ is only a bookkeeping check. The validation evidence is therefore the ensemble of non-tautological tests: injected signal strengths at $\mu=0$, 1, 2, and 5; Poisson toy behavior in the sparse final-state bins; alternative inclusive and coarser binnings; channel compatibility; and intentionally corrupted mass-response models. The corrupted-model test is especially important because it probes whether the low-count likelihood can reject a wrong shape rather than merely recover an injected normalization.
+
+The mass-profile scan uses the same likelihood structure but replaces the signal template at each grid mass with a shifted detector-level M125-derived template and profiles $\mu$ at each grid point. The scan therefore tests method parity with the CMS-style simultaneous category mass extraction, but it is not promoted to a calibrated mass measurement. The statistical reason is that the template family does not include independent simulated mass hypotheses or official per-lepton calibration and resolution inputs. The reported closure table shows that the implemented scan can recover injected grid masses under its own assumptions; it does not establish the full experimental mass scale.
+
+The expected interval is asymmetric because it is read from the profile scan rather than from a fixed quadratic approximation. The symmetric uncertainty reported in summary tables is the arithmetic average of the upward and downward one-sigma distances and is used only for compact comparison metrics such as the precision ratio to CMS-HIG-16-041. Whenever the interval is the result, the note quotes the asymmetric pair from expected\_parameters.json.
+\section{Expected Results}
+The Phase 4a expected-only result uses Asimov pseudo-data equal to the nominal model expectation. The fitted value is therefore centered at $\mu=1.0$ by construction; the physics content of Phase 4a is the expected uncertainty, the validation of the low-count workspace, and the complete documentation of approximations.
+
+\begin{table}[htbp]
+\centering
+\caption{Expected signal-strength result from expected\_parameters.json.}
+\begin{tabular}{llll}
+\toprule
+Quantity & Value & Minus uncertainty & Plus uncertainty \\ 
+\midrule
+$\mu$ & 1 & 0.5167 & 0.6327 \\
+Symmetric uncertainty & 0.5747 & -- & -- \\ 
+\bottomrule
+\end{tabular}
+\label{tab:mu-result}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\caption{Variance decomposition for $\mu$.}
+\begin{tabular}{ll}
+\toprule
+Component & Variance \\ 
+\midrule
+Statistical & 0.3064 \\
+MC statistical approximation & 0.002956 \\
+Systematic including MC stat & 0.02396 \\
+Total & 0.3303 \\
+\bottomrule
+\end{tabular}
+\label{tab:variance}
+\end{table}
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.92\linewidth,height=0.70\textheight,keepaspectratio]{figures/expected_mu_profile_scan.pdf}
+\caption{Expected profile-likelihood scan for the global Higgs signal-strength parameter. The Asimov best fit is mu = 1 with symmetric expected uncertainty 0.575.}
+\label{fig:expected-mu-profile-scan}
+\end{figure}
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.92\linewidth,height=0.70\textheight,keepaspectratio]{figures/expected_m4l_final_state_templates.pdf}
+\caption{Expected Asimov four-lepton mass templates in the final-state categories used by the Phase 4a simultaneous fit. Points show the background expectation, Higgs signal expectation, and their total; no observed Open Data counts are used as pseudo-data.}
+\label{fig:expected-m4l-final-state-templates}
+\end{figure}
+
+
+\subsection{Mass-Profile Attempt}
+The simultaneous mass-profile attempt uses shifted detector-level M125 templates in the same final-state categories as the signal-strength workspace, with $\mu$ profiled at each mass grid point. The scan range is 110--140 GeV. This is method-parity evidence and closure validation, not an official Higgs mass measurement, because independent mass-hypothesis MC and official lepton calibration/morphing inputs are unavailable.
+
+\begin{table}[htbp]
+\centering
+\caption{Mass-template closure. The closure gate passes for injected masses, but the result is not promoted to an official mass measurement.}
+\begin{tabular}{llll}
+\toprule
+Injected mass [GeV] & Recovered grid [GeV] & Bias [GeV] & Pass \\ 
+\midrule
+115 & 115 & 0 & yes \\
+125 & 125 & 0 & yes \\
+135 & 135 & 0 & yes \\
+\bottomrule
+\end{tabular}
+\label{tab:mass-closure}
+\end{table}
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.92\linewidth,height=0.70\textheight,keepaspectratio]{figures/expected_mass_profile_attempt.pdf}
+\caption{Detector-level shifted-template mass-profile attempt with mu profiled. This is retained as method-parity evidence; it is not promoted to an official-quality mass measurement because independent mass-hypothesis MC and official calibration inputs are unavailable.}
+\label{fig:expected-mass-profile-attempt}
+\end{figure}
+
+
+\section{Comparison to Prior Results and Theory}
+The expected $\mu$ result is contextualized against CMS-HIG-16-041 and CMS-HIG-19-001, but those values are not inputs to the fit and the analysis is not tuned to match them. With the CMS-HIG-16-041 symmetric uncertainty approximated as $(0.19+0.17)/2=0.18$, the Phase 4a expected uncertainty ratio is 0.5747382435005995 / 0.18 = 3.193. The expected central value pull relative to CMS-HIG-16-041 is approximately $(1.0-1.05)/\sqrt{0.5747382435005995^2+0.18^2}=-0.083\sigma$, but this pull is only contextual because one value is an expected Asimov result and the other is an observed CMS publication.
+
+The mass-profile closure best grid point is 125 GeV for the nominal injected template. Compared with the CMS-HIG-16-041 observed mass value of 125.26 GeV and PDG Higgs mass 125.20 GeV, the absolute differences are 0.26 GeV and 0.20 GeV respectively. These are not official pulls because the Phase 4a mass scan is a shifted-template detector-level closure exercise rather than a calibrated mass measurement.
+
+\begin{table}[htbp]
+\centering
+\caption{Comparison matrix. Pulls are given only where meaningful; non-comparable entries are explicitly labeled.}
+\begin{small}
+\begin{tabular}{p{0.17\linewidth}p{0.21\linewidth}p{0.33\linewidth}p{0.19\linewidth}}
+\toprule
+Quantity & This Phase 4a note & Reference & Comparability \\
+\midrule
+Inclusive $\mu$ & $1.0^{+0.633}_{-0.517}$ & CMS-HIG-16-041: $1.05^{+0.19}_{-0.17}$ & Contextual, pull $-0.083\sigma$ \\
+Inclusive $\mu$ & $1.0^{+0.633}_{-0.517}$ & CMS-HIG-19-001: $0.94\pm0.07\mathrm{(stat)}^{+0.09}_{-0.08}\mathrm{(syst)}$ & Contextual; different dataset/scope \\
+Mass & 125 GeV grid closure & CMS-HIG-16-041: $125.26\pm0.21$ GeV & Not official-quality measurement \\
+Fiducial cross section & not extracted & CMS-HIG-16-041: $2.92^{+0.48}_{-0.44}\mathrm{(stat)}^{+0.28}_{-0.24}\mathrm{(syst)}$ fb & unavailable in Phase 4a \\
+Width & not extracted & CMS-HIG-16-041: $\Gamma_H<1.10$ GeV & unavailable \\
+VBF categories & downscoped & CMS seven production-sensitive categories & unavailable without jets \\
+Reducible background & DY+jets MC proxy & CMS data-driven Z+X & approximated \\
+\bottomrule
+\end{tabular}
+\end{small}
+\label{tab:comparison}
+\end{table}
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.92\linewidth,height=0.70\textheight,keepaspectratio]{figures/expected_reference_comparison.pdf}
+\caption{Expected Phase 4a signal-strength precision compared with public CMS H to ZZ to four-lepton references. The expected uncertainty/reference ratio 3.19 is computed relative to CMS-HIG-16-041 only; CMS-HIG-19-001 is shown as an additional public comparison.}
+\label{fig:expected-reference-comparison}
+\end{figure}
+
+
+\section{Conclusions}
+The expected-only Phase 4a signal-strength measurement is complete enough to support downstream 10\% and full-data updates. The expected result is $\mu=1.0^{+0.6327358408468291}_{-0.51674064615437}$ with symmetric uncertainty 0.5747382435005995 in the $105<m_{4\ell}<140$ GeV fit window. The precision is about 3.193 times weaker than the symmetrized CMS-HIG-16-041 signal-strength uncertainty, which is consistent with the smaller 10 fb$^{-1}$ open-data sample, detector-level simplifications, missing official calibrations, no VBF category, and DY+jets fake-proxy treatment.
+
+The analysis satisfies the expected inference gate with documented limitations. The most important caveats are the grouped MC-stat approximation, the low-count final-state bins, the non-rejected -20\% mass-response corruption test after three final-state-aligned attempts, and the fact that the mass-profile result is closure evidence rather than an official mass measurement.
+\section{Future Directions}
+The Phase 4b update should repeat low-count toy validation on the fixed-seed 10\% observed data subset, compare the observed partial-data result with the expected interval, and preserve the same fit window and category definitions unless a reviewed regression changes them. The Phase 4c update should repeat the fit on the full observed data and revisit alternative binning if observed GoF or nuisance behavior changes. A true VBF category requires upstream jet information or a reviewed expansion of allowed inputs; it cannot be recovered from the current flat ntuples. A more official fake-background treatment would require a data-driven Z+X estimate, which is intentionally absent from the current scope.
+\section{Known Limitations and Open Questions}
+First, the analysis is detector-level and uses prompt-effective MC normalization. It does not unfold to a fiducial phase space, and it does not produce a fiducial cross section. The practical impact is that comparisons to CMS fiducial cross sections are unavailable, while $\mu$ comparisons remain contextual.
+
+Second, the reducible background is a DY+jets MC proxy. This was requested by the user and propagated with a broad nuisance, but it is not equivalent to the official CMS data-driven Z+X method. Its dominant impact on $\mu$ is an honest statement of weak fake-background control.
+
+Third, the final-state simultaneous workspace is sparse: Phase 3 had 17 of 18 bins with expected $S+B<5$. Phase 4a toys and alternative binnings support expected-only use, but the -20\% mass-response corruption test remains documented low-count infeasible after three attempts. This limitation must be rechecked with observed data.
+
+Fourth, the VBF and neural-network goals were attempted but not promoted. VBF is unavailable because jet/VBF information is absent; the NN does not pass the promotion gates and is not used nominally. These are downscopes, not hidden analysis choices.
+\appendix
+\section{Figure Inventory and Auxiliary Plots}
+All 49 upstream figure PDFs are staged under analysis\_note/figures and included in this note. The following appendix figures carry the detailed validation and reconnaissance trail so that the body can focus on the physics narrative.
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.92\linewidth,height=0.70\textheight,keepaspectratio]{figures/m4l_small_slice_shapes.pdf}
+\caption{m\_\{4ell\} [GeV] small-slice shape comparison. The distributions use at most 1000 entries per primary ROOT file and are area-normalized only for Phase 1 shape reconnaissance, not for yield validation. Large differences here flag candidate variables for Phase 2/3 data-MC quality checks rather than final selection conclusions.}
+\label{fig:m4l-small-slice-shapes}
+\end{figure}
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.92\linewidth,height=0.70\textheight,keepaspectratio]{figures/z1_mass_small_slice_shapes.pdf}
+\caption{m\_\{Z1\} [GeV] small-slice shape comparison. The distributions use at most 1000 entries per primary ROOT file and are area-normalized only for Phase 1 shape reconnaissance, not for yield validation. Large differences here flag candidate variables for Phase 2/3 data-MC quality checks rather than final selection conclusions.}
+\label{fig:z1-mass-small-slice-shapes}
+\end{figure}
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.92\linewidth,height=0.70\textheight,keepaspectratio]{figures/z2_mass_small_slice_shapes.pdf}
+\caption{m\_\{Z2\} [GeV] small-slice shape comparison. The distributions use at most 1000 entries per primary ROOT file and are area-normalized only for Phase 1 shape reconnaissance, not for yield validation. Large differences here flag candidate variables for Phase 2/3 data-MC quality checks rather than final selection conclusions.}
+\label{fig:z2-mass-small-slice-shapes}
+\end{figure}
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.92\linewidth,height=0.70\textheight,keepaspectratio]{figures/pt4l_small_slice_shapes.pdf}
+\caption{p\_T\textasciicircum{}\{4ell\} [GeV] small-slice shape comparison. The distributions use at most 1000 entries per primary ROOT file and are area-normalized only for Phase 1 shape reconnaissance, not for yield validation. Large differences here flag candidate variables for Phase 2/3 data-MC quality checks rather than final selection conclusions.}
+\label{fig:pt4l-small-slice-shapes}
+\end{figure}
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.92\linewidth,height=0.70\textheight,keepaspectratio]{figures/eta4l_small_slice_shapes.pdf}
+\caption{eta\_\{4ell\} small-slice shape comparison. The distributions use at most 1000 entries per primary ROOT file and are area-normalized only for Phase 1 shape reconnaissance, not for yield validation. Large differences here flag candidate variables for Phase 2/3 data-MC quality checks rather than final selection conclusions.}
+\label{fig:eta4l-small-slice-shapes}
+\end{figure}
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.92\linewidth,height=0.70\textheight,keepaspectratio]{figures/leading_lepton_pt_small_slice_shapes.pdf}
+\caption{Leading lepton p\_T [GeV] small-slice shape comparison. The distributions use at most 1000 entries per primary ROOT file and are area-normalized only for Phase 1 shape reconnaissance, not for yield validation. Large differences here flag candidate variables for Phase 2/3 data-MC quality checks rather than final selection conclusions.}
+\label{fig:leading-lepton-pt-small-slice-shapes}
+\end{figure}
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.92\linewidth,height=0.70\textheight,keepaspectratio]{figures/input_validation_cos_theta1.pdf}
+\caption{costheta\_1 input-validation distribution in the broad 70  less than or equal to  m4l  less than or equal to  170 GeV window. The D7 shape gate fails with chi2/ndf = 1.6001492260113015 and p = 0.15619451168087164; this comparison is used only to decide classifier-input eligibility, not to normalize fit templates.}
+\label{fig:input-validation-cos-theta1}
+\end{figure}
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.92\linewidth,height=0.70\textheight,keepaspectratio]{figures/input_validation_cos_theta2.pdf}
+\caption{costheta\_2 input-validation distribution in the broad 70  less than or equal to  m4l  less than or equal to  170 GeV window. The D7 shape gate fails with chi2/ndf = 1.288622678888418 and p = 0.26545662085295785; this comparison is used only to decide classifier-input eligibility, not to normalize fit templates.}
+\label{fig:input-validation-cos-theta2}
+\end{figure}
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.92\linewidth,height=0.70\textheight,keepaspectratio]{figures/input_validation_cos_theta_star.pdf}
+\caption{costheta\textasciicircum{}* input-validation distribution in the broad 70  less than or equal to  m4l  less than or equal to  170 GeV window. The D7 shape gate fails with chi2/ndf = 1.007137007365913 and p = 0.4115406899048306; this comparison is used only to decide classifier-input eligibility, not to normalize fit templates.}
+\label{fig:input-validation-cos-theta-star}
+\end{figure}
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.92\linewidth,height=0.70\textheight,keepaspectratio]{figures/input_validation_eta4l.pdf}
+\caption{eta\_\{4ell\} input-validation distribution in the broad 70  less than or equal to  m4l  less than or equal to  170 GeV window. The D7 shape gate fails with chi2/ndf = 0.40390667035482464 and p = 0.846435676737652; this comparison is used only to decide classifier-input eligibility, not to normalize fit templates.}
+\label{fig:input-validation-eta4l}
+\end{figure}
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.92\linewidth,height=0.70\textheight,keepaspectratio]{figures/input_validation_lead_abs_eta.pdf}
+\caption{Leading lepton |eta| input-validation distribution in the broad 70  less than or equal to  m4l  less than or equal to  170 GeV window. The D7 shape gate passes with chi2/ndf = 0.47344618565668173 and p = 0.7552866554534795; this comparison is used only to decide classifier-input eligibility, not to normalize fit templates.}
+\label{fig:input-validation-lead-abs-eta}
+\end{figure}
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.92\linewidth,height=0.70\textheight,keepaspectratio]{figures/input_validation_lead_lepton_pt.pdf}
+\caption{Leading lepton p\_T [GeV] input-validation distribution in the broad 70  less than or equal to  m4l  less than or equal to  170 GeV window. The D7 shape gate fails with chi2/ndf = 4.056365380026655 and p = 0.0027310794648283346; this comparison is used only to decide classifier-input eligibility, not to normalize fit templates.}
+\label{fig:input-validation-lead-lepton-pt}
+\end{figure}
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.92\linewidth,height=0.70\textheight,keepaspectratio]{figures/input_validation_mZ1.pdf}
+\caption{m\_\{Z1\} [GeV] input-validation distribution in the broad 70  less than or equal to  m4l  less than or equal to  170 GeV window. The D7 shape gate fails with chi2/ndf = 122.06372130729305 and p = 6.222370344736675e-155; this comparison is used only to decide classifier-input eligibility, not to normalize fit templates.}
+\label{fig:input-validation-mZ1}
+\end{figure}
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.92\linewidth,height=0.70\textheight,keepaspectratio]{figures/input_validation_mZ2.pdf}
+\caption{m\_\{Z2\} [GeV] input-validation distribution in the broad 70  less than or equal to  m4l  less than or equal to  170 GeV window. The D7 shape gate fails with chi2/ndf = 32.08289020695661 and p = 7.490602115287423e-39; this comparison is used only to decide classifier-input eligibility, not to normalize fit templates.}
+\label{fig:input-validation-mZ2}
+\end{figure}
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.92\linewidth,height=0.70\textheight,keepaspectratio]{figures/input_validation_phi.pdf}
+\caption{Phi [rad] input-validation distribution in the broad 70  less than or equal to  m4l  less than or equal to  170 GeV window. The D7 shape gate fails with chi2/ndf = 0.780243891250844 and p = 0.5637239206342102; this comparison is used only to decide classifier-input eligibility, not to normalize fit templates.}
+\label{fig:input-validation-phi}
+\end{figure}
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.92\linewidth,height=0.70\textheight,keepaspectratio]{figures/input_validation_phi1.pdf}
+\caption{Phi\_1 [rad] input-validation distribution in the broad 70  less than or equal to  m4l  less than or equal to  170 GeV window. The D7 shape gate passes with chi2/ndf = 0.15524017964129577 and p = 0.9785264246346326; this comparison is used only to decide classifier-input eligibility, not to normalize fit templates.}
+\label{fig:input-validation-phi1}
+\end{figure}
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.92\linewidth,height=0.70\textheight,keepaspectratio]{figures/input_validation_pt4l.pdf}
+\caption{p\_T\textasciicircum{}\{4ell\} [GeV] input-validation distribution in the broad 70  less than or equal to  m4l  less than or equal to  170 GeV window. The D7 shape gate fails with chi2/ndf = 0.33279924052380305 and p = 0.8934040385491403; this comparison is used only to decide classifier-input eligibility, not to normalize fit templates.}
+\label{fig:input-validation-pt4l}
+\end{figure}
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.92\linewidth,height=0.70\textheight,keepaspectratio]{figures/input_validation_sublead_abs_eta.pdf}
+\caption{Subleading lepton |eta| input-validation distribution in the broad 70  less than or equal to  m4l  less than or equal to  170 GeV window. The D7 shape gate fails with chi2/ndf = 1.0759966157041323 and p = 0.36642617632066843; this comparison is used only to decide classifier-input eligibility, not to normalize fit templates.}
+\label{fig:input-validation-sublead-abs-eta}
+\end{figure}
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.92\linewidth,height=0.70\textheight,keepaspectratio]{figures/input_validation_sublead_lepton_pt.pdf}
+\caption{Subleading lepton p\_T [GeV] input-validation distribution in the broad 70  less than or equal to  m4l  less than or equal to  170 GeV window. The D7 shape gate fails with chi2/ndf = 849.4760725741927 and p = 0.0; this comparison is used only to decide classifier-input eligibility, not to normalize fit templates.}
+\label{fig:input-validation-sublead-lepton-pt}
+\end{figure}
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.92\linewidth,height=0.70\textheight,keepaspectratio]{figures/input_validation_y4l.pdf}
+\caption{y\_\{4ell\} input-validation distribution in the broad 70  less than or equal to  m4l  less than or equal to  170 GeV window. The D7 shape gate fails with chi2/ndf = 996.6794657416361 and p = 0.0; this comparison is used only to decide classifier-input eligibility, not to normalize fit templates.}
+\label{fig:input-validation-y4l}
+\end{figure}
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.92\linewidth,height=0.70\textheight,keepaspectratio]{figures/cut_motivation_efficiencies.pdf}
+\caption{Trigger, flavor-matched lepton-ID, and Z-pair sanity efficiencies by final state. Efficiencies are ratios to the previous predeclared selection step; data uses raw events and MC uses prompt-normalized weighted yields.}
+\label{fig:cut-motivation-efficiencies}
+\end{figure}
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.92\linewidth,height=0.70\textheight,keepaspectratio]{figures/m4l_broad_window_inclusive.pdf}
+\caption{Inclusive four-lepton mass distribution in the broad validation window. MC is normalized with prompt effective cross sections and Metadata denominators, while DY+jets remains the nominal fake proxy. This display is sideband and validation context only; the separate 105--140 GeV fit-window templates define the downstream inference input.}
+\label{fig:m4l-broad-window-inclusive}
+\end{figure}
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.92\linewidth,height=0.70\textheight,keepaspectratio]{figures/m4l_fit_4mu.pdf}
+\caption{Four-lepton mass distribution for the 4mu final-state category in 105 < m4l < 140 GeV. These final-state categories are the conditional Phase 4 simultaneous-fit handoff because the classifier split failed the promotion gates and no real VBF category is available; Phase 4 must validate low-count Poisson/toy behavior and MC-stat stability before reporting fit results.}
+\label{fig:m4l-fit-4mu}
+\end{figure}
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.92\linewidth,height=0.70\textheight,keepaspectratio]{figures/m4l_fit_4e.pdf}
+\caption{Four-lepton mass distribution for the 4e final-state category in 105 < m4l < 140 GeV. These final-state categories are the conditional Phase 4 simultaneous-fit handoff because the classifier split failed the promotion gates and no real VBF category is available; Phase 4 must validate low-count Poisson/toy behavior and MC-stat stability before reporting fit results.}
+\label{fig:m4l-fit-4e}
+\end{figure}
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.92\linewidth,height=0.70\textheight,keepaspectratio]{figures/m4l_fit_2e2mu.pdf}
+\caption{Four-lepton mass distribution for the 2e2mu final-state category in 105 < m4l < 140 GeV. These final-state categories are the conditional Phase 4 simultaneous-fit handoff because the classifier split failed the promotion gates and no real VBF category is available; Phase 4 must validate low-count Poisson/toy behavior and MC-stat stability before reporting fit results.}
+\label{fig:m4l-fit-2e2mu}
+\end{figure}
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.92\linewidth,height=0.70\textheight,keepaspectratio]{figures/sideband_dy_ttbar_diagnostics.pdf}
+\caption{DY+jets fake proxy and TTBar diagnostic reducible-background checks across the predeclared sideband and signal regions. TTBar diagnostic / DY+jets fake-proxy ratios are \{'high\_sideband\_140\_170': 0.16348247967166454, 'low\_sideband\_70\_105': 0.09536477980847097, 'signal\_window\_105\_140': 0.04440264879971137\}, so TTBar is not promoted to the nominal fake model by the Phase 2 thresholds.}
+\label{fig:sideband-dy-ttbar-diagnostics}
+\end{figure}
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.92\linewidth,height=0.70\textheight,keepaspectratio]{figures/angular_closure_median_deltas.pdf}
+\caption{Angular reco closure summary showing the maximum per-sample median absolute mass difference for recomputed four-vector quantities. All medians are far below the 0.1 GeV closure gate and all angular physical-range checks have zero out-of-range entries.}
+\label{fig:angular-closure-median-deltas}
+\end{figure}
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.92\linewidth,height=0.70\textheight,keepaspectratio]{figures/category_viability_s1.pdf}
+\caption{S1 final-state category viability summary for the fit window. The categories are retained only as a conditional Phase 4 handoff: 17/18 final-state bins have S+B below five expected events, while S2 classifier categories fail low-stat viability.}
+\label{fig:category-viability-s1}
+\end{figure}
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.92\linewidth,height=0.70\textheight,keepaspectratio]{figures/approach_comparison_mu_proxy.pdf}
+\caption{S1 and S2 approach comparison using the common Asimov counting precision proxy. The nominal choice is S1\_reference\_like\_final\_state\_categories because S2 did not pass all input, score-shape, low-stat, overtraining, or >10\% improvement gates; final-state binning is a conditional low-count Phase 4 handoff.}
+\label{fig:approach-comparison-mu-proxy}
+\end{figure}
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.92\linewidth,height=0.70\textheight,keepaspectratio]{figures/mva_roc_bdt.pdf}
+\caption{BDT classifier ROC curve for the S2 attempt. The weak separation and failed category-viability gates prevent promotion to nominal Phase 4 categories.}
+\label{fig:mva-roc-bdt}
+\end{figure}
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.92\linewidth,height=0.70\textheight,keepaspectratio]{figures/mva_roc_bdt_tuned.pdf}
+\caption{tuned BDT classifier ROC curve for the S2 attempt. The weak separation and failed category-viability gates prevent promotion to nominal Phase 4 categories.}
+\label{fig:mva-roc-bdt-tuned}
+\end{figure}
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.92\linewidth,height=0.70\textheight,keepaspectratio]{figures/mva_roc_logistic.pdf}
+\caption{logistic classifier ROC curve for the S2 attempt. The weak separation and failed category-viability gates prevent promotion to nominal Phase 4 categories.}
+\label{fig:mva-roc-logistic}
+\end{figure}
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.92\linewidth,height=0.70\textheight,keepaspectratio]{figures/mva_roc_small_nn.pdf}
+\caption{small NN classifier ROC curve for the S2 attempt. The weak separation and failed category-viability gates prevent promotion to nominal Phase 4 categories.}
+\label{fig:mva-roc-small-nn}
+\end{figure}
+
+
+\section{Limitation Index}
+\begin{small}
+\begin{longtable}{p{0.14\linewidth}p{0.23\linewidth}p{0.55\linewidth}}
+\caption{Constraint, decision, and limitation index carried into Doc 4a.}\label{tab:limitation-index}\\
+\toprule
+Label & Status & Impact \\
+\midrule
+\endfirsthead
+\toprule
+Label & Status & Impact \\
+\midrule
+\endhead
+A1/D1 & Resolved & Primary prompt paths used; local copies not mixed. \\
+A2/SP2 & Implemented fallback & Prompt cross sections used with process nuisances. \\
+A3/D4 & Formally downscoped & No VBF category or jet systematics. \\
+A4/D8 & Resolved for attempt & Angular variables recomputed and validated before NN attempt. \\
+A5 & Limitation & No truth-level object closure claims. \\
+A6/SP6 & Documented not propagated & PV variables excluded; no PV nuisance in nominal fit. \\
+L1 & Active limitation & Detector-level open-data analysis, not official CMS calibration. \\
+L2/SP10 & Active limitation & DY+jets MC fake proxy replaces data-driven Z+X. \\
+L3/D9 & Active limitation & Mass scan is closure evidence, not official mass measurement. \\
+SP3 & Formal downscope & Grouped MC-stat approximation replaces full bin-by-bin staterror. \\
+VT12 & Passed with caveat & Mass-template injected closure passes; result not promoted to official measurement. \\
+Corruption -20\% & Documented infeasible & Three final-state-aligned tests do not reject in low-count workspace. \\
+\bottomrule
+\end{longtable}
+\end{small}
+\section{Reproduction Contract}
+A fresh analyst should reproduce the current expected result with the following commands from the analysis root:
+\begin{enumerate}[leftmargin=*]
+\item `pixi install' to materialize the analysis environment.
+\item `pixi run all' to run the chain through Phase 4a with the current task definition.
+\item `pixi run p3-all' to rebuild selection tables, VBF downscope evidence, angular closure, input validation, MVA diagnostics, and selection figures.
+\item `pixi run p4a-all' to rebuild the expected pyhf workspace outputs, result JSON files, figures, and commitments.
+\item `cd analysis\_note \&\& pixi run build-pdf ANALYSIS\_NOTE\_doc4a\_v1.tex' to compile this note.
+\end{enumerate}
+The execution DAG is: prompt and ROOT ntuples $\rightarrow$ Phase 1 metadata/literature inventory $\rightarrow$ Phase 2 strategy commitments $\rightarrow$ Phase 3 selection and categories $\rightarrow$ Phase 4a expected workspace/results JSON $\rightarrow$ Doc 4a LaTeX/PDF. Manual steps are limited to writing this note and reviewing rendered output.
+\section{Machine-Readable Result Files}
+The numerical source of truth for Doc 4a is the JSON collection in the results directory. It contains the expected parameters, covariance, validation, mass scan, systematic summary, systematic shifts, and systematic-source records. Upstream selection JSON provides normalization, cutflow, input-validation, MVA metadata, approach-comparison, and selected-configuration records.
+\clearpage
+\bibliographystyle{unsrt}
+\bibliography{../references}
+\end{document}
