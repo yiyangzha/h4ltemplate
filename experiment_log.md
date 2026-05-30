@@ -733,3 +733,7 @@
 ## 2026-05-30 — Phase 4a expected reference-comparison label fix
 
 - Regenerated `expected_reference_comparison` with publication-standard reference labels and caption metadata clarifying that the 3.19 precision ratio is relative to CMS-HIG-16-041 only.
+
+## 2026-05-30 — Phase 4a expected plots
+
+- Produced 10 expected-inference figures and registered them in `phase4_inference/4a_expected/outputs/FIGURES.json`.
