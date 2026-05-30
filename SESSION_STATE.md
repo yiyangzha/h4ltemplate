@@ -1,8 +1,8 @@
 # Session State
 
-Last updated: 2026-05-30T02:13:08Z
+Last updated: 2026-05-30T03:20:00Z
 Current phase: Phase 4a — Expected Inference
-Step in loop: REVIEW
+Step in loop: REGRESSION_UPDATE_COMPLETE
 Iteration count: 0
 
 ## Completed phases (commit hashes)
@@ -44,10 +44,21 @@ Key Phase 3 artifacts:
 - `REGRESSION_CHECK_phase3.md`
 - `SESSION_SUMMARY_phase3.md`
 
-Phase 4a expected inference execution and VERIFY are complete. Level 2
-per-figure validation passed for all 10 registered figures after two scoped plot
-fixes and a full plot refresh. Next step: spawn the blocking Phase 4a inference
-review with a critical reviewer and plot validator.
+Phase 4a targeted regression update by `hana_c6cf` is complete. Phase 3 MVA
+training/evaluation metadata now records the broad `70 < m4l < 170 GeV`
+window and a tuned BDT trial; S1 remains nominal. Phase 4a now includes broad
+`m4l` display metadata, a broadened `110-140 GeV` shifted-template mass scan,
+per-systematic shifted-bin payloads, a systematic-shift summary figure, and
+formal grouped-MC-stat downscope labeling.
+
+The final-state simultaneous corruption sensitivity was run. It does not fully
+pass: `m4l_scale_factor_1.2` is rejected, but `m4l_scale_factor_0.8` is not
+(`p = 0.4595`). This is documented as a quantitative low-count limitation in
+`expected_validation.json` and `INFERENCE_EXPECTED.md`.
+
+Verification passed for commands and mechanical checks: `pixi run p3-all`,
+`pixi run p4a-all` plus rerun of Phase 4a fit/plots/artifact/commitments,
+`pixi run lint-plots`, registry smoke tests, and metadata sanity checks.
 
 ## Pending Decisions For Human
 
@@ -71,3 +82,5 @@ after Doc 4b review PASS.
 - Phase 4a expected inference retained final-state categories after low-count
   toy validation: 80 toys, success fraction `1.0`, median bias
   `-0.06064996537909362`.
+- Phase 4a regression update added `expected_systematic_shifts.json`,
+  `expected_m4l_broad_inclusive`, and `expected_systematic_shift_summary`.

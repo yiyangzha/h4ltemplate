@@ -91,32 +91,39 @@
     }
   ],
   "closure_sensitivity": {
-    "passes": true,
+    "channels": [
+      "4mu",
+      "4e",
+      "2e2mu"
+    ],
+    "passes": false,
+    "quantitative_limitation": "The final-state simultaneous workspace was run as requested, but not every 20 percent mass-response corruption is rejected with the 18-bin final-state deviance test. Non-rejected rows: [{'corruption': 'm4l_scale_factor_0.8', 'deviance': 16.923830685007037, 'ndf': 17, 'p_value': 0.459538098019478, 'passes_failure_requirement': False}]. This is a quantitative limitation from splitting the already low-count Asimov model into final states; the earlier inclusive alarm was more sensitive, but it is not a substitute for full final-state closure.",
     "rows": [
       {
         "corruption": "m4l_scale_factor_0.8",
-        "deviance": 13.47136390295552,
-        "ndf": 5,
-        "p_value": 0.01934008970762087,
-        "passes_failure_requirement": true
+        "deviance": 16.923830685007037,
+        "ndf": 17,
+        "p_value": 0.459538098019478,
+        "passes_failure_requirement": false
       },
       {
         "corruption": "m4l_scale_factor_1.2",
-        "deviance": 91.59556067192092,
-        "ndf": 5,
-        "p_value": 3.1049330873040137e-18,
+        "deviance": 99.91066397247003,
+        "ndf": 17,
+        "p_value": 9.242355722661752e-14,
         "passes_failure_requirement": true
       }
     ],
-    "test": "mass-response corruption sensitivity"
+    "test": "mass-response corruption sensitivity",
+    "workspace": "final_state_simultaneous"
   },
   "completion_verdicts": {
     "asimov_only": true,
-    "corruption_tests_fail_as_required": true,
+    "corruption_tests_fail_as_required": false,
     "injection_bias_lt_20pct": true,
     "low_count_validated": true
   },
-  "created_utc": "2026-05-30T02:36:03+00:00",
+  "created_utc": "2026-05-30T03:16:45+00:00",
   "final_state_channel_compatibility": {
     "max_abs_pull_vs_combined": 0.0,
     "passes": true,

@@ -94,7 +94,7 @@ def main() -> None:
     selected = "S2_classifier_categories" if s2.get("promote_s2") else "S1_reference_like_final_state_categories"
     payload = {
         "created_utc": now(),
-        "common_metric": "Asimov counting precision proxy sqrt(S+B)/S in 105 < m4l < 140 GeV, plus D7/GoF/category gates",
+        "common_metric": "Asimov counting precision proxy sqrt(S+B)/S in 105 < m4l < 140 GeV, plus broad-window 70 < m4l < 170 GeV MVA D7/GoF/category gates",
         "approaches": {
             "S1_reference_like_cut_and_channel_fit": s1,
             "S2_angular_kinematic_classifier_categories": s2,

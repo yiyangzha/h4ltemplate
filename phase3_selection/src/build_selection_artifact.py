@@ -289,6 +289,11 @@ D7 was applied before classifier training. Shape comparisons use a data-area
 normalization only for input-modeling diagnostics; nominal yields remain
 prompt-luminosity normalized. Only variables passing `chi2/ndf <= 5` and no
 coherent shape-ratio trend above 20 percent were eligible for S2 training.
+Classifier training and score validation use the broad `70 <= m4l <= 170 GeV`
+selected event table. The fitted mass `m4l` is not used as a classifier input.
+This regression also tries a tuned BDT variant in addition to the original
+logistic, BDT, and small-NN alternatives; promotion still requires all gates
+and a >10 percent improvement over S1.
 
 {input_table(validation)}
 
@@ -310,8 +315,7 @@ than S1, not a >10 percent improvement. The detailed S2 gate table is:
 
 {mva_gate_table(mva)}
 
-The BDT score-shape gate passes, but its category-viability gate fails; the
-logistic and small NN score-shape and category-viability gates both fail. No
+The BDT variants are checked as the meaningful improvement attempt, but no
 trained classifier variant satisfies all S2 promotion gates.
 
 ## Fake And Sideband Diagnostics

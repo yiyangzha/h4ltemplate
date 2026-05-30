@@ -1,5 +1,5 @@
 {
-  "created_utc": "2026-05-30T02:36:03+00:00",
+  "created_utc": "2026-05-30T03:16:45+00:00",
   "phase": "4a_expected",
   "sources": [
     {
@@ -202,12 +202,12 @@
       "fallback_flag": false,
       "key": "mc_stat",
       "nominal_or_variation_size": null,
-      "phase4a_status": "implemented_grouped_approximation",
+      "phase4a_status": "formal_downscope_grouped_mcstat_approximation",
       "ref_1": "phase3_selection/outputs/fit_inputs_s1.json",
       "ref_2": "Derived from Phase 3 per-bin sumw2 templates. Implemented as group/category normalization nuisances and tested with alternative-bin stability because full per-bin staterror profiling is computationally impractical in this sandbox.",
       "relative_variation": null,
       "source": "MC statistical uncertainty",
-      "status": "implemented_grouped_approximation",
+      "status": "formal_downscope_grouped_mcstat_approximation",
       "this_analysis": "Propagated in pyhf model",
       "variation_basis": "analysis_measured_sumw2_grouped_approximation"
     },

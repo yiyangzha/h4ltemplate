@@ -76,6 +76,7 @@ def main() -> None:
     covariance = read_json(RESULTS / "expected_covariance.json")
     validation = read_json(RESULTS / "expected_validation.json")
     systematics = read_json(RESULTS / "expected_systematics.json")
+    systematic_shifts = read_json(RESULTS / "expected_systematic_shifts.json")
     mass = read_json(RESULTS / "expected_mass_scan.json")
     figures = read_json(OUT / "FIGURES.json")
 
@@ -104,6 +105,8 @@ def main() -> None:
         [row["corruption"], fmt(row["deviance"]), row["ndf"], fmt(row["p_value"], 5), row["passes_failure_requirement"]]
         for row in validation["closure_sensitivity"]["rows"]
     ]
+    corruption_pass = validation["closure_sensitivity"]["passes"]
+    corruption_limitation = validation["closure_sensitivity"].get("quantitative_limitation") or "none"
     impact_rows = [
         [row["nuisance"], fmt(row["mu_shift_down"]), fmt(row["mu_shift_up"]), fmt(row["max_abs_impact"])]
         for row in parameters["nuisance_impacts"][:12]
@@ -140,8 +143,8 @@ statistical uncertainty is propagated with group/category normalization
 nuisances derived from Phase 3 `sumw2`; full per-bin staterror profiling was
 not computationally stable in this sandbox, so the implementation is paired
 with explicit alternative-binning stability checks. This grouped treatment is
-an expected-phase approximation to per-bin HistFactory `staterror` terms, not
-a drop-in replacement for a full per-bin MC-stat profile.
+a formal expected-phase downscope/approximation to per-bin HistFactory
+`staterror` terms, not a completed full per-bin MC-stat profile.
 
 ## Expected Fit Result
 
@@ -187,8 +190,10 @@ Closure-test sensitivity with intentionally corrupted model ingredients:
 
 {table(["Corruption", "deviance", "ndf", "p-value", "fails as required"], corruption_rows)}
 
-The corruption tests pass the sensitivity requirement because the intentionally
-wrong models are rejected below `p = 0.05`.
+Final-state simultaneous corruption-test pass status: `{corruption_pass}`.
+The intentionally wrong +20 percent mass-response model is rejected below
+`p = 0.05`; the -20 percent direction is not rejected in the low-count
+final-state workspace. Quantitative limitation: {corruption_limitation}
 
 ## Covariance And Uncertainty Breakdown
 
@@ -215,6 +220,8 @@ workspace, with `mu` profiled at each mass grid point. It is not an official
 calibrated mass measurement, but it satisfies the expected-phase
 mass-template closure gate on the available templates.
 
+- scan range: `{fmt(mass['scan_range_GeV']['min'])}` to `{fmt(mass['scan_range_GeV']['max'])}` GeV in `{fmt(mass['scan_range_GeV']['step'])}` GeV steps
+- excluded ranges: `{mass.get('excluded_ranges_GeV', [])}`
 - nominal best mass grid point: `{fmt(mass['nominal_best_mass_grid_GeV'])} GeV`
 - nominal best-fit `mu` in the mass scan: `{fmt(mass['nominal_best_mu_hat'])}`
 - categories: `{', '.join(mass.get('categories', []))}`
@@ -238,6 +245,14 @@ external calibrations. The machine-readable source table is duplicated to
 `analysis_note/results/systematics_sources.json` for reviewer and note-writer
 traceability.
 
+Machine-readable shifted-bin payloads are written to
+`analysis_note/results/expected_systematic_shifts.json`. They contain
+nominal/up/down bin arrays for `{len(systematic_shifts['systematics'])}` active
+systematic sources by process group and final-state channel. Rate-only sources
+are represented as uniform normalization shifts; the `m4l_scale` source is the
+shape histosys. The grouped `mc_stat` payload is labelled as the same formal
+downscope/approximation used in the covariance.
+
 ## Figures
 
 {table(["Figure", "PNG", "PDF"], figure_rows)}
@@ -250,7 +265,9 @@ traceability.
 | Full per-bin pyhf staterror model was computationally impractical. | Used grouped MC-stat normalization nuisances derived from `sumw2`, labelled the approximation in JSON/prose, and documented alternative-binning stability. | `expected_parameters.json`, `expected_covariance.json`, `expected_validation.json` |
 | Phase 4a review found the first mass scan was inclusive rather than category-simultaneous. | Rebuilt the mass-profile closure as a simultaneous `4mu`, `4e`, and `2e2mu` category scan with `mu` profiled and the active Phase 4a nuisance set. | `expected_mass_scan.json`, `expected_mass_profile_attempt.png` |
 | Phase 4a review found missing systematic-source evidence rows. | Added `systematics_sources.json`, including SP2 prompt-effective-cross-section and SP6 pileup/PV rows plus fallback flags, affected processes, and evaluation methods. | `systematics_sources.json`, `expected_systematics.json` |
+| Phase 4a review found missing per-systematic shifted-bin payloads and per-bin effect figures. | Added `expected_systematic_shifts.json` with nominal/up/down arrays by active systematic, process, and final state; added a registered shape/rate summary figure without fake shape dependence for rate-only sources. | `expected_systematic_shifts.json`, `expected_systematic_shift_summary.png` |
 | Phase 4a review found MC-stat covariance rows inconsistent. | Recorded grouped MC-stat as a nonzero component consistently in the top-level covariance, per-systematic row, and variance-component breakdown. | `expected_covariance.json` |
+| Phase 4a review found corruption sensitivity was inclusive-only. | Recomputed the 20 percent mass-response corruption test in the final-state simultaneous workspace and documented the non-rejected -20 percent direction as a quantitative low-count limitation. | `expected_validation.json` |
 | Plot watcher reported a crowded binning-stability figure. | Split the display into two separately registered figures and rerendered the stability figure with extra x-axis padding/no data-overlapping legend. | `PLOT_WATCHER_RECHECK_vera_ee63.md` reports PASS with zero unresolved blockers. |
 | Earlier watcher files still contain stale FAIL/BLOCKED text. | Current figure status is determined by the later `PLOT_WATCHER_RECHECK_vera_ee63.md` PASS and the rerendered figure mtimes; stale watcher files are retained as audit history only. | `phase4_inference/4a_expected/review/validation/PLOT_WATCHER_RECHECK_vera_ee63.md` |
 | Exact Asimov GoF values can look tautological. | Labelled chi2=0/p=1 as expected self-consistency and pointed to toys, injections, corruption tests, and binning variants as the actual validation evidence. | `expected_validation.json`, Validation Tests section |
@@ -265,6 +282,7 @@ traceability.
 - `analysis_note/results/expected_validation.json`
 - `analysis_note/results/expected_mass_scan.json`
 - `analysis_note/results/systematics_sources.json`
+- `analysis_note/results/expected_systematic_shifts.json`
 """
     (OUT / "INFERENCE_EXPECTED.md").write_text(text)
     append_session("Expected inference artifact written\n\n- Wrote `phase4_inference/4a_expected/outputs/INFERENCE_EXPECTED.md` from machine-readable expected-result JSON files.")

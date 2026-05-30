@@ -538,14 +538,14 @@ def channel_compatibility(
 
 
 def corrupted_closure(events: dict[str, Any], active_systematics: set[str]) -> dict[str, Any]:
-    nominal = inclusive_from_channels(event_group_templates(events, FIT_BINS, channels=CHANNELS), CHANNELS)
-    nominal_fit = fit_configuration(nominal, ("inclusive",), active_systematics - {"m4l_scale"})
+    nominal = event_group_templates(events, FIT_BINS, channels=CHANNELS)
+    nominal_fit = fit_configuration(nominal, CHANNELS, active_systematics - {"m4l_scale"})
     nominal_model = nominal_fit["model"]
     nominal_main = np.asarray(nominal_model.expected_data(nominal_model.config.suggested_init(), include_auxdata=False), dtype=float)
     rows = []
     for factor in (0.8, 1.2):
-        corrupted = inclusive_from_channels(event_group_templates(events, FIT_BINS, channels=CHANNELS, mass_shift_factor=factor), CHANNELS)
-        spec = model_spec(corrupted, ("inclusive",), include_systematics=active_systematics - {"m4l_scale"})
+        corrupted = event_group_templates(events, FIT_BINS, channels=CHANNELS, mass_shift_factor=factor)
+        spec = model_spec(corrupted, CHANNELS, include_systematics=active_systematics - {"m4l_scale"})
         model = make_model(spec)
         best, _ = fit_model(model, nominal_main.tolist() + list(model.config.auxdata))
         expected = np.asarray(model.expected_data(best, include_auxdata=False), dtype=float)
@@ -553,7 +553,24 @@ def corrupted_closure(events: dict[str, Any], active_systematics: set[str]) -> d
         ndf = max(len(nominal_main) - 1, 1)
         p_value = float(stats.chi2.sf(dev, ndf))
         rows.append({"corruption": f"m4l_scale_factor_{factor:g}", "deviance": dev, "ndf": ndf, "p_value": p_value, "passes_failure_requirement": bool(p_value < 0.05)})
-    return {"test": "mass-response corruption sensitivity", "rows": rows, "passes": bool(all(row["passes_failure_requirement"] for row in rows))}
+    passes = bool(all(row["passes_failure_requirement"] for row in rows))
+    limitation = None
+    if not passes:
+        failed = [row for row in rows if not row["passes_failure_requirement"]]
+        limitation = (
+            "The final-state simultaneous workspace was run as requested, but not every 20 percent mass-response corruption is rejected "
+            f"with the 18-bin final-state deviance test. Non-rejected rows: {failed}. This is a quantitative limitation from splitting "
+            "the already low-count Asimov model into final states; the earlier inclusive alarm was more sensitive, but it is not a substitute "
+            "for full final-state closure."
+        )
+    return {
+        "test": "mass-response corruption sensitivity",
+        "workspace": "final_state_simultaneous",
+        "channels": list(CHANNELS),
+        "rows": rows,
+        "passes": passes,
+        "quantitative_limitation": limitation,
+    }
 
 
 def shifted_category_templates(events: dict[str, Any], mass: float, *, nominal_mass: float, m4l_scale: float = 1.0) -> dict[str, dict[str, Any]]:
@@ -585,7 +602,7 @@ def mass_scan(events: dict[str, Any], active_systematics: set[str]) -> dict[str,
     # shifted, but this remains a template-closure exercise rather than a
     # calibrated mass measurement because no independent mass-hypothesis MC is
     # available.
-    mass_values = np.arange(123.0, 127.01, 0.5)
+    mass_values = np.arange(110.0, 140.01, 2.5)
     nominal_mass = 125.0
     active = set(active_systematics)
     nominal_templates = shifted_category_templates(events, nominal_mass, nominal_mass=nominal_mass)
@@ -608,7 +625,7 @@ def mass_scan(events: dict[str, Any], active_systematics: set[str]) -> dict[str,
         scan_rows.append({"mass_hypothesis_GeV": float(mass), "mu_hat": float(best[model.config.poi_index]), "twice_nll": nll})
     best_nominal = min(scan_rows, key=lambda row: row["twice_nll"])
     closure = []
-    for injected in (124.0, 125.0, 126.0):
+    for injected in (115.0, 125.0, 135.0):
         injected_templates = shifted_category_templates(events, injected, nominal_mass=nominal_mass)
         injected_up = shifted_category_templates(events, injected, nominal_mass=nominal_mass, m4l_scale=1.0 + SYSTEMATIC_SOURCES["m4l_scale"]["relative"])
         injected_down = shifted_category_templates(events, injected, nominal_mass=nominal_mass, m4l_scale=1.0 - SYSTEMATIC_SOURCES["m4l_scale"]["relative"])
@@ -646,6 +663,8 @@ def mass_scan(events: dict[str, Any], active_systematics: set[str]) -> dict[str,
         "categories": list(CHANNELS),
         "profiled_parameter": "mu",
         "active_systematics": sorted(active),
+        "scan_range_GeV": {"min": float(mass_values[0]), "max": float(mass_values[-1]), "step": 2.5},
+        "excluded_ranges_GeV": [{"min": 70.0, "max": 105.0, "reason": "Excluded from the Phase 4a mass-profile fit because the signal-strength fit window is fixed to 105 < m4l < 140 GeV and the Z peak neighborhood is sideband/validation-only."}],
         "template_shift_procedure": "For mass hypothesis mH, selected MC event m4l values are scaled by mH / 125 GeV before refilling per-category templates; per-category normalizations are preserved by refilling the same selected weighted events in each final state.",
         "mass_grid_GeV": mass_values.tolist(),
         "nominal_best_mass_grid_GeV": best_nominal["mass_hypothesis_GeV"],
@@ -656,6 +675,78 @@ def mass_scan(events: dict[str, Any], active_systematics: set[str]) -> dict[str,
         "promoted_to_nominal_mass_measurement": False,
         "downgrade_reason": "The required simultaneous category mass-extraction attempt passes the expected shifted-template closure, but independent mass-hypothesis MC and official lepton calibration/morphing inputs are unavailable; retain as method-parity closure rather than an official-quality mass measurement.",
         "limitations": "Uses shifted detector-level M125 templates because independent mass-hypothesis MC and official lepton calibration/morphing inputs are unavailable in the sandbox.",
+    }
+
+
+def normsys_shift(nominal: np.ndarray, rel: float) -> tuple[np.ndarray, np.ndarray]:
+    return nominal * (1.0 + rel), nominal * max(1.0 - rel, 1.0e-6)
+
+
+def systematic_shift_payload(
+    active_systematics: set[str],
+    grouped: dict[str, dict[str, Any]],
+    m4l_up: dict[str, dict[str, Any]],
+    m4l_down: dict[str, dict[str, Any]],
+) -> dict[str, Any]:
+    rows: list[dict[str, Any]] = []
+    for syst in sorted(active_systematics):
+        source = SYSTEMATIC_SOURCES[syst]
+        by_process: dict[str, Any] = {}
+        for group, payload in sorted(grouped.items()):
+            group_applies = (
+                syst in {"lumi", "lepton_eff", "m4l_scale", "mc_stat"}
+                or (syst == "signal_theory" and payload["is_signal"])
+                or (syst == "zz_norm" and group == "background_ZZ")
+                or (syst == "ggzz_norm" and group == "background_ggZZ")
+                or (syst in {"dy_norm", "ttbar_omission"} and group == "background_reducible")
+            )
+            if not group_applies:
+                continue
+            channels_payload: dict[str, Any] = {}
+            for channel in CHANNELS:
+                nominal = np.asarray(payload["channels"][channel], dtype=float)
+                if syst == "m4l_scale":
+                    up = np.asarray(m4l_up[group]["channels"][channel], dtype=float)
+                    down = np.asarray(m4l_down[group]["channels"][channel], dtype=float)
+                    treatment = "shape_histosys"
+                elif syst == "mc_stat":
+                    yld = float(np.sum(nominal))
+                    stat = float(np.sqrt(np.sum(np.asarray(payload["sumw2"][channel], dtype=float))))
+                    rel = stat / yld if yld > 0.0 else 0.0
+                    up, down = normsys_shift(nominal, rel)
+                    treatment = "group_category_normsys_from_sumw2_downscope"
+                else:
+                    up, down = normsys_shift(nominal, float(source["relative"]))
+                    treatment = "rate_normsys"
+                channels_payload[channel] = {
+                    "bin_edges": FIT_BINS.tolist(),
+                    "nominal": nominal.tolist(),
+                    "up": up.tolist(),
+                    "down": down.tolist(),
+                    "delta_up": (up - nominal).tolist(),
+                    "delta_down": (down - nominal).tolist(),
+                    "relative_up_integral": float((np.sum(up) - np.sum(nominal)) / np.sum(nominal)) if np.sum(nominal) > 0.0 else None,
+                    "relative_down_integral": float((np.sum(down) - np.sum(nominal)) / np.sum(nominal)) if np.sum(nominal) > 0.0 else None,
+                }
+            by_process[group] = {"treatment": treatment, "channels": channels_payload}
+        rows.append(
+            {
+                "systematic": syst,
+                "label": source["label"],
+                "relative_variation": source["relative"],
+                "basis": source["basis"],
+                "is_shape": syst == "m4l_scale",
+                "is_rate_only": syst != "m4l_scale",
+                "by_process": by_process,
+            }
+        )
+    return {
+        "phase": "4a_expected",
+        "created_utc": now(),
+        "fit_window_GeV": [float(FIT_BINS[0]), float(FIT_BINS[-1])],
+        "categories": list(CHANNELS),
+        "payload_description": "Per-active-systematic nominal/up/down shifted bin arrays by process group and final-state channel. Rate-only sources are represented as uniform normalization shifts; m4l_scale is the only shape histosys. mc_stat is grouped by process/category and is a documented downscope, not per-bin profiling.",
+        "systematics": rows,
     }
 
 
@@ -689,7 +780,7 @@ def systematic_table_payload(active_systematics: set[str]) -> dict[str, Any]:
         if status == "implemented" and basis.startswith("fallback_prior"):
             status = "implemented_fallback_prior"
         elif status == "implemented" and basis == "analysis_measured_sumw2_grouped_approximation":
-            status = "implemented_grouped_approximation"
+            status = "formal_downscope_grouped_mcstat_approximation"
         rows.append(
             {
                 "key": key,
@@ -885,6 +976,7 @@ def main() -> None:
     systematics_payload = systematic_table_payload(active_systematics)
     write_json(RESULTS / "expected_systematics.json", systematics_payload)
     write_json(RESULTS / "systematics_sources.json", systematics_payload)
+    write_json(RESULTS / "expected_systematic_shifts.json", systematic_shift_payload(active_systematics, nominal_grouped, m4l_up, m4l_down))
     write_json(RESULTS / "expected_mass_scan.json", mass)
     append_session(
         "Expected inference JSON written\n\n"

@@ -142,6 +142,7 @@ VARIABLE_LABELS = {
 
 MODEL_DISPLAY_NAMES = {
     "bdt": "BDT",
+    "bdt_tuned": "tuned BDT",
     "logistic": "logistic",
     "small_nn": "small NN",
 }

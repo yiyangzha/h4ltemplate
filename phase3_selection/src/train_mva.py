@@ -140,8 +140,18 @@ def main() -> None:
     payload = {
         "created_utc": now(),
         "random_seed": RANDOM_SEED,
+        "training_window": {"name": "broad_validation_window", "m4l_min_GeV": 70.0, "m4l_max_GeV": 170.0},
+        "evaluation_window": {"name": "broad_validation_window", "m4l_min_GeV": 70.0, "m4l_max_GeV": 170.0},
+        "mass_shape_policy": {
+            "m4l_used_as_classifier_input": False,
+            "reason": "m4l is excluded from all classifier inputs to avoid sculpting the fitted mass observable.",
+        },
         "feature_names": feature_names,
         "feature_labels": {name: VARIABLE_LABELS.get(name, name) for name in feature_names},
+        "meaningful_improvement_attempt": {
+            "variant": "bdt_tuned",
+            "description": "Additional deeper, shrinkage-regularized gradient-boosted classifier trained on the same D7-passing broad-window inputs.",
+        },
         "models": {},
         "promotion_decision": {},
     }
@@ -161,6 +171,14 @@ def main() -> None:
     models = {
         "logistic": make_pipeline(StandardScaler(), LogisticRegression(max_iter=1000, random_state=RANDOM_SEED)),
         "bdt": GradientBoostingClassifier(random_state=RANDOM_SEED, max_depth=2, n_estimators=80, learning_rate=0.05),
+        "bdt_tuned": GradientBoostingClassifier(
+            random_state=RANDOM_SEED,
+            max_depth=3,
+            n_estimators=150,
+            learning_rate=0.03,
+            subsample=0.7,
+            min_samples_leaf=50,
+        ),
         "small_nn": make_pipeline(
             StandardScaler(),
             MLPClassifier(hidden_layer_sizes=(12,), alpha=0.01, max_iter=300, random_state=RANDOM_SEED, early_stopping=True),
@@ -171,7 +189,7 @@ def main() -> None:
     scores_all = {}
     for name, model in models.items():
         log.info("Training %s", name)
-        if name == "bdt":
+        if name in {"bdt", "bdt_tuned"}:
             model.fit(x_train, y_train, sample_weight=w_train)
         else:
             model.fit(x_train, y_train)

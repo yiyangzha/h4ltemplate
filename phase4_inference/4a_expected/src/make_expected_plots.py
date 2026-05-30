@@ -110,6 +110,54 @@ def stack_from_fit_inputs(fit_inputs: dict[str, Any], channel: str) -> dict[str,
     return stacks
 
 
+def stack_from_window(fit_inputs: dict[str, Any], window: str, channel: str) -> tuple[np.ndarray, dict[str, np.ndarray]]:
+    key = "bin_edges" if window == "fit_window" else "broad_window_edges"
+    edges = np.asarray(fit_inputs[key], dtype=float)
+    stacks = {
+        "Higgs signal": np.zeros(len(edges) - 1),
+        "qqZZ": np.zeros(len(edges) - 1),
+        "ggZZ": np.zeros(len(edges) - 1),
+        "DY+jets fake proxy": np.zeros(len(edges) - 1),
+    }
+    for sample_payload in fit_inputs["samples"].values():
+        item = sample_payload[window][channel]
+        stack = item["stack"]
+        if stack in stacks:
+            stacks[stack] += np.asarray(item["counts"], dtype=float)
+    return edges, stacks
+
+
+def plot_expected_m4l_broad() -> int:
+    fit_inputs = load_fit_inputs()
+    edges, stacks = stack_from_window(fit_inputs, "broad_window", "inclusive")
+    x = centers(edges)
+    xerr = 0.5 * np.diff(edges)
+    signal = stacks["Higgs signal"]
+    background = stacks["DY+jets fake proxy"] + stacks["ggZZ"] + stacks["qqZZ"]
+    total = signal + background
+    fig, ax = plt.subplots(figsize=(10, 10))
+    ax.errorbar(x, background, xerr=xerr, marker="o", linestyle="None", color="#1f77b4", label="Background")
+    ax.errorbar(x, signal, xerr=xerr, marker="^", linestyle="None", color="#d62728", label="Higgs signal")
+    ax.errorbar(x, total, xerr=xerr, marker="s", linestyle="None", color="black", label="Expected total")
+    ax.set_xlabel(r"$m_{4\ell}$ [GeV]")
+    ax.set_ylabel("Expected events")
+    ax.legend(loc="upper right", fontsize="x-small")
+    safe_mpl_magic(ax)
+    mh.label.exp_label(exp="CMS", text="", loc=2, data=True, llabel="Open Simulation", rlabel=r"$13$ TeV, 10 fb$^{-1}$", ax=ax)
+    caption = (
+        "Expected inclusive four-lepton mass distribution in the broad validation range 70 < m4l < 170 GeV. "
+        "The broad display is used for validation/sideband context; the signal-strength fit window remains 105 < m4l < 140 GeV."
+    )
+    save_and_register(
+        fig,
+        "expected_m4l_broad_inclusive",
+        caption,
+        "phase3_selection/outputs/fit_inputs_s1.json",
+        {"window": "broad_window", "display_range_GeV": [70.0, 170.0], "fit_window_GeV": [105.0, 140.0]},
+    )
+    return 1
+
+
 def plot_expected_m4l() -> int:
     fit_inputs = load_fit_inputs()
     x = centers(FIT_BINS)
@@ -201,6 +249,63 @@ def plot_uncertainty(covariance: dict[str, Any]) -> int:
     return 1
 
 
+def plot_systematic_shift_summary() -> int:
+    shifts = read_json(RESULTS / "expected_systematic_shifts.json")
+    systematics = shifts["systematics"]
+    shape_rows = [row for row in systematics if row["is_shape"]]
+    rate_rows = [row for row in systematics if row["is_rate_only"]]
+    fig, axes = plt.subplots(2, 1, figsize=(10, 10))
+    fig.subplots_adjust(left=0.28, right=0.95, hspace=0.08)
+
+    ax = axes[0]
+    if shape_rows:
+        shape = shape_rows[0]
+        proc = shape["by_process"]["background_ZZ"]["channels"]["2e2mu"]
+        edges = np.asarray(proc["bin_edges"], dtype=float)
+        x = centers(edges)
+        y_up = np.asarray(proc["delta_up"], dtype=float)
+        y_down = np.asarray(proc["delta_down"], dtype=float)
+        ax.errorbar(x, y_up, xerr=0.5 * np.diff(edges), marker="o", linestyle="None", color="#d62728", label="m4l scale up")
+        ax.errorbar(x, y_down, xerr=0.5 * np.diff(edges), marker="s", linestyle="None", color="#1f77b4", label="m4l scale down")
+    ax.axhline(0.0, color="gray", linestyle="--")
+    ax.set_ylabel("Bin yield shift")
+    ax.tick_params(labelbottom=False)
+    ax.legend(loc="upper right", fontsize="x-small")
+    mh.label.exp_label(exp="CMS", text="", loc=2, data=True, llabel="Open Simulation", rlabel=r"$13$ TeV", ax=ax)
+
+    ax = axes[1]
+    labels = []
+    values = []
+    for row in rate_rows:
+        max_shift = 0.0
+        for process in row["by_process"].values():
+            for channel in process["channels"].values():
+                max_shift = max(max_shift, abs(channel["relative_up_integral"] or 0.0), abs(channel["relative_down_integral"] or 0.0))
+        labels.append(row["systematic"].replace("_", " "))
+        values.append(max_shift)
+    y = np.arange(len(labels), dtype=float)[::-1]
+    ax.errorbar(values, y, marker="o", linestyle="None", color="black")
+    ax.set_yticks(y, labels)
+    if values:
+        ax.set_xlim(0.0, max(values) * 1.12)
+    ax.set_xlabel("Maximum absolute rate shift")
+    ax.set_ylabel("Rate-only source")
+    safe_mpl_magic(axes[0])
+    safe_mpl_magic(axes[1])
+    caption = (
+        "Per-systematic shifted-bin summary. The upper panel shows the actual m4l-scale shape-source bin shifts for one representative process/channel; "
+        "the lower panel shows maximum integral effects for rate-only sources without inventing fake shape dependence."
+    )
+    save_and_register(
+        fig,
+        "expected_systematic_shift_summary",
+        caption,
+        "analysis_note/results/expected_systematic_shifts.json",
+        {"shape_example": "background_ZZ:2e2mu:m4l_scale", "rate_sources": labels},
+    )
+    return 1
+
+
 def plot_injection(validation: dict[str, Any]) -> int:
     rows = validation["signal_injection"]
     x = np.asarray([row["injected_mu"] for row in rows], dtype=float)
@@ -234,7 +339,10 @@ def plot_validation(validation: dict[str, Any]) -> int:
     ax.legend(loc="lower right", fontsize="x-small")
     safe_mpl_magic(ax)
     mh.label.exp_label(exp="CMS", text="", loc=2, data=True, llabel="Open Simulation", rlabel=r"$13$ TeV", ax=ax)
-    caption = "Low-count toy and closure-sensitivity validation summary. The intentionally corrupted mass-response tests fall below p = 0.05, demonstrating that the closure test is sensitive to a 20 percent model corruption."
+    caption = (
+        "Low-count toy and closure-sensitivity validation summary. "
+        "The final-state simultaneous corruption test rejects the +20 percent mass-response case; the -20 percent case is retained as a documented low-count sensitivity limitation in the JSON."
+    )
     save_and_register(fig, "expected_low_count_validation", caption, "analysis_note/results/expected_validation.json", {"toy": toy, "corruption": corruption})
     return 1
 
@@ -358,10 +466,12 @@ def main() -> None:
             "- Regenerated `expected_reference_comparison` with publication-standard reference labels and caption metadata clarifying that the 3.19 precision ratio is relative to CMS-HIG-16-041 only."
         )
         return
+    made += plot_expected_m4l_broad()
     made += plot_expected_m4l()
     made += plot_mu_scan(parameters)
     made += plot_impacts(parameters)
     made += plot_uncertainty(covariance)
+    made += plot_systematic_shift_summary()
     made += plot_injection(validation)
     made += plot_validation(validation)
     made += plot_binning(validation)

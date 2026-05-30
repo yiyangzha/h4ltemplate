@@ -799,3 +799,99 @@
 ## 2026-05-30 — Phase 4a commitment update
 
 - Updated `COMMITMENTS.md` for Phase 4a expected-inference evidence and formal classifier-migration downscope.
+
+## 2026-05-29 — Phase 3 baseline selection and provenance
+
+- Built Phase 3 primary-path provenance, MC normalization, cutflow, cut-motivation diagnostics, sideband diagnostics, S1 fit-ready histograms, and compact broad-window event arrays using primary prompt ROOT files only.
+
+## 2026-05-29 — Phase 3 VBF recovery/downscope gate
+
+- Checked primary and local branch inventories plus ntuplizer provenance for jet/VBF content. Decision: formal VBF downscope; no lepton-only category will be labeled VBF.
+
+## 2026-05-29 — Phase 3 angular reconstruction closure
+
+- Recomputed broad-window four-lepton and Z-candidate masses from retained lepton four-vectors, computed detector-level angular candidates, and wrote physical-range closure outputs.
+
+## 2026-05-29 — Phase 3 input-variable modeling gate
+
+- Computed D7 data/MC shape gates for 14 candidate S2 variables; 2 passed before classifier training.
+
+## 2026-05-29 — Phase 3 S2 classifier attempt
+
+- Trained logistic, BDT, and small NN alternatives with fixed seed; best model `small_nn` promotion decision: False.
+
+## 2026-05-29 — Phase 3 approach comparison
+
+- Compared S1 and S2 on common expected precision and validation gates; selected `S1_reference_like_final_state_categories`.
+
+## 2026-05-29 — Phase 3 input-validation figures
+
+- Produced 14 D7 input-validation figures and updated `FIGURES.json`.
+
+## 2026-05-29 — Phase 3 selection figures
+
+- Produced 17 selection/sideband/MVA diagnostic figures and updated `FIGURES.json`.
+
+## 2026-05-29 — Phase 3 selection artifact
+
+- Built `phase3_selection/outputs/SELECTION.md` from Phase 3 JSON/NPZ outputs.
+
+## 2026-05-29 — Phase 3 commitment update
+
+- Updated `COMMITMENTS.md` for Phase 3-resolved proof artifacts and formal VBF downscope items.
+
+## 2026-05-30 — Phase 4a expected inference workspace
+
+- Executor `edmund_69a2` built the expected pyhf model from Phase 3 fit inputs using Asimov observations only.
+- Expected `mu = 1 +/- 0.5747` with final-state categories before review.
+- Low-count toy validation used 80 toys with seed 4269; success fraction 1.000, median bias -0.06065.
+
+## 2026-05-30 — Phase 4a expected plots
+
+- Produced 12 expected-inference figures and registered them in `phase4_inference/4a_expected/outputs/FIGURES.json`.
+
+## 2026-05-30 — Phase 4a expected inference artifact
+
+- Built `phase4_inference/4a_expected/outputs/INFERENCE_EXPECTED.md` from expected-result JSON files.
+
+## 2026-05-30 — Phase 4a commitment update
+
+- Updated `COMMITMENTS.md` for Phase 4a expected-inference evidence and formal classifier-migration downscope.
+
+## 2026-05-30 — Phase 4a expected plots
+
+- Produced 12 expected-inference figures and registered them in `phase4_inference/4a_expected/outputs/FIGURES.json`.
+
+## 2026-05-30 — Phase 4a expected inference artifact
+
+- Built `phase4_inference/4a_expected/outputs/INFERENCE_EXPECTED.md` from expected-result JSON files.
+
+## 2026-05-30 — Phase 4a commitment update
+
+- Updated `COMMITMENTS.md` for Phase 4a expected-inference evidence and formal classifier-migration downscope.
+
+## 2026-05-30 — Phase 4a expected inference workspace
+
+- Executor `edmund_69a2` built the expected pyhf model from Phase 3 fit inputs using Asimov observations only.
+- Expected `mu = 1 +/- 0.5747` with final-state categories before review.
+- Low-count toy validation used 80 toys with seed 4269; success fraction 1.000, median bias -0.06065.
+
+## 2026-05-30 — Phase 4a expected plots
+
+- Produced 12 expected-inference figures and registered them in `phase4_inference/4a_expected/outputs/FIGURES.json`.
+
+## 2026-05-30 — Phase 4a expected inference artifact
+
+- Built `phase4_inference/4a_expected/outputs/INFERENCE_EXPECTED.md` from expected-result JSON files.
+
+## 2026-05-30 — Phase 4a commitment update
+
+- Updated `COMMITMENTS.md` for Phase 4a expected-inference evidence and formal classifier-migration downscope.
+## 2026-05-30 — Targeted Phase 3/4a regression update (hana_c6cf)
+
+- Updated Phase 3 MVA training metadata to explicitly use the broad `70 < m4l < 170 GeV` selected event table and keep `m4l` out of classifier inputs.
+- Added a tuned BDT trial as the targeted improvement attempt; S2 still does not pass all gates, so S1 remains the nominal handoff.
+- Regenerated Phase 3 with `pixi run p3-all`.
+- Updated Phase 4a expected inference to retain the `105 < m4l < 140 GeV` fit window, add a broad expected `m4l` display, broaden the shifted-template mass scan to `110-140 GeV`, add per-systematic shifted-bin payloads, and mark grouped MC-stat as a formal downscope/approximation.
+- Re-ran corruption sensitivity in the final-state simultaneous workspace. The `+20%` mass-response corruption is rejected, but the `-20%` direction is not (`p = 0.4595`); this is documented as a quantitative low-count limitation rather than claimed as a pass.
+- Verification: `pixi run p4a-all`, `pixi run lint-plots`, registry smoke tests, and JSON sanity checks completed.

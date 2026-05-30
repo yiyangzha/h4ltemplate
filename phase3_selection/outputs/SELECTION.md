@@ -154,6 +154,11 @@ D7 was applied before classifier training. Shape comparisons use a data-area
 normalization only for input-modeling diagnostics; nominal yields remain
 prompt-luminosity normalized. Only variables passing `chi2/ndf <= 5` and no
 coherent shape-ratio trend above 20 percent were eligible for S2 training.
+Classifier training and score validation use the broad `70 <= m4l <= 170 GeV`
+selected event table. The fitted mass `m4l` is not used as a classifier input.
+This regression also tries a tuned BDT variant in addition to the original
+logistic, BDT, and small-NN alternatives; promotion still requires all gates
+and a >10 percent improvement over S1.
 
 | Variable | chi2/ndf | ndf | p | max shape ratio deviation | D7 pass |
 | --- | --- | --- | --- | --- | --- |
@@ -191,11 +196,11 @@ than S1, not a >10 percent improvement. The detailed S2 gate table is:
 | Model | AUC | overtrain gap | score chi2 | score ndf | score p | score gate | low-stat bin fraction | category gate | all S2 gates |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | BDT | 0.548 | 2.726e-05 | 4.945 | 2 | 0.08436 | True | 1 | False | False |
+| tuned BDT | 0.5457 | 2.307e-05 | n/a | 0 | n/a | False | 1 | False | False |
 | logistic | 0.5496 | 1.516e-05 | n/a | 0 | n/a | False | 0.9722 | False | False |
 | small NN | 0.5505 | 1.216e-05 | n/a | 0 | n/a | False | 1 | False | False |
 
-The BDT score-shape gate passes, but its category-viability gate fails; the
-logistic and small NN score-shape and category-viability gates both fail. No
+The BDT variants are checked as the meaningful improvement attempt, but no
 trained classifier variant satisfies all S2 promotion gates.
 
 ## Fake And Sideband Diagnostics
@@ -257,6 +262,7 @@ broad-window templates are explicitly validation-only.
 | category_viability_s1 | figures/category_viability_s1.png | figures/category_viability_s1.pdf |
 | approach_comparison_mu_proxy | figures/approach_comparison_mu_proxy.png | figures/approach_comparison_mu_proxy.pdf |
 | mva_roc_bdt | figures/mva_roc_bdt.png | figures/mva_roc_bdt.pdf |
+| mva_roc_bdt_tuned | figures/mva_roc_bdt_tuned.png | figures/mva_roc_bdt_tuned.pdf |
 | mva_roc_logistic | figures/mva_roc_logistic.png | figures/mva_roc_logistic.pdf |
 | mva_roc_small_nn | figures/mva_roc_small_nn.png | figures/mva_roc_small_nn.pdf |
 | mva_best_score_datamc | figures/mva_best_score_datamc.png | figures/mva_best_score_datamc.pdf |

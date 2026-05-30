@@ -55,8 +55,13 @@ machine-readable proof item.
 - [x] [A2][SP2] Prompt effective cross-section validation or documented
   user-provided fallback with normalization uncertainty. Proof:
   the `systematics_sources.json` SP2 row records the Phase 3 normalization table, user-provided prompt effective cross sections, metadata denominators, and the Phase 4a per-process normalization nuisances used because public/campaign matches remain unavailable.
-- [x] [D2][SP3][VT9] MC statistical uncertainty terms for all fit templates.
-  Proof: `expected_covariance.json` and `expected_validation.json` document the actual grouped group/category MC-stat approximation from Phase 3 `sumw2`, plus alternative-binning stability tests; full bin-by-bin `staterror` profiling remains a documented expected-phase downscope.
+- [ ] [D2][SP3][VT9] Full bin-by-bin MC statistical uncertainty terms for all
+  fit templates. Status: formally downscoped in Phase 4a, not completed.
+  Evidence: `expected_covariance.json`, `expected_validation.json`, and
+  `expected_systematic_shifts.json` document the grouped group/category
+  MC-stat approximation from Phase 3 `sumw2`, plus alternative-binning
+  stability tests. Full bin-by-bin `staterror` profiling remains a documented
+  expected-phase downscope for downstream review.
 - [x] [D7][SP4] Lepton reconstruction, identification, and trigger efficiency
   uncertainty. Proof: public scale-factor source or closure-derived envelope
   with channel ratios, trigger/ID plots, and chi2/p-values.
