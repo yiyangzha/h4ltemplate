@@ -1,0 +1,110 @@
+User requirements and key decisions for future sessions
+======================================================
+
+Latest overriding analysis requirements
+--------------------------------------
+
+1. Be fast. Avoid unnecessary review cycles unless a real blocker or final required gate demands it.
+2. Use gpt-5.5 for subagents. Use medium or low effort for subagents unless the task clearly needs higher.
+3. Phase 4b human gate was explicitly allowed to pass without asking the user again.
+4. Stay in Phase 4c for the final observed result. Do not restart earlier phases unless a regression requires it.
+5. The active signal-strength fit window is 70 < m4l < 170 GeV, including the Z peak. Do not use 105 < m4l < 140 GeV for any current figure or result.
+6. The plotting display range for m4l must show 70-170 GeV.
+7. The Higgs mass scan may avoid the Z peak, but the signal-strength fit still uses the full 70-170 GeV window.
+8. In data, mH must not be assumed to be 125 GeV. Scan mass hypotheses and report the best mH from the data.
+9. The MC signal sample is M125 only. A shifted-template/mass-shift method is acceptable for diagnostic mass scans, but the note must state that this is not an official calibrated CMS-quality mass measurement.
+10. The mass scan should be fine near the best point. Current implementation uses a coarse 110-150 GeV scan in 2.5 GeV steps plus a local 122-128 GeV scan in 0.25 GeV steps.
+
+MVA requirements and outcome
+----------------------------
+
+1. The original MVA was too close to random and had to be audited.
+2. MVA training must use a broad mass window, not only 105-140 GeV. Current training/evaluation uses 80 < m4l < 170 GeV.
+3. Refer to JHEP-like inputs and selection ideas to improve sensitivity, but do not force agreement with the reference results.
+4. Current repaired MVA:
+   - Best nominal model: bdt_mass_safe.
+   - Test AUC: 0.7929042332570392.
+   - Relative precision-proxy improvement: 0.1902098976350023.
+   - S2 promotion: false.
+5. The active final result remains S1 final-state categories because score-shape, category-viability, low-statistics, and/or mass-sculpting gates fail.
+6. Current Doc 4c must use the repaired MVA figures:
+   - mva_roc_bdt_mass_safe.pdf
+   - mva_roc_logistic_mass_safe.pdf
+   - mva_roc_bdt_jhep_like_diagnostic.pdf
+   - mva_roc_logistic_jhep_like_diagnostic.pdf
+   - mva_best_score_datamc.pdf
+7. Old MVA figure names must not appear in Doc 4c:
+   - mva_roc_bdt.pdf
+   - mva_roc_bdt_tuned.pdf
+   - mva_roc_logistic.pdf
+   - mva_roc_small_nn.pdf
+
+VBF and categorization
+----------------------
+
+1. A real VBF category was requested, but the allowed flat ntuples do not contain recoverable jet/VBF information.
+2. VBF is formally downscoped.
+3. Do not label any lepton-only proxy as VBF.
+4. The nominal fit is simultaneous over final-state categories 4mu, 4e, and 2e2mu.
+
+Reference comparison and AN requirements
+----------------------------------------
+
+1. The final AN must include comparison tables and figures, not only tables.
+2. Compare to CMS-HIG-16-041 / JHEP 11 (2017) 047 comprehensively where the open-data ntuples and analysis scope make a comparison meaningful.
+3. Include CMS-HIG-19-001 and PDG/world-average values where public references provide them.
+4. For non-comparable results, state the reason explicitly.
+5. Do not tune, force, or phrase results to align with CMS, JHEP, PDG, or SM expectations. Results may differ.
+6. The comparison figure doc4c_reference_comparison is important and must remain in the main body under "Comparison to Prior Results and Theory", not only in an appendix.
+7. Important result plots should have a unified style and color scheme.
+8. The doc4c_reference_comparison style should be:
+   - No legend.
+   - All points black square markers.
+   - Horizontal uncertainty bars.
+   - Inner capped bar represents statistical uncertainty where stat/syst are separated.
+   - Outer uncapped bar represents stat+syst/total extent where available.
+   - Do not fabricate stat/syst splits for this analysis or for references that do not provide them.
+   - Axis ranges should make all uncertainty bars clearly visible.
+   - Text should be compact; avoid oversized CMS/Open Data labels.
+9. Correct luminosity labels for doc4c_reference_comparison:
+   - This analysis: 13 TeV, 10 fb^-1.
+   - CMS-HIG-16-041: 13 TeV, 35.9 fb^-1.
+   - CMS-HIG-19-001: 13 TeV, 137 fb^-1.
+   - PDG: world average, no dataset luminosity.
+10. CMS-HIG-16-041 mass uncertainty split:
+   - mH = 125.26 +/- 0.20(stat) +/- 0.08(syst) GeV.
+   - Total error bar may use the quadrature total, about 0.215 GeV.
+11. This analysis mass diagnostic:
+   - Current reported fine-grid center: mH = 124.75 GeV.
+   - Fine-grid half-step: 0.125 GeV.
+   - Do not call the half-step a calibrated statistical or systematic uncertainty.
+   - Diagnostic quadratic interpolation is 125.4239052495179 GeV and is not the reported center.
+
+Current final outputs and checks
+--------------------------------
+
+1. Final AN source: analysis_note/ANALYSIS_NOTE_doc4c_v1.tex.
+2. Final AN PDF: analysis_note/ANALYSIS_NOTE_doc4c_v1.pdf.
+3. Current observed signal strength:
+   - mu = 2.4776040008517612
+   - -0.7138966295430187 / +0.8387787105161486
+4. Current observed mass diagnostic:
+   - best_mass_GeV = 124.75
+   - fine_scan_range_GeV = 122-128 GeV in 0.25 GeV steps
+   - fit_window_GeV = [70.0, 170.0]
+5. Final checks performed after the latest figure fix:
+   - No tbd placeholders in Doc 4c.
+   - No stale old MVA figure names in Doc 4c.
+   - No bad 2.7 fb^-1 luminosity label in Doc 4c source.
+   - All 59 Doc 4c figure references exist.
+   - doc4c_reference_comparison is in the main Comparison section.
+   - pixi run lint-plots passes.
+
+Important caveats to preserve
+-----------------------------
+
+1. The analysis is detector-level and uses open-data flat ntuples.
+2. DY+jets MC is used as the fake-background proxy by user request; no full data-driven fake-rate estimate is implemented.
+3. Grouped MC-stat treatment is an approximation.
+4. The mass result is a shifted-template M125 diagnostic, not an official calibrated mass measurement.
+5. Comparisons to public results are contextual and not fit inputs.

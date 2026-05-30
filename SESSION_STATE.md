@@ -1,8 +1,8 @@
 # Session State
 
-Last updated: 2026-05-30T07:48:00Z
-Current phase: Phase 4c + Doc 4c — targeted mass/MVA/reference comparison fix
-Step in loop: ITERATE — fixer `viktor_9f5e` completed targeted corrections; awaiting review/commit boundary
+Last updated: 2026-05-30T08:05:00Z
+Current phase: Doc 4c final deliverable
+Step in loop: COMPLETE — final Doc 4c PDF built, targeted checks passed, and user requirements summarized for future reference
 Iteration count: 0
 
 ## Completed phases (commit hashes)
@@ -127,10 +127,27 @@ are historical review/fix logs and `phase4_inference/4a_expected/plan.md`.
 Doc 4c targeted fix `viktor_9f5e` refreshed the MVA content to the repaired
 Phase 3 artifacts, regenerated `doc4c_reference_comparison` in the main
 Comparison section, and compiled `analysis_note/ANALYSIS_NOTE_doc4c_v1.pdf`.
-`pixi run p4c-all`, `pixi run tectonic --outdir analysis_note
-analysis_note/ANALYSIS_NOTE_doc4c_v1.tex`, and `pixi run lint-plots` pass.
-Verification evidence is in
-`analysis_note/review/doc4c/VERIFY_viktor_9f5e_2026-05-30.md`.
+Follow-up fixes `sven_6dea` and the orchestrator polished the comparison figure
+style and corrected the luminosity labels to this analysis `13 TeV, 10 fb^-1`,
+CMS-HIG-16-041 `13 TeV, 35.9 fb^-1`, CMS-HIG-19-001 `13 TeV, 137 fb^-1`, and
+PDG as a world average with no dataset luminosity.
+
+Final targeted checks passed:
+
+- `pixi run lint-plots`
+- Doc 4c has no `\tbd` placeholders.
+- Doc 4c has no stale old MVA figure filenames.
+- Doc 4c has no bad `2.7 fb^-1` luminosity label.
+- All 59 Doc 4c figure references exist.
+- `doc4c_reference_comparison` is in the main `Comparison to Prior Results and
+  Theory` section.
+- Key values in Doc 4c match JSON: `mu = 2.4776040008517612
+  -0.7138966295430187 +0.8387787105161486`, mass diagnostic `mH = 124.75 GeV`,
+  active fit window `[70.0, 170.0]`, MVA `bdt_mass_safe` AUC `0.7929042332570392`,
+  and `promote_s2 = false`.
+
+Future-session user requirements and key decisions are summarized in
+`USER_REQUIREMENTS_AND_DECISIONS_2026-05-30.txt`.
 
 ## Pending Decisions For Human
 
