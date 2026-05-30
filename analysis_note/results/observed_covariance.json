@@ -1,0 +1,60 @@
+{
+  "created_utc": "2026-05-30T05:21:09+00:00",
+  "mc_stat": [
+    [
+      0.0
+    ]
+  ],
+  "mc_stat_treatment": "group_category_normsys_from_sumw2; not full bin-by-bin HistFactory staterror profiling",
+  "parameters": [
+    "mu"
+  ],
+  "phase": "4c_observed",
+  "stat": [
+    [
+      0.533974563870803
+    ]
+  ],
+  "syst": [
+    [
+      0.06872561403615973
+    ]
+  ],
+  "total": [
+    [
+      0.6027001779069627
+    ]
+  ],
+  "uncertainty_breakdown": {
+    "full": {
+      "err_hi": 0.8387787105161486,
+      "err_lo": 0.7138966295430187,
+      "err_sym": 0.7763376700295836,
+      "muhat": 2.4776040008517612,
+      "scan_hi": 3.31638271136791,
+      "scan_lo": 1.7637073713087426
+    },
+    "stat_only": {
+      "err_hi": 0.7824886705641747,
+      "err_lo": 0.6789825934308489,
+      "err_sym": 0.7307356319975118,
+      "muhat": 2.4091166502349015,
+      "scan_hi": 3.191605320799076,
+      "scan_lo": 1.7301340568040526
+    },
+    "stat_plus_mcstat": {
+      "err_hi": 0.7807352971452723,
+      "err_lo": 0.6748230190953419,
+      "err_sym": 0.7277791581203071,
+      "muhat": 2.3505774788063345,
+      "scan_hi": 3.131312775951607,
+      "scan_lo": 1.6757544597109926
+    },
+    "variance_components": {
+      "mc_stat": 0.0,
+      "stat": 0.533974563870803,
+      "syst_total_including_mc_stat": 0.06872561403615973,
+      "total": 0.6027001779069627
+    }
+  }
+}

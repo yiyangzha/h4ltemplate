@@ -55,8 +55,8 @@ machine-readable proof item.
 - [x] [A2][SP2] Prompt effective cross-section validation or documented
   user-provided fallback with normalization uncertainty. Proof:
   the `systematics_sources.json` SP2 row records the Phase 3 normalization table, user-provided prompt effective cross sections, metadata denominators, and the Phase 4a per-process normalization nuisances used because public/campaign matches remain unavailable.
-- [ ] [D2][SP3][VT9] Full bin-by-bin MC statistical uncertainty terms for all
-  fit templates. Status: formally downscoped in Phase 4a, not completed.
+- [D] [D2][SP3][VT9] Full bin-by-bin MC statistical uncertainty terms for all
+  fit templates. Status: formally downscoped in Phase 4a and retained in Phase 4c.
   Evidence: `expected_covariance.json`, `expected_validation.json`, and
   `expected_systematic_shifts.json` document the grouped group/category
   MC-stat approximation from Phase 3 `sumw2`, plus alternative-binning
@@ -184,21 +184,11 @@ machine-readable proof item.
   one global signal-strength POI in the same `105 < m4l < 140 GeV` inference
   window and compatible category inclusiveness; pulls required only if matched.
 - [x] [REF-MATRIX][D9] Mass: Phase 4a category-simultaneous shifted-template scan with `mu` profiled passes expected injected-mass closure, but the final AN must classify it as approximated detector-level mass-profile evidence rather than an official-quality matched CMS mass measurement because independent mass-hypothesis MC and official calibration inputs are unavailable.
-- [ ] [REF-MATRIX] Fiducial cross section: classify as matched only if a
-  documented acceptance/fiducial conversion is implemented with cited
-  branching-fraction and acceptance inputs; otherwise approximated or
-  unavailable.
-- [ ] [REF-MATRIX] Width: classify as unavailable unless a validated width
-  likelihood/shape interpretation is implemented; no pull required when
-  unavailable.
-- [ ] [REF-MATRIX][D4] Production-sensitive categories: classify as matched
-  only for categories with comparable observables and acceptance; otherwise
-  approximated/not directly comparable.
-- [ ] [REF-MATRIX][A3] VBF categories: classify as unavailable/not measured
-  unless real jet recovery passes; lepton-only proxies are not VBF matches.
-- [ ] [REF-MATRIX][D6] Reducible-background treatment: classify as
-  approximated because DY+jets MC replaces official data-driven Z+X unless a
-  later reviewed method changes this.
+- [D] [REF-MATRIX] Fiducial cross section: unavailable in the final result because no reviewed acceptance/fiducial conversion with cited branching-fraction and acceptance inputs was implemented; Phase 4c reports detector-level signal strength only.
+- [D] [REF-MATRIX] Width: unavailable in the final result because no validated width likelihood/shape interpretation was implemented; no pull is reported.
+- [D] [REF-MATRIX][D4] Production-sensitive categories: not directly comparable because Phase 4c retains final-state S1 categories only and no reviewed production-sensitive category is promoted.
+- [D] [REF-MATRIX][A3] VBF categories: unavailable/not measured because real jet recovery did not pass and no lepton-only proxy is labeled as VBF.
+- [D] [REF-MATRIX][D6] Reducible-background treatment: approximated because DY+jets MC remains the nominal fake proxy and no later reviewed data-driven Z+X method replaced it.
 
 ## Comparison targets
 

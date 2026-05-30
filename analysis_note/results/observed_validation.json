@@ -1,0 +1,278 @@
+{
+  "broad_display_range_GeV": [
+    70.0,
+    170.0
+  ],
+  "category_compatibility": {
+    "max_abs_pull_vs_combined": 0.668643629925487,
+    "passes": true,
+    "rows": [
+      {
+        "channel": "4mu",
+        "mu_hat": 2.4755534744560173,
+        "mu_uncertainty": 1.1533758898316167,
+        "observed_events": 81,
+        "p_value": 0.6965682715697201,
+        "pull_vs_combined": -0.0014748644911346566
+      },
+      {
+        "channel": "4e",
+        "mu_hat": 1.10571876574243,
+        "mu_uncertainty": 1.8991975398330327,
+        "observed_events": 24,
+        "p_value": 0.9787468774926398,
+        "pull_vs_combined": -0.668643629925487
+      },
+      {
+        "channel": "2e2mu",
+        "mu_hat": 3.0995306893956034,
+        "mu_uncertainty": 1.2811862105022693,
+        "observed_events": 98,
+        "p_value": 0.7307893548960358,
+        "pull_vs_combined": 0.41515893254996344
+      }
+    ]
+  },
+  "completion_verdicts": {
+    "expected_comparison_done": true,
+    "final_state_fit_stable": true,
+    "full_203_events_processed": true,
+    "gof_np_done": true,
+    "partial_comparison_done": true,
+    "split_check_done": true
+  },
+  "created_utc": "2026-05-30T05:20:37+00:00",
+  "deterministic_split_consistency": {
+    "delta_mu": -0.262091133805022,
+    "limitation": "This is not a true CMS run-period split; no run/lumi/event-period branch is present in the Phase 3 event handoff.",
+    "pull": -0.1705937945958224,
+    "rows": [
+      {
+        "chi2": 46.54506077347316,
+        "effective_luminosity_fb": 5.0,
+        "method": "deterministic random half-split proxy; true CMS run-period branches are unavailable in selection_events.npz",
+        "mu_hat": 2.349666454773725,
+        "mu_uncertainty": 1.1082083618411538,
+        "observed_fit_window_events": 103,
+        "p_value": 0.16101496701310455,
+        "split": "split_a"
+      },
+      {
+        "chi2": 39.39218066072493,
+        "effective_luminosity_fb": 5.0,
+        "method": "deterministic random half-split proxy; true CMS run-period branches are unavailable in selection_events.npz",
+        "mu_hat": 2.611757588578747,
+        "mu_uncertainty": 1.0640648365028542,
+        "observed_fit_window_events": 100,
+        "p_value": 0.40744537358199445,
+        "split": "split_b"
+      }
+    ]
+  },
+  "expected_partial_observed_comparison": {
+    "any_comparison_over_2sigma": false,
+    "compatible_with_expected_2sigma": true,
+    "compatible_with_partial_2sigma": true,
+    "expected_mu": 1.0,
+    "expected_uncertainty": 0.5747382435005995,
+    "observed_mu": 2.4776040008517612,
+    "observed_uncertainty": 0.7763376700295836,
+    "partial_mu": 0.0,
+    "partial_uncertainty": 1.3548619813595435,
+    "pull_vs_expected": 1.5297187786595783,
+    "pull_vs_partial": 1.5866596142632463
+  },
+  "expected_vs_observed": {
+    "any_comparison_over_2sigma": false,
+    "compatible_with_expected_2sigma": true,
+    "compatible_with_partial_2sigma": true,
+    "expected_mu": 1.0,
+    "expected_uncertainty": 0.5747382435005995,
+    "observed_mu": 2.4776040008517612,
+    "observed_uncertainty": 0.7763376700295836,
+    "partial_mu": 0.0,
+    "partial_uncertainty": 1.3548619813595435,
+    "pull_vs_expected": 1.5297187786595783,
+    "pull_vs_partial": 1.5866596142632463
+  },
+  "fit_window_GeV": [
+    70.0,
+    170.0
+  ],
+  "gof_interpretation": "Observed full data GoF is evaluated against the post-fit model. A chi2 near zero would be treated as a circularity alarm; this result is not a self-consistency Asimov check.",
+  "low_count_validation": {
+    "alternative_binning_stability": [
+      {
+        "bin_edges": [
+          70.0,
+          80.0,
+          90.0,
+          100.0,
+          105.0,
+          112.0,
+          118.0,
+          122.0,
+          126.0,
+          130.0,
+          140.0,
+          150.0,
+          160.0,
+          170.0
+        ],
+        "channels": [
+          "4mu",
+          "4e",
+          "2e2mu"
+        ],
+        "combined_chi2": 47.32631967580217,
+        "combined_p_value": 0.14273203801589468,
+        "configuration": "final_state_nominal",
+        "expected_bins_below_1": 3,
+        "fit_status": "fit_succeeded",
+        "mu_hat": 2.4774824245380636,
+        "mu_uncertainty": 0.7761677233035773,
+        "observed_zero_bins": 3,
+        "total_bins": 39
+      },
+      {
+        "bin_edges": [
+          70.0,
+          80.0,
+          90.0,
+          100.0,
+          105.0,
+          112.0,
+          118.0,
+          122.0,
+          126.0,
+          130.0,
+          140.0,
+          150.0,
+          160.0,
+          170.0
+        ],
+        "channels": [
+          "inclusive"
+        ],
+        "combined_chi2": 6.057371376374832,
+        "combined_p_value": 0.9131623927038873,
+        "configuration": "inclusive_nominal",
+        "expected_bins_below_1": 0,
+        "fit_status": "fit_succeeded",
+        "mu_hat": 2.536853656583596,
+        "mu_uncertainty": 0.7807519256539006,
+        "observed_zero_bins": 0,
+        "total_bins": 13
+      },
+      {
+        "bin_edges": [
+          70.0,
+          90.0,
+          105.0,
+          122.0,
+          126.0,
+          140.0,
+          170.0
+        ],
+        "channels": [
+          "inclusive"
+        ],
+        "combined_chi2": 2.5402696798255935,
+        "combined_p_value": 0.7704185408869799,
+        "configuration": "inclusive_coarse",
+        "expected_bins_below_1": 0,
+        "fit_status": "fit_succeeded",
+        "mu_hat": 2.558678927694574,
+        "mu_uncertainty": 0.8133048425396129,
+        "observed_zero_bins": 0,
+        "total_bins": 6
+      },
+      {
+        "bin_edges": [
+          70.0,
+          105.0,
+          122.0,
+          126.0,
+          140.0,
+          170.0
+        ],
+        "channels": [
+          "inclusive"
+        ],
+        "combined_chi2": 2.04126207427362,
+        "combined_p_value": 0.7281696808257639,
+        "configuration": "inclusive_peak_side",
+        "expected_bins_below_1": 0,
+        "fit_status": "fit_succeeded",
+        "mu_hat": 2.5600737762805608,
+        "mu_uncertainty": 0.8137374281848165,
+        "observed_zero_bins": 0,
+        "total_bins": 5
+      }
+    ],
+    "merge_or_rebin_decision": "retain_final_state_nominal_for_full",
+    "nominal_final_state_retained": true,
+    "toy_validation": {
+      "fit_failures": 0,
+      "fit_success_fraction": 1.0,
+      "median_bias_vs_mu1": 0.030157038136456427,
+      "median_mu": 1.0301570381364564,
+      "n_toys": 80,
+      "passes_bias_gate": true,
+      "passes_fit_success_gate": true,
+      "seed": 4269,
+      "std_mu": 0.5339298257974089
+    }
+  },
+  "normalization_policy": {
+    "data_integral_normalization": false,
+    "full_luminosity_fb": 10.0,
+    "mc_luminosity_scale_factor": 1.0,
+    "mc_scaled_to_full_luminosity": true
+  },
+  "phase": "4c_observed",
+  "subsample": {
+    "actual_fraction": 1.0,
+    "broad_display_range_GeV": [
+      70.0,
+      170.0
+    ],
+    "broad_window_counts_by_channel": {
+      "2e2mu": 98,
+      "4e": 24,
+      "4mu": 81
+    },
+    "effective_luminosity_fb": 10.0,
+    "fit_window_GeV": [
+      70.0,
+      170.0
+    ],
+    "fit_window_counts_by_channel": {
+      "2e2mu": 98,
+      "4e": 24,
+      "4mu": 81
+    },
+    "fraction_requested": 1.0,
+    "full_luminosity_fb": 10.0,
+    "kept_data_events": 203,
+    "mc_normalization": "All Phase 3 MC template weights are used at the full 10 fb^-1 normalization; no MC template is normalized to the observed data integral.",
+    "seed": null,
+    "selection_method": "all selected data events from the Phase 3 handoff are retained for Phase 4c; the seed is used only for the deterministic split proxy",
+    "split_seed": 9417,
+    "total_selected_data_events": 203
+  },
+  "viability": {
+    "boundary": null,
+    "defensible_alternative_attempted": "Alternative inclusive/coarse binnings and category merge diagnostics are recorded in observed_validation.low_count_validation.alternative_binning_stability.",
+    "fit_triviality_gate": "PASS",
+    "fit_window_GeV": [
+      70.0,
+      170.0
+    ],
+    "mu_at_boundary": false,
+    "relative_total_uncertainty": 0.3133421118801435,
+    "total_uncertainty_lt_50pct_central": true,
+    "viability_verdict": "PASS",
+    "zero_chi2_warning": false
+  }
+}

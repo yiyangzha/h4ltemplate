@@ -997,3 +997,43 @@
 ## 2026-05-30 — Phase 4b partial artifact
 
 - Built `phase4_inference/4b_partial/outputs/INFERENCE_PARTIAL.md` from 10% observed-data result JSONs.
+
+## 2026-05-30 — Phase 4c full-data observed inference
+
+- Executor `zoran_44a0` applied the latest user-requested Phase 4c instruction: the observed-data fit window is `70 < m4l < 170 GeV`, including the Z peak.
+- Full data kept 203 of 203 selected data events.
+- MC templates used full luminosity `10.0` fb^-1 with no data-integral normalization.
+- Observed `mu = 2.478` with symmetric uncertainty `0.7763376700295836`; expected-vs-observed pull `1.53` and partial-vs-observed pull `1.59`.
+
+## 2026-05-30 — Phase 4c observed figures
+
+- Wrote and registered 8 full observed-data inference figures, including broad m4l, category overlays, expected comparison, nuisance diagnostics, and split/stability checks.
+
+## 2026-05-30 — Phase 4c observed artifact
+
+- Built `phase4_inference/4c_observed/outputs/INFERENCE_OBSERVED.md` from full observed-data result JSONs.
+
+## 2026-05-30 — Phase 4c commitments update
+
+- Marked remaining feasible final commitments resolved or formally downscoped.
+- Remaining unchecked top-level checklist items after update: 0.
+
+## 2026-05-30 — Phase 4c full-data observed inference
+
+- Executor `zoran_44a0` applied the latest user-requested Phase 4c instruction: the observed-data fit window is `70 < m4l < 170 GeV`, including the Z peak.
+- Full data kept 203 of 203 selected data events.
+- MC templates used full luminosity `10.0` fb^-1 with no data-integral normalization.
+- Observed `mu = 2.478` with symmetric uncertainty `0.7763376700295836`; expected-vs-observed pull `1.53` and partial-vs-observed pull `1.59`.
+
+## 2026-05-30 — Phase 4c observed figures
+
+- Wrote and registered 8 full observed-data inference figures, including broad m4l, category overlays, expected comparison, nuisance diagnostics, and split/stability checks.
+
+## 2026-05-30 — Phase 4c observed artifact
+
+- Built `phase4_inference/4c_observed/outputs/INFERENCE_OBSERVED.md` from full observed-data result JSONs.
+
+## 2026-05-30 — Phase 4c commitments update
+
+- Marked remaining feasible final commitments resolved or formally downscoped.
+- Remaining unchecked top-level checklist items after update: 0.
