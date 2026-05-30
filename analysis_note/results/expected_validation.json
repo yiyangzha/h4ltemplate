@@ -20,7 +20,7 @@
       "combined_ndf": 17,
       "combined_p_value": 1.0,
       "configuration": "final_state_nominal",
-      "min_expected_bin": 0.6875956068251003,
+      "min_expected_bin": 0.6875956068251002,
       "mu_hat": 1.0,
       "mu_uncertainty": 0.5723579328235826,
       "total_bins": 18
@@ -116,7 +116,40 @@
     "injection_bias_lt_20pct": true,
     "low_count_validated": true
   },
-  "created_utc": "2026-05-30T00:55:04+00:00",
+  "created_utc": "2026-05-30T01:12:39+00:00",
+  "final_state_channel_compatibility": {
+    "max_abs_pull_vs_combined": 0.0,
+    "passes": true,
+    "rows": [
+      {
+        "channel": "4mu",
+        "combined_chi2": 0.0,
+        "combined_ndf": 5,
+        "combined_p_value": 1.0,
+        "mu_hat": 1.0,
+        "mu_uncertainty": 0.8669205858368869,
+        "pull_vs_combined": 0.0
+      },
+      {
+        "channel": "4e",
+        "combined_chi2": 0.0,
+        "combined_ndf": 5,
+        "combined_p_value": 1.0,
+        "mu_hat": 1.0,
+        "mu_uncertainty": 1.8113475516379003,
+        "pull_vs_combined": 0.0
+      },
+      {
+        "channel": "2e2mu",
+        "combined_chi2": 0.0,
+        "combined_ndf": 5,
+        "combined_p_value": 1.0,
+        "mu_hat": 1.0,
+        "mu_uncertainty": 0.8771049995474594,
+        "pull_vs_combined": 0.0
+      }
+    ]
+  },
   "low_count_validation": {
     "decision": "retain_final_state_simultaneous_model_for_expected_Asimov_fit",
     "input_handoff": {

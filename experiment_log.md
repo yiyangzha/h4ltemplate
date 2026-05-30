@@ -654,3 +654,11 @@
 - Produced 10 expected-inference figures and registered them in `phase4_inference/4a_expected/outputs/FIGURES.json`.
 - Resolved watcher layout blockers for the m4l template, signal-injection, and binning-stability figures; `pixi run lint-plots` and the figure-registry smoke test passed.
 - Split the binning stability display into a single-panel uncertainty figure plus a separately registered low-count-bin summary. Watcher recheck `vera_ee63` reported PASS with zero unresolved blockers.
+
+## 2026-05-30 — Phase 4a expected inference artifact
+
+- Built `phase4_inference/4a_expected/outputs/INFERENCE_EXPECTED.md` from expected-result JSON files.
+
+## 2026-05-30 — Phase 4a commitment update
+
+- Updated `COMMITMENTS.md` for Phase 4a expected-inference evidence and formal classifier-migration downscope.

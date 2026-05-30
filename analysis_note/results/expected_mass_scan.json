@@ -160,7 +160,8 @@
       "recovered_mass_grid_GeV": 126.0
     }
   ],
-  "downgrade_reason": null,
+  "closure_passes": true,
+  "downgrade_reason": "Detector-level shifted-template closure passes, but independent mass-hypothesis MC and official lepton calibration/morphing inputs are unavailable; retain as method-parity closure rather than a nominal mass measurement.",
   "limitations": "Uses shifted detector-level M125 templates because independent mass-hypothesis MC and official lepton calibration/morphing inputs are unavailable in the sandbox.",
   "mass_grid_GeV": [
     123.0,
@@ -177,7 +178,7 @@
   "nominal_best_mass_grid_GeV": 125.0,
   "nominal_best_mu_hat": 1.0,
   "phase": "4a_expected",
-  "promoted_to_nominal_mass_measurement": true,
+  "promoted_to_nominal_mass_measurement": false,
   "scan_rows": [
     {
       "mass_hypothesis_GeV": 123.0,

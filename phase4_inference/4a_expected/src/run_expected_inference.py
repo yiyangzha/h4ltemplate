@@ -488,6 +488,39 @@ def binning_stability(fit_inputs: dict[str, Any], events: dict[str, Any], active
     return rows
 
 
+def channel_compatibility(
+    grouped: dict[str, dict[str, Any]],
+    active_systematics: set[str],
+    *,
+    m4l_up: dict[str, dict[str, Any]],
+    m4l_down: dict[str, dict[str, Any]],
+    combined_mu: float,
+    combined_unc: float,
+) -> dict[str, Any]:
+    rows = []
+    for channel in CHANNELS:
+        fit = fit_configuration(grouped, (channel,), active_systematics, include_staterror=True, m4l_up=m4l_up, m4l_down=m4l_down)
+        mu = fit["uncertainty"]["muhat"]
+        unc = fit["uncertainty"]["err_sym"]
+        pull = (mu - combined_mu) / math.sqrt(max(unc**2 + combined_unc**2, 1.0e-12))
+        rows.append(
+            {
+                "channel": channel,
+                "mu_hat": mu,
+                "mu_uncertainty": unc,
+                "pull_vs_combined": pull,
+                "combined_chi2": fit["gof"]["combined"]["chi2"],
+                "combined_ndf": fit["gof"]["combined"]["ndf"],
+                "combined_p_value": fit["gof"]["combined"]["p_value_chi2"],
+            }
+        )
+    return {
+        "rows": rows,
+        "max_abs_pull_vs_combined": max(abs(row["pull_vs_combined"]) for row in rows),
+        "passes": bool(all(abs(row["pull_vs_combined"]) < 2.0 for row in rows)),
+    }
+
+
 def corrupted_closure(events: dict[str, Any], active_systematics: set[str]) -> dict[str, Any]:
     nominal = inclusive_from_channels(event_group_templates(events, FIT_BINS, channels=CHANNELS), CHANNELS)
     nominal_fit = fit_configuration(nominal, ("inclusive",), active_systematics - {"m4l_scale"})
@@ -549,7 +582,7 @@ def mass_scan(events: dict[str, Any]) -> dict[str, Any]:
                 "closure_scan_rows": closure_scan,
             }
         )
-    promoted = bool(all(row["passes_bias_gate"] for row in closure))
+    closure_passes = bool(all(row["passes_bias_gate"] for row in closure))
     return {
         "phase": "4a_expected",
         "method": "inclusive shifted-template mass-profile closure with mu profiled in each shifted-template fit",
@@ -558,8 +591,9 @@ def mass_scan(events: dict[str, Any]) -> dict[str, Any]:
         "nominal_best_mu_hat": best_nominal["mu_hat"],
         "scan_rows": scan_rows,
         "closure": closure,
-        "promoted_to_nominal_mass_measurement": promoted,
-        "downgrade_reason": None if promoted else "Shifted-template closure fails the 0.25 GeV grid-bias gate; retain only as detector-level method-parity attempt.",
+        "closure_passes": closure_passes,
+        "promoted_to_nominal_mass_measurement": False,
+        "downgrade_reason": "Detector-level shifted-template closure passes, but independent mass-hypothesis MC and official lepton calibration/morphing inputs are unavailable; retain as method-parity closure rather than a nominal mass measurement.",
         "limitations": "Uses shifted detector-level M125 templates because independent mass-hypothesis MC and official lepton calibration/morphing inputs are unavailable in the sandbox.",
     }
 
@@ -602,6 +636,14 @@ def main() -> None:
     toys = toy_validation(nominal_grouped, CHANNELS, active_systematics, n_toys=80, seed=RANDOM_SEED, m4l_up=m4l_up, m4l_down=m4l_down)
     injections = injection_tests(nominal_grouped, CHANNELS, active_systematics, m4l_up=m4l_up, m4l_down=m4l_down)
     stability = binning_stability(fit_inputs, events, active_systematics)
+    compatibility = channel_compatibility(
+        nominal_grouped,
+        active_systematics,
+        m4l_up=m4l_up,
+        m4l_down=m4l_down,
+        combined_mu=full_fit["uncertainty"]["muhat"],
+        combined_unc=full_fit["uncertainty"]["err_sym"],
+    )
     corruption = corrupted_closure(events, active_systematics)
     mass = mass_scan(events)
     reference_unc = (0.19 + 0.17) / 2.0
@@ -656,6 +698,7 @@ def main() -> None:
             "decision": "retain_final_state_simultaneous_model_for_expected_Asimov_fit" if toys["passes_bias_gate"] and toys["passes_fit_success_gate"] else "merge_or_rebin_required",
         },
         "alternative_binning_stability": stability,
+        "final_state_channel_compatibility": compatibility,
         "signal_injection": injections,
         "closure_sensitivity": corruption,
         "precision_comparison": {
