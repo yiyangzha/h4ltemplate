@@ -1,5 +1,5 @@
 {
-  "created_utc": "2026-05-30T05:33:15+00:00",
+  "created_utc": "2026-05-30T06:27:18+00:00",
   "data_sensitive_re_evaluation": "Observed-data pulls, GoF, category compatibility, binning stability, and deterministic split checks were recomputed on all 203 selected data events. External/fallback rate priors remain transferred from Phase 4a because no new public calibration inputs or fake-rate sideband method are available in the handoff.",
   "phase": "4c_observed",
   "sources": [

@@ -1,7 +1,12 @@
 {
-  "created_utc": "2026-05-30T03:05:39+00:00",
+  "created_utc": "2026-05-30T06:22:15+00:00",
   "samples": {
     "DYJetsToLL.root": {
+      "higgs_peak_control_105_140": {
+        "raw_entries": 27,
+        "sumw2": 11.564896186992815,
+        "weighted_yield": 17.670659213759002
+      },
       "high_sideband_140_170": {
         "raw_entries": 7,
         "sumw2": 2.9983064188499884,
@@ -11,14 +16,14 @@
         "raw_entries": 4,
         "sumw2": 1.7133179536285648,
         "weighted_yield": 2.6178754390754078
-      },
-      "signal_window_105_140": {
-        "raw_entries": 27,
-        "sumw2": 11.564896186992815,
-        "weighted_yield": 17.670659213759002
       }
     },
     "GGZZ2E2Mu.root": {
+      "higgs_peak_control_105_140": {
+        "raw_entries": 6287,
+        "sumw2": 2.5613046764872418e-05,
+        "weighted_yield": 0.40128446893787567
+      },
       "high_sideband_140_170": {
         "raw_entries": 7532,
         "sumw2": 3.0685138895024505e-05,
@@ -28,14 +33,14 @@
         "raw_entries": 3875,
         "sumw2": 1.578663213199946e-05,
         "weighted_yield": 0.2473321643286573
-      },
-      "signal_window_105_140": {
-        "raw_entries": 6287,
-        "sumw2": 2.5613046764872418e-05,
-        "weighted_yield": 0.40128446893787567
       }
     },
     "GGZZ4E.root": {
+      "higgs_peak_control_105_140": {
+        "raw_entries": 8119,
+        "sumw2": 2.1599350735812737e-06,
+        "weighted_yield": 0.13242549929075725
+      },
       "high_sideband_140_170": {
         "raw_entries": 11356,
         "sumw2": 3.0210891360498764e-06,
@@ -45,14 +50,14 @@
         "raw_entries": 5834,
         "sumw2": 1.5520459686258345e-06,
         "weighted_yield": 0.0951558520584158
-      },
-      "signal_window_105_140": {
-        "raw_entries": 8119,
-        "sumw2": 2.1599350735812737e-06,
-        "weighted_yield": 0.13242549929075725
       }
     },
     "GGZZ4Mu.root": {
+      "higgs_peak_control_105_140": {
+        "raw_entries": 23391,
+        "sumw2": 5.8321943780611875e-06,
+        "weighted_yield": 0.36935194421747564
+      },
       "high_sideband_140_170": {
         "raw_entries": 22641,
         "sumw2": 5.6451931475218405e-06,
@@ -62,14 +67,14 @@
         "raw_entries": 26509,
         "sumw2": 6.609620827156772e-06,
         "weighted_yield": 0.41858623783767535
-      },
-      "signal_window_105_140": {
-        "raw_entries": 23391,
-        "sumw2": 5.8321943780611875e-06,
-        "weighted_yield": 0.36935194421747564
       }
     },
     "GluGluToHToZZ.root": {
+      "higgs_peak_control_105_140": {
+        "raw_entries": 111878,
+        "sumw2": 0.0004193728781355311,
+        "weighted_yield": 6.849715239340022
+      },
       "high_sideband_140_170": {
         "raw_entries": 26,
         "sumw2": 9.746058055671188e-08,
@@ -79,14 +84,14 @@
         "raw_entries": 1915,
         "sumw2": 7.178346606388584e-06,
         "weighted_yield": 0.11724561292958527
-      },
-      "signal_window_105_140": {
-        "raw_entries": 111878,
-        "sumw2": 0.0004193728781355311,
-        "weighted_yield": 6.849715239340022
       }
     },
     "TTBar.root": {
+      "higgs_peak_control_105_140": {
+        "raw_entries": 22,
+        "sumw2": 0.02798340633047049,
+        "weighted_yield": 0.7846240751279248
+      },
       "high_sideband_140_170": {
         "raw_entries": 21,
         "sumw2": 0.026711433315449104,
@@ -96,14 +101,14 @@
         "raw_entries": 7,
         "sumw2": 0.0089038111051497,
         "weighted_yield": 0.2496531148134305
-      },
-      "signal_window_105_140": {
-        "raw_entries": 22,
-        "sumw2": 0.02798340633047049,
-        "weighted_yield": 0.7846240751279248
       }
     },
     "VBF_HToZZ.root": {
+      "higgs_peak_control_105_140": {
+        "raw_entries": 67560,
+        "sumw2": 6.485803684463157e-06,
+        "weighted_yield": 0.6619523373493974
+      },
       "high_sideband_140_170": {
         "raw_entries": 52,
         "sumw2": 4.992033623328656e-09,
@@ -113,14 +118,14 @@
         "raw_entries": 1255,
         "sumw2": 1.204808114861051e-07,
         "weighted_yield": 0.012296479919678714
-      },
-      "signal_window_105_140": {
-        "raw_entries": 67560,
-        "sumw2": 6.485803684463157e-06,
-        "weighted_yield": 0.6619523373493974
       }
     },
     "WMHToZZ.root": {
+      "higgs_peak_control_105_140": {
+        "raw_entries": 20853,
+        "sumw2": 2.515272676588634e-07,
+        "weighted_yield": 0.0724230495939675
+      },
       "high_sideband_140_170": {
         "raw_entries": 1109,
         "sumw2": 1.3376671933711196e-08,
@@ -130,14 +135,14 @@
         "raw_entries": 513,
         "sumw2": 6.1877661875508065e-09,
         "weighted_yield": 0.0017816632830626442
-      },
-      "signal_window_105_140": {
-        "raw_entries": 20853,
-        "sumw2": 2.515272676588634e-07,
-        "weighted_yield": 0.0724230495939675
       }
     },
     "WPHToZZ.root": {
+      "higgs_peak_control_105_140": {
+        "raw_entries": 28054,
+        "sumw2": 3.713467084104021e-07,
+        "weighted_yield": 0.10206743142523683
+      },
       "high_sideband_140_170": {
         "raw_entries": 1600,
         "sumw2": 2.1178966758987786e-08,
@@ -147,14 +152,14 @@
         "raw_entries": 769,
         "sumw2": 1.0179140898538506e-08,
         "weighted_yield": 0.0027978133159623267
-      },
-      "signal_window_105_140": {
-        "raw_entries": 28054,
-        "sumw2": 3.713467084104021e-07,
-        "weighted_yield": 0.10206743142523683
       }
     },
     "ZHToZZ.root": {
+      "higgs_peak_control_105_140": {
+        "raw_entries": 22874,
+        "sumw2": 9.36493456142953e-08,
+        "weighted_yield": 0.046283205718504306
+      },
       "high_sideband_140_170": {
         "raw_entries": 5982,
         "sumw2": 2.449114214674803e-08,
@@ -164,14 +169,14 @@
         "raw_entries": 571,
         "sumw2": 2.337753621831014e-09,
         "weighted_yield": 0.0011553602546675685
-      },
-      "signal_window_105_140": {
-        "raw_entries": 22874,
-        "sumw2": 9.36493456142953e-08,
-        "weighted_yield": 0.046283205718504306
       }
     },
     "ZZTo4L.root": {
+      "higgs_peak_control_105_140": {
+        "raw_entries": 116080,
+        "sumw2": 0.007506664837658657,
+        "weighted_yield": 29.519038845386152
+      },
       "high_sideband_140_170": {
         "raw_entries": 79827,
         "sumw2": 0.0051622547725342655,
@@ -181,14 +186,14 @@
         "raw_entries": 481735,
         "sumw2": 0.03115285308037124,
         "weighted_yield": 122.50477410563491
-      },
-      "signal_window_105_140": {
-        "raw_entries": 116080,
-        "sumw2": 0.007506664837658657,
-        "weighted_yield": 29.519038845386152
       }
     },
     "cms_10fb_13TeV.root": {
+      "higgs_peak_control_105_140": {
+        "raw_entries": 69,
+        "sumw2": 69.0,
+        "weighted_yield": 69.0
+      },
       "high_sideband_140_170": {
         "raw_entries": 19,
         "sumw2": 19.0,
@@ -198,21 +203,16 @@
         "raw_entries": 115,
         "sumw2": 115.0,
         "weighted_yield": 115.0
-      },
-      "signal_window_105_140": {
-        "raw_entries": 69,
-        "sumw2": 69.0,
-        "weighted_yield": 69.0
       }
     }
   },
   "ttbar_decision": {
     "promote_ttbar_to_nominal": false,
     "ratios_ttbar_over_dy": {
+      "higgs_peak_control_105_140": 0.04440264879971137,
       "high_sideband_140_170": 0.16348247967166454,
-      "low_sideband_70_105": 0.09536477980847097,
-      "signal_window_105_140": 0.04440264879971137
+      "low_sideband_70_105": 0.09536477980847097
     },
-    "rule": "promote if TTBar/DY >= 10% in signal window or >= 20% in either sideband"
+    "rule": "promote if TTBar/DY >= 10% in the Higgs-peak control region or >= 20% in either sideband"
   }
 }

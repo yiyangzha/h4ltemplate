@@ -1,8 +1,8 @@
 # Session State
 
-Last updated: 2026-05-30T06:03:00Z
-Current phase: Phase 4c — Full Data Inference / targeted MVA regression
-Step in loop: ITERATE
+Last updated: 2026-05-30T06:29:07Z
+Current phase: Phase 4c — Full Data Inference / 70-170 fit-window regression
+Step in loop: ITERATE — regression rerun complete; awaiting orchestrator VERIFY/review decision
 Iteration count: 0
 
 ## Completed phases (commit hashes)
@@ -47,10 +47,11 @@ Iteration count: 0
 
 ## Current Work
 
-Phase 3 passed after one review iteration. After the targeted MVA regression,
-the nominal Phase 4c handoff remains S1 final-state categories `4mu`, `4e`,
-and `2e2mu`; the active observed fit uses `70 < m4l < 170 GeV`, including the
-Z peak.
+Phase 3 passed after one review iteration. Regression worker `viktor_56ca`
+kept the analysis in Phase 4c, removed the active narrow fit-window handoff,
+and reran Phase 3 plus Phase 4c with `70 < m4l < 170 GeV` fit templates,
+matching the Phase 4c observed fit window including the Z peak. No Doc 4c work
+is active.
 
 This handoff is conditional because many final-state bins have low expected
 counts. Phase 4a/4c must run low-count Poisson/toy validation and MC-stat
@@ -60,7 +61,7 @@ merge categories.
 Key Phase 3 artifacts:
 
 - `phase3_selection/outputs/SELECTION.md`
-- `phase3_selection/outputs/fit_inputs_s1.json`
+- `phase3_selection/outputs/fit_inputs_s1.json` with `fit_window = [70, 170]`
 - `phase3_selection/outputs/selected_configuration.json`
 - `phase3_selection/outputs/approach_comparison.json`
 - `phase3_selection/outputs/FIGURES.json`

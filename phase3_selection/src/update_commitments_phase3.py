@@ -7,7 +7,7 @@ from selection_common import ROOT, append_experiment, append_session
 
 REPLACEMENTS = {
     "- [ ] [D1][VT1] Use primary prompt data/MC paths": "- [x] [D1][VT1] Use primary prompt data/MC paths",
-    "- [ ] [D3][VT1][VT3] Enforce `105 < m4l < 140 GeV`": "- [x] [D3][VT1][VT3] Enforce `105 < m4l < 140 GeV`",
+    "- [ ] [D3][VT1][VT3] Enforce `70 < m4l < 170 GeV`": "- [x] [D3][VT1][VT3] Enforce `70 < m4l < 170 GeV`",
     "- [ ] [D4][VT6][VT13] Nominal categories are final states": "- [x] [D4][VT6][VT13] Nominal categories are final states",
     "- [ ] [D6][VT2][SP10] Use DY+jets MC as the default": "- [x] [D6][VT2][SP10] Use DY+jets MC as the default",
     "- [ ] [D7][VT4][FIG4] Apply the input-modeling gate": "- [x] [D7][VT4][FIG4] Apply the input-modeling gate",

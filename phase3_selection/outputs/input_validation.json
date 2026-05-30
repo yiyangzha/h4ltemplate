@@ -1,10 +1,13 @@
 {
-  "created_utc": "2026-05-30T03:06:31+00:00",
+  "created_utc": "2026-05-30T06:23:04+00:00",
   "discarded_without_gate": {
     "m4l": "Excluded from classifier inputs to avoid mass sculpting in the mass-shape fit.",
+    "mZ1": "Strongly discriminating but not used in the nominal repaired MVA because the broad-window D7 comparison is poor and it drives clear score-mass correlation in fast diagnostics.",
+    "mZ2": "Strongly discriminating but not used in the nominal repaired MVA because it increases score-mass correlation and broad-window modeling stress; retained only as a diagnostic variable.",
     "max_pf_rel_iso03": "Not a Phase 2 default classifier input; miniRelIso tails were flagged in Phase 1 and isolation is kept out of S2.",
     "max_sip3d": "Not used in S2 after baseline object selection; retained only as diagnostic if Phase 4 needs lepton efficiency envelopes.",
-    "pvNdof": "Excluded by Phase 2 [A6] unless calibrated; not promoted to classifier input."
+    "pvNdof": "Excluded by Phase 2 [A6] unless calibrated; not promoted to classifier input.",
+    "y4l": "Excluded because the retained branch shows pathological broad-window data/MC disagreement relative to eta4l while adding negligible discrimination beyond eta-based inputs."
   },
   "variables": {
     "cos_theta1": {
@@ -47,11 +50,13 @@
         83.81196625903763
       ],
       "ndf": 5,
+      "nominal_mass_safe_candidate": true,
       "normalization_note": "D7 shape gate uses MC scaled to data integral for shape comparison only; nominal yields remain prompt-luminosity normalized.",
       "p_value": 0.15619451168087164,
       "passes_d7_gate": false,
       "shape_normalization_scale_data_over_mc": 0.9687147404838244,
-      "source": "angular_variables.npz"
+      "source": "angular_variables.npz",
+      "weighted_univariate_auc": 0.6440799701489872
     },
     "cos_theta2": {
       "bin_edges": [
@@ -93,11 +98,13 @@
         35.726674102678565
       ],
       "ndf": 5,
+      "nominal_mass_safe_candidate": true,
       "normalization_note": "D7 shape gate uses MC scaled to data integral for shape comparison only; nominal yields remain prompt-luminosity normalized.",
       "p_value": 0.26545662085295785,
       "passes_d7_gate": false,
       "shape_normalization_scale_data_over_mc": 0.968714740485773,
-      "source": "angular_variables.npz"
+      "source": "angular_variables.npz",
+      "weighted_univariate_auc": 0.5068995041317362
     },
     "cos_theta_star": {
       "bin_edges": [
@@ -139,11 +146,13 @@
         26.42108545785744
       ],
       "ndf": 5,
+      "nominal_mass_safe_candidate": false,
       "normalization_note": "D7 shape gate uses MC scaled to data integral for shape comparison only; nominal yields remain prompt-luminosity normalized.",
       "p_value": 0.4115406899048306,
       "passes_d7_gate": false,
       "shape_normalization_scale_data_over_mc": 0.9687147404838236,
-      "source": "angular_variables.npz"
+      "source": "angular_variables.npz",
+      "weighted_univariate_auc": 0.5094362549818284
     },
     "eta4l": {
       "bin_edges": [
@@ -185,11 +194,13 @@
         27.424148264667096
       ],
       "ndf": 5,
+      "nominal_mass_safe_candidate": false,
       "normalization_note": "D7 shape gate uses MC scaled to data integral for shape comparison only; nominal yields remain prompt-luminosity normalized.",
       "p_value": 0.846435676737652,
       "passes_d7_gate": false,
       "shape_normalization_scale_data_over_mc": 1.021435872266085,
-      "source": "selection_events.npz"
+      "source": "selection_events.npz",
+      "weighted_univariate_auc": 0.5192885162826949
     },
     "lead_abs_eta": {
       "bin_edges": [
@@ -227,11 +238,13 @@
         52.10074484319521
       ],
       "ndf": 4,
+      "nominal_mass_safe_candidate": true,
       "normalization_note": "D7 shape gate uses MC scaled to data integral for shape comparison only; nominal yields remain prompt-luminosity normalized.",
       "p_value": 0.7552866554534795,
       "passes_d7_gate": true,
       "shape_normalization_scale_data_over_mc": 0.968738179599649,
-      "source": "selection_events.npz"
+      "source": "selection_events.npz",
+      "weighted_univariate_auc": 0.5466609273899079
     },
     "lead_lepton_pt": {
       "bin_edges": [
@@ -273,11 +286,13 @@
         2.5484206296091627
       ],
       "ndf": 4,
+      "nominal_mass_safe_candidate": false,
       "normalization_note": "D7 shape gate uses MC scaled to data integral for shape comparison only; nominal yields remain prompt-luminosity normalized.",
       "p_value": 0.0027310794648283346,
       "passes_d7_gate": false,
       "shape_normalization_scale_data_over_mc": 0.9649147146827438,
-      "source": "selection_events.npz"
+      "source": "selection_events.npz",
+      "weighted_univariate_auc": 0.6780191642271371
     },
     "mZ1": {
       "bin_edges": [
@@ -323,11 +338,13 @@
         1.0539778303962826
       ],
       "ndf": 6,
+      "nominal_mass_safe_candidate": false,
       "normalization_note": "D7 shape gate uses MC scaled to data integral for shape comparison only; nominal yields remain prompt-luminosity normalized.",
       "p_value": 6.222370344736675e-155,
       "passes_d7_gate": false,
       "shape_normalization_scale_data_over_mc": 0.9639550532731992,
-      "source": "selection_events.npz"
+      "source": "selection_events.npz",
+      "weighted_univariate_auc": 0.703591523715722
     },
     "mZ2": {
       "bin_edges": [
@@ -373,11 +390,13 @@
         0.041373069670020066
       ],
       "ndf": 6,
+      "nominal_mass_safe_candidate": false,
       "normalization_note": "D7 shape gate uses MC scaled to data integral for shape comparison only; nominal yields remain prompt-luminosity normalized.",
       "p_value": 7.490602115287423e-39,
       "passes_d7_gate": false,
       "shape_normalization_scale_data_over_mc": 0.9687147404821228,
-      "source": "selection_events.npz"
+      "source": "selection_events.npz",
+      "weighted_univariate_auc": 0.7867896838210072
     },
     "phi": {
       "bin_edges": [
@@ -419,11 +438,13 @@
         33.74753769057664
       ],
       "ndf": 5,
+      "nominal_mass_safe_candidate": false,
       "normalization_note": "D7 shape gate uses MC scaled to data integral for shape comparison only; nominal yields remain prompt-luminosity normalized.",
       "p_value": 0.5637239206342102,
       "passes_d7_gate": false,
       "shape_normalization_scale_data_over_mc": 0.9687147404834258,
-      "source": "angular_variables.npz"
+      "source": "angular_variables.npz",
+      "weighted_univariate_auc": 0.5008106096672755
     },
     "phi1": {
       "bin_edges": [
@@ -465,11 +486,13 @@
         33.943160526553804
       ],
       "ndf": 5,
+      "nominal_mass_safe_candidate": false,
       "normalization_note": "D7 shape gate uses MC scaled to data integral for shape comparison only; nominal yields remain prompt-luminosity normalized.",
       "p_value": 0.9785264246346326,
       "passes_d7_gate": true,
       "shape_normalization_scale_data_over_mc": 0.9687147404833568,
-      "source": "angular_variables.npz"
+      "source": "angular_variables.npz",
+      "weighted_univariate_auc": 0.502147998028205
     },
     "pt4l": {
       "bin_edges": [
@@ -511,11 +534,13 @@
         7.906717269482521
       ],
       "ndf": 5,
+      "nominal_mass_safe_candidate": true,
       "normalization_note": "D7 shape gate uses MC scaled to data integral for shape comparison only; nominal yields remain prompt-luminosity normalized.",
       "p_value": 0.8934040385491403,
       "passes_d7_gate": false,
       "shape_normalization_scale_data_over_mc": 0.969603272459596,
-      "source": "selection_events.npz"
+      "source": "selection_events.npz",
+      "weighted_univariate_auc": 0.6841166575343453
     },
     "sublead_abs_eta": {
       "bin_edges": [
@@ -553,11 +578,13 @@
         11.939800472112326
       ],
       "ndf": 4,
+      "nominal_mass_safe_candidate": true,
       "normalization_note": "D7 shape gate uses MC scaled to data integral for shape comparison only; nominal yields remain prompt-luminosity normalized.",
       "p_value": 0.36642617632066843,
       "passes_d7_gate": false,
       "shape_normalization_scale_data_over_mc": 0.9687147404859678,
-      "source": "selection_events.npz"
+      "source": "selection_events.npz",
+      "weighted_univariate_auc": 0.5364057840458737
     },
     "sublead_lepton_pt": {
       "bin_edges": [
@@ -599,11 +626,13 @@
         0.682267335882153
       ],
       "ndf": 4,
+      "nominal_mass_safe_candidate": false,
       "normalization_note": "D7 shape gate uses MC scaled to data integral for shape comparison only; nominal yields remain prompt-luminosity normalized.",
       "p_value": 0.0,
       "passes_d7_gate": false,
       "shape_normalization_scale_data_over_mc": 0.9688238676560702,
-      "source": "selection_events.npz"
+      "source": "selection_events.npz",
+      "weighted_univariate_auc": 0.7009264393752862
     },
     "y4l": {
       "bin_edges": [
@@ -645,11 +674,13 @@
         3.163406606045145
       ],
       "ndf": 5,
+      "nominal_mass_safe_candidate": false,
       "normalization_note": "D7 shape gate uses MC scaled to data integral for shape comparison only; nominal yields remain prompt-luminosity normalized.",
       "p_value": 0.0,
       "passes_d7_gate": false,
       "shape_normalization_scale_data_over_mc": 0.9687147404861849,
-      "source": "selection_events.npz"
+      "source": "selection_events.npz",
+      "weighted_univariate_auc": 0.5188133916693762
     }
   }
 }

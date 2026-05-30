@@ -10,7 +10,7 @@ Date: 2026-05-30
   `lead_abs_eta` and `phi1` as active inputs. With those two variables, the
   best AUC was about `0.55`, consistent with near-random separation.
 - The previous MVA comparison mixed broad-window MVA diagnostics with an
-  older `105 < m4l < 140 GeV` S1 precision proxy. The repaired comparison uses
+  older narrow-window S1 precision proxy. The repaired comparison uses
   `80 < m4l < 170 GeV` for the active S1/S2 training metric.
 - Strong JHEP-like variables including `mZ1` and `mZ2` improve raw separation
   but induce visible score-mass correlation in the broad background sample, so

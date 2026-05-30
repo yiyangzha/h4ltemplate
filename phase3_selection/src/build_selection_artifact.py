@@ -78,11 +78,11 @@ def sideband_table(sidebands: dict) -> str:
             [
                 sample_display_name(sample),
                 fmt(payload["low_sideband_70_105"]["weighted_yield"]),
-                fmt(payload["signal_window_105_140"]["weighted_yield"]),
+                fmt(payload["higgs_peak_control_105_140"]["weighted_yield"]),
                 fmt(payload["high_sideband_140_170"]["weighted_yield"]),
             ]
         )
-    return table(["Sample", "70 <= m4l < 105", "105 < m4l < 140", "140 < m4l <= 170"], rows)
+    return table(["Sample", "70 <= m4l < 105", "Higgs-peak control", "140 < m4l <= 170"], rows)
 
 
 def cut_motivation_table(diagnostics: dict) -> str:
@@ -332,10 +332,8 @@ the Phase 2 thresholds:
 
 ## Fit-Ready Handoff
 
-The current Phase 4c observed fit uses the selected event table directly and
-builds templates over `70 < m4l < 170 GeV`, including the Z peak. The older
-`fit_inputs_s1.json` narrow-window templates are retained for traceability of
-earlier Phase 4a/legacy checks and are not the active Phase 4c fit window.
+The current Phase 4c observed fit and `fit_inputs_s1.json` handoff build
+templates over `70 < m4l < 170 GeV`, including the Z peak.
 The `4mu`, `4e`, and `2e2mu` categories remain the active simultaneous-fit
 categories because the repaired MVA still fails promotion gates.
 

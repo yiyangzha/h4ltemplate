@@ -1,9 +1,9 @@
 {
   "classifier_categories_promoted": false,
-  "created_utc": "2026-05-30T03:05:39+00:00",
+  "created_utc": "2026-05-30T06:22:15+00:00",
   "fit_window": [
-    105.0,
-    140.0
+    70.0,
+    170.0
   ],
   "inclusive_category_available_for_diagnostics": true,
   "nominal_categories": [

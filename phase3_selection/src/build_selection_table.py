@@ -163,7 +163,7 @@ def masks(arrays: dict[str, np.ndarray]) -> dict[str, np.ndarray]:
         "flavor_matched_lepton_id": finite & trigger & channel & obj_id,
         "z_pair_sanity": finite & trigger & channel & obj_id & z_sanity,
         "broad_validation_window_70_170": finite & trigger & channel & obj_id & z_sanity & broad,
-        "fit_window_105_140": finite & trigger & channel & obj_id & z_sanity & fit,
+        "fit_window_70_170": finite & trigger & channel & obj_id & z_sanity & fit,
     }
     return cumulative
 
@@ -220,7 +220,7 @@ def summarize_sidebands(name: str, arrays: dict[str, np.ndarray], selected_base:
     weights = np.full(len(values), weight, dtype=float)
     regions = {
         "low_sideband_70_105": selected_base & (values >= LOW_SIDEBAND[0]) & (values < LOW_SIDEBAND[1]),
-        "signal_window_105_140": selected_base & (values > FIT_WINDOW[0]) & (values < FIT_WINDOW[1]),
+        "higgs_peak_control_105_140": selected_base & (values > 105.0) & (values < 140.0),
         "high_sideband_140_170": selected_base & (values > HIGH_SIDEBAND[0]) & (values <= HIGH_SIDEBAND[1]),
     }
     return {
@@ -328,7 +328,7 @@ def main() -> None:
         selected_masks = masks(arrays)
         channels = final_state_from_pdgs(arrays)
         features = event_features(arrays)
-        final_mask = selected_masks["fit_window_105_140"]
+        final_mask = selected_masks["fit_window_70_170"]
         broad_mask = selected_masks["broad_validation_window_70_170"]
 
         provenance["files"].append(
@@ -419,7 +419,7 @@ def masks_stub() -> list[str]:
         "flavor_matched_lepton_id",
         "z_pair_sanity",
         "broad_validation_window_70_170",
-        "fit_window_105_140",
+        "fit_window_70_170",
     ]
 
 
@@ -453,19 +453,19 @@ def ttbar_decision(sidebands: dict[str, Any]) -> dict[str, Any]:
     tt = sidebands["samples"].get("TTBar.root", {})
     ratios = {}
     promote = False
-    for region in ("signal_window_105_140", "low_sideband_70_105", "high_sideband_140_170"):
+    for region in ("higgs_peak_control_105_140", "low_sideband_70_105", "high_sideband_140_170"):
         dy_yield = dy.get(region, {}).get("weighted_yield", 0.0)
         tt_yield = tt.get(region, {}).get("weighted_yield", 0.0)
         ratio = None if dy_yield <= 0 else tt_yield / dy_yield
         ratios[region] = ratio
-        if region == "signal_window_105_140" and ratio is not None and ratio >= 0.10:
+        if region == "higgs_peak_control_105_140" and ratio is not None and ratio >= 0.10:
             promote = True
-        if region != "signal_window_105_140" and ratio is not None and ratio >= 0.20:
+        if region != "higgs_peak_control_105_140" and ratio is not None and ratio >= 0.20:
             promote = True
     return {
         "ratios_ttbar_over_dy": ratios,
         "promote_ttbar_to_nominal": promote,
-        "rule": "promote if TTBar/DY >= 10% in signal window or >= 20% in either sideband",
+        "rule": "promote if TTBar/DY >= 10% in the Higgs-peak control region or >= 20% in either sideband",
     }
 
 

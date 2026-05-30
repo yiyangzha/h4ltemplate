@@ -28,7 +28,8 @@
   variable definitions.
 - Wrote `phase2_strategy/outputs/STRATEGY.md` as a detector-level binned
   simultaneous template-likelihood strategy, not a closed-form extraction.
-- Binding decisions: use primary prompt ROOT paths; fit `105 < m4l < 140 GeV`;
+- Binding decisions: use primary prompt ROOT paths; fit the then-current
+  CMS-like narrow mass window;
   require VBF jet recovery or formal downscope; attempt angular variables only
   through validated lepton-four-vector reconstruction; require data/MC
   validation before any MVA/NN training.
@@ -40,7 +41,7 @@
 - Re-read `STRATEGY.md` and `COMMITMENTS.md` in critic mode for VERIFY
   Follow-up 2.
 - Strengthened fit-window source evidence by citing the exact CMS public-page
-  figure descriptions for `105 < m4l < 140 GeV`.
+  figure descriptions for the then-current CMS-like narrow mass window.
 - Added method-parity limitation [L5] and decision [D9] requiring a Phase 4a
   parametric mass-shape cross-check or documented infeasibility.
 - Strengthened VBF recovery/downscope gates and angular-NN promotion gates.
@@ -655,7 +656,7 @@
 
 ## 2026-05-30 — Phase 4a regression gate and corruption follow-up
 
-- Applied the user-requested broad-window update: MVA training/evaluation now records `70 < m4l < 170 GeV`; m4l plots include broad `70 < m4l < 170 GeV` display; signal-strength inference remains `105 < m4l < 140 GeV`.
+- Applied the user-requested broad-window update: MVA training/evaluation now records `70 < m4l < 170 GeV`; m4l plots include broad `70 < m4l < 170 GeV` display. Superseded by the later Phase 4c regression, where signal-strength inference also uses `70 < m4l < 170 GeV`.
 - Added `expected_systematic_shifts.json`, `expected_systematic_shift_summary`, and broad mass-scan metadata over `110-140 GeV` with Z/sideband-adjacent exclusions documented.
 - The final-state `m4l_scale_factor_0.8` corruption sensitivity did not reject after three attempts, so it is marked `documented_low_count_infeasible` rather than passed.
 - Regression gate `klaus_a64b` passed and `REGRESSION_CHECK_phase4a.md` records the Phase 4a boundary checklist.
@@ -677,11 +678,26 @@
 ## 2026-05-30 — Doc 4b and human gate
 
 - Note writer `zelda_30c7` updated the analysis note to Doc 4b with the Phase 4b 10% broad-window result; final PDF is `analysis_note/ANALYSIS_NOTE_doc4b_v1.pdf`.
-- VERIFY fixed stale wording that could have implied the 10% result still used the old `105-140 GeV` window.
+- VERIFY fixed stale wording that could have implied the 10% result still used the old narrow window.
 - Compact gate `tomoko_c890` passed.
 - Human gate was auto-approved per the user's directive and archived in `analysis_note/review/HUMAN_GATE_doc4b_2026-05-30.md`.
 
 ## 2026-05-30 — Phase 4a per-figure validation
+
+## 2026-05-30 — Phase 4c 70-170 fit-window regression
+
+- Regression worker `viktor_56ca` removed invalid uncommitted Doc 4c draft and
+  staged note figures from the stopped downstream note-writer.
+- Updated the active Phase 3 fit handoff to `70 < m4l < 170 GeV` with bin
+  edges `[70, 80, 90, 100, 105, 112, 118, 122, 126, 130, 140, 150, 160, 170]`,
+  renamed the active cutflow step to `fit_window_70_170`, and removed current
+  fit-window wording that implied a narrow selection.
+- Reran `pixi run p3-all` and `pixi run p4c-all`. Phase 4c observed outputs
+  record `fit_window_GeV = [70.0, 170.0]`, observed `mu = 2.4776040008517612
+  -0.7138966295430187 +0.8387787105161486`, and observed mass-scan best grid
+  point `125.0 GeV`.
+- `pixi run lint-plots`, Phase 3/Phase 4c figure registry smoke tests, stale
+  active-window grep, and `git diff --check` passed before commit.
 
 - Completed Level 2 per-figure validation for all 10 registered expected-inference figures.
 - Initial per-figure failures for `expected_binning_stability` and `expected_reference_comparison` were fixed in commits `1213c39` and `23f3001`, followed by full plot refresh commit `5edd995`.
@@ -926,7 +942,7 @@
 - Updated Phase 3 MVA training metadata to explicitly use the broad `70 < m4l < 170 GeV` selected event table and keep `m4l` out of classifier inputs.
 - Added a tuned BDT trial as the targeted improvement attempt; S2 still does not pass all gates, so S1 remains the nominal handoff.
 - Regenerated Phase 3 with `pixi run p3-all`.
-- Updated Phase 4a expected inference to retain the `105 < m4l < 140 GeV` fit window, add a broad expected `m4l` display, broaden the shifted-template mass scan to `110-140 GeV`, add per-systematic shifted-bin payloads, and mark grouped MC-stat as a formal downscope/approximation.
+- Updated Phase 4a expected inference to retain the then-current expected-phase narrow fit window, add a broad expected `m4l` display, broaden the shifted-template mass scan to `110-140 GeV`, add per-systematic shifted-bin payloads, and mark grouped MC-stat as a formal downscope/approximation.
 - Re-ran corruption sensitivity in the final-state simultaneous workspace. The `+20%` mass-response corruption is rejected, but the `-20%` direction is not (`p = 0.4595`); this is documented as a quantitative low-count limitation rather than claimed as a pass.
 - Verification: `pixi run p4a-all`, `pixi run lint-plots`, registry smoke tests, and JSON sanity checks completed.
 
@@ -970,7 +986,7 @@
 
 ## 2026-05-30 — Phase 4b 10% observed inference
 
-- Executor `yuki_9d50` applied the latest user-requested Phase 4b override: the partial-data fit window is `70 < m4l < 170 GeV`, including the Z peak, replacing the earlier CMS-like `105 < m4l < 140 GeV` Phase 4b instruction.
+- Executor `yuki_9d50` applied the latest user-requested Phase 4b override: the partial-data fit window is `70 < m4l < 170 GeV`, including the Z peak, replacing the earlier CMS-like narrow-window Phase 4b instruction.
 - Fixed-seed 10% data subsample seed `9417` kept 20 of 203 selected data events.
 - MC templates were scaled by `0.1` to effective luminosity `1.0` fb^-1 with no data-integral normalization.
 - Partial observed `mu = 0` with symmetric uncertainty `1.3548619813595435`; expected-vs-partial pull `-0.679`.
@@ -985,7 +1001,7 @@
 
 ## 2026-05-30 — Phase 4b 10% observed inference
 
-- Executor `yuki_9d50` applied the latest user-requested Phase 4b override: the partial-data fit window is `70 < m4l < 170 GeV`, including the Z peak, replacing the earlier CMS-like `105 < m4l < 140 GeV` Phase 4b instruction.
+- Executor `yuki_9d50` applied the latest user-requested Phase 4b override: the partial-data fit window is `70 < m4l < 170 GeV`, including the Z peak, replacing the earlier CMS-like narrow-window Phase 4b instruction.
 - Fixed-seed 10% data subsample seed `9417` kept 20 of 203 selected data events.
 - MC templates were scaled by `0.1` to effective luminosity `1.0` fb^-1 with no data-integral normalization.
 - Partial observed `mu = 0` with symmetric uncertainty `1.3548619813595435`; expected-vs-partial pull `-0.679`.
@@ -1104,6 +1120,73 @@
 ## 2026-05-29 — Phase 3 selection figures
 
 - Produced 17 selection/sideband/MVA diagnostic figures and updated `FIGURES.json`.
+
+## 2026-05-29 — Phase 3 selection artifact
+
+- Built `phase3_selection/outputs/SELECTION.md` from Phase 3 JSON/NPZ outputs.
+
+## 2026-05-29 — Phase 3 baseline selection and provenance
+
+- Built Phase 3 primary-path provenance, MC normalization, cutflow, cut-motivation diagnostics, sideband diagnostics, S1 fit-ready histograms, and compact broad-window event arrays using primary prompt ROOT files only.
+
+## 2026-05-29 — Phase 3 VBF recovery/downscope gate
+
+- Checked primary and local branch inventories plus ntuplizer provenance for jet/VBF content. Decision: formal VBF downscope; no lepton-only category will be labeled VBF.
+
+## 2026-05-29 — Phase 3 angular reconstruction closure
+
+- Recomputed broad-window four-lepton and Z-candidate masses from retained lepton four-vectors, computed detector-level angular candidates, and wrote physical-range closure outputs.
+
+## 2026-05-29 — Phase 3 input-variable modeling gate
+
+- Computed D7 data/MC shape gates for 14 candidate S2 variables; 2 passed before classifier training.
+
+## 2026-05-30 — Phase 3 MVA regression repair
+
+- Restored `phase3_selection/src/train_mva.py` with weighted `80 < m4l < 170 GeV` training and evaluation.
+- Best nominal repaired model `bdt_mass_safe` used: pt4l, eta4l, lead_lepton_pt, sublead_lepton_pt, lead_abs_eta, sublead_abs_eta, cos_theta_star, cos_theta1, cos_theta2, phi, phi1, channel_code.
+- Weighted AUC = 0.7929; S2 promotion = False.
+
+## 2026-05-29 — Phase 3 approach comparison
+
+- Compared S1 and S2 on common expected precision and validation gates; selected `S1_reference_like_final_state_categories`.
+
+## 2026-05-29 — Phase 3 input-validation figures
+
+- Produced 14 D7 input-validation figures and updated `FIGURES.json`.
+
+## 2026-05-29 — Phase 3 selection figures
+
+- Produced 17 selection/sideband/MVA diagnostic figures and updated `FIGURES.json`.
+
+## 2026-05-29 — Phase 3 selection artifact
+
+- Built `phase3_selection/outputs/SELECTION.md` from Phase 3 JSON/NPZ outputs.
+
+## 2026-05-29 — Phase 3 commitment update
+
+- Updated `COMMITMENTS.md` for Phase 3-resolved proof artifacts and formal VBF downscope items.
+
+## 2026-05-30 — Phase 4c full-data observed inference
+
+- Executor `zoran_44a0` applied the latest user-requested Phase 4c instruction: the observed-data fit window is `70 < m4l < 170 GeV`, including the Z peak.
+- Full data kept 203 of 203 selected data events.
+- MC templates used full luminosity `10.0` fb^-1 with no data-integral normalization.
+- Observed `mu = 2.478` with symmetric uncertainty `0.7763376700295836`; expected-vs-observed pull `1.53` and partial-vs-observed pull `1.59`.
+- Added an observed shifted-template mass scan over `110.0-150.0` GeV in `2.5` GeV steps; best grid point `125.0` GeV with profiled `mu = 2.478`. The Z peak region is excluded from Higgs mass hypotheses, and the result is not promoted to an official CMS-quality mass measurement.
+
+## 2026-05-30 — Phase 4c observed figures
+
+- Wrote and registered 9 full observed-data inference figures, including broad m4l, category overlays, expected comparison, nuisance diagnostics, split/stability checks, and the observed shifted-template mass scan.
+
+## 2026-05-30 — Phase 4c observed artifact
+
+- Built `phase4_inference/4c_observed/outputs/INFERENCE_OBSERVED.md` from full observed-data result JSONs.
+
+## 2026-05-30 — Phase 4c commitments update
+
+- Marked remaining feasible final commitments resolved or formally downscoped.
+- Remaining unchecked top-level checklist items after update: 0.
 
 ## 2026-05-29 — Phase 3 selection artifact
 

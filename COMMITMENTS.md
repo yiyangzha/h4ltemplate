@@ -22,12 +22,11 @@ machine-readable proof item.
   categories, samples, Poisson terms, nuisance constraints, MC-stat terms,
   GoF, pulls, and impacts.
 - [x] [D3][VT1][VT3] Use the latest user-requested observed-data fit window
-  `70 < m4l < 170 GeV`, including the Z peak, for Phase 4b/4c
-  signal-strength inference. Proof: `partial_validation.json`,
-  `observed_validation.json`, and `observed_parameters.json` record the
-  `70-170 GeV` fit window, full event counts, and no data-integral MC
-  normalization. Earlier `105 < m4l < 140 GeV` fit-ready templates are retained
-  only as legacy/expected-phase traceability.
+  `70 < m4l < 170 GeV`, including the Z peak, for the active Phase 3 handoff
+  and Phase 4b/4c signal-strength inference. Proof: `fit_inputs_s1.json`,
+  `partial_validation.json`, `observed_validation.json`, and
+  `observed_parameters.json` record the `70-170 GeV` fit window, full event
+  counts, and no data-integral MC normalization.
 - [x] [D4][VT6][VT13] Nominal categories are final states 4mu, 4e, and 2e2mu,
   with extra classifier categories only after viability gates; no VBF-like
   category unless jet recovery passes [A3]. Proof: category schema JSON,
@@ -130,7 +129,7 @@ machine-readable proof item.
 - [x] [D2][VT10] Nuisance pulls/constraints and impact ranking after fits.
   Proof: pulls/impacts JSON and systematic impact figure.
 - [x] [VT11] Fixed-seed 10% data validation compared to expected results.
-  Proof: `analysis_note/results/partial_validation.json` and `partial_parameters.json` record seed `9417`, 10% event counts/effective luminosity, expected-vs-partial compatibility metrics, split diagnostics, and low-count stability checks. Phase 4b uses the latest user-requested override fit window `70 < m4l < 170 GeV`, including the Z peak, replacing the earlier CMS-like `105 < m4l < 140 GeV` Phase 4b instruction.
+  Proof: `analysis_note/results/partial_validation.json` and `partial_parameters.json` record seed `9417`, 10% event counts/effective luminosity, expected-vs-partial compatibility metrics, split diagnostics, and low-count stability checks. Phase 4b uses the latest user-requested override fit window `70 < m4l < 170 GeV`, including the Z peak, replacing the earlier CMS-like narrow-window Phase 4b instruction.
 - [x] [D9][VT12] Mass-template closure if any mass estimator or morphing scan
   is reported. Proof: `expected_mass_scan.json` records injected masses 115, 125, and 135 GeV, recovered grid masses, bias threshold verdicts, and per-mass scan rows; `observed_mass_scan.json` reports the full-data observed scan separately without assuming M125.
 - [D] [A3][D4] VBF downscope review gate: if no jet information is recoverable,
@@ -173,8 +172,8 @@ machine-readable proof item.
 - [x] [L2][D6][SP11] TTBar reducible-background diagnostic compared with
   DY-only nominal fake proxy and numeric inclusion/omission threshold.
 - [x] [D6][SP10] Sideband background normalization and shape closure before
-  signal-window interpretation, with `105 < m4l < 140 GeV` excluded from
-  sideband constraints.
+  Higgs-peak interpretation, with the central Higgs-peak control region
+  excluded from sideband constraints.
 - [x] [D7][D8] Classifier mass-sculpting check: score categories must not
   create a fake `m4l` peak.
 - [x] [D2][VT9] Alternative binning stability for `m4l` templates.

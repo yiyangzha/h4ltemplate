@@ -8,7 +8,7 @@ Created from machine-readable Phase 3 outputs.
 Phase 3 implements the reviewed Phase 2 strategy using the primary prompt
 ROOT paths only. The nominal Phase 4 handoff is `S1_reference_like_final_state_categories` with final-state
 categories `4mu`, `4e`, and `2e2mu`, but this binning is conditional:
-27/33
+31/39
 final-state fit bins have `S+B < 5` and require Phase 4 low-count Poisson/toy
 validation plus MC-stat stability checks before a result is reported. No VBF
 category is used because the recovery gate found no real jet/VBF information in
@@ -70,7 +70,7 @@ retained branches:
 | flavor_matched_lepton_id | 467 | 2986053 | 466 | True |
 | z_pair_sanity | 467 | 2986053 | 466 | True |
 | broad_validation_window_70_170 | 203 | 1058285 | 210 | True |
-| fit_window_105_140 | 69 | 405145 | 56.6 | True |
+| fit_window_70_170 | 203 | 1058284 | 210 | True |
 
 ## Cut Motivation Diagnostics
 
@@ -101,8 +101,9 @@ final-state binning is a conditional Phase 4 handoff. The per-bin expected
 
 | Category | m4l bin [GeV] | Signal | Background | S+B | S+B < 5 |
 | --- | --- | --- | --- | --- | --- |
-| 4mu | 70-85 | 0.0038 | 2.98 | 2.99 | yes |
-| 4mu | 85-100 | 0.024 | 53.3 | 53.3 | no |
+| 4mu | 70-80 | 0 | 0 | 0 | yes |
+| 4mu | 80-90 | 0.00933 | 19.1 | 19.1 | no |
+| 4mu | 90-100 | 0.0184 | 37.2 | 37.2 | no |
 | 4mu | 100-105 | 0.0163 | 1.84 | 1.86 | yes |
 | 4mu | 105-112 | 0.0443 | 2.48 | 2.53 | yes |
 | 4mu | 112-118 | 0.104 | 2.33 | 2.43 | yes |
@@ -110,10 +111,12 @@ final-state binning is a conditional Phase 4 handoff. The per-bin expected
 | 4mu | 122-126 | 2.21 | 1.53 | 3.74 | yes |
 | 4mu | 126-130 | 0.375 | 2.1 | 2.48 | yes |
 | 4mu | 130-140 | 0.00661 | 3.94 | 3.94 | yes |
-| 4mu | 140-155 | 0.00429 | 4.11 | 4.11 | yes |
-| 4mu | 155-170 | 0.00345 | 3.52 | 3.52 | yes |
-| 4e | 70-85 | 0.00212 | 0.946 | 0.948 | yes |
-| 4e | 85-100 | 0.0109 | 12.1 | 12.1 | no |
+| 4mu | 140-150 | 0.00294 | 2.84 | 2.84 | yes |
+| 4mu | 150-160 | 0.00253 | 2.47 | 2.47 | yes |
+| 4mu | 160-170 | 0.00227 | 2.32 | 2.32 | yes |
+| 4e | 70-80 | 0 | 0 | 0 | yes |
+| 4e | 80-90 | 0.00427 | 6.19 | 6.2 | no |
+| 4e | 90-100 | 0.00877 | 6.87 | 6.88 | no |
 | 4e | 100-105 | 0.00704 | 0.434 | 0.442 | yes |
 | 4e | 105-112 | 0.0201 | 1.83 | 1.85 | yes |
 | 4e | 112-118 | 0.0736 | 2.52 | 2.6 | yes |
@@ -121,10 +124,12 @@ final-state binning is a conditional Phase 4 handoff. The per-bin expected
 | 4e | 122-126 | 0.706 | 0.467 | 1.17 | yes |
 | 4e | 126-130 | 0.198 | 0.49 | 0.688 | yes |
 | 4e | 130-140 | 0.0137 | 2.56 | 2.57 | yes |
-| 4e | 140-155 | 0.00215 | 2.42 | 2.42 | yes |
-| 4e | 155-170 | 0.00217 | 3.07 | 3.07 | yes |
-| 2e2mu | 70-85 | 0.00464 | 2.93 | 2.94 | yes |
-| 2e2mu | 85-100 | 0.0292 | 45.7 | 45.7 | no |
+| 4e | 140-150 | 0.00149 | 1.84 | 1.85 | yes |
+| 4e | 150-160 | 0.0014 | 1.8 | 1.8 | yes |
+| 4e | 160-170 | 0.00144 | 1.85 | 1.85 | yes |
+| 2e2mu | 70-80 | 0 | 0 | 0 | yes |
+| 2e2mu | 80-90 | 0.0113 | 18.7 | 18.7 | no |
+| 2e2mu | 90-100 | 0.0226 | 29.9 | 30 | no |
 | 2e2mu | 100-105 | 0.0199 | 1.7 | 1.72 | yes |
 | 2e2mu | 105-112 | 0.0544 | 4.39 | 4.44 | yes |
 | 2e2mu | 112-118 | 0.155 | 2.39 | 2.54 | yes |
@@ -132,8 +137,9 @@ final-state binning is a conditional Phase 4 handoff. The per-bin expected
 | 2e2mu | 122-126 | 2.21 | 1.73 | 3.94 | yes |
 | 2e2mu | 126-130 | 0.544 | 3.7 | 4.24 | yes |
 | 2e2mu | 130-140 | 0.0233 | 6.73 | 6.76 | no |
-| 2e2mu | 140-155 | 0.00629 | 5.98 | 5.99 | no |
-| 2e2mu | 155-170 | 0.00553 | 6.8 | 6.81 | no |
+| 2e2mu | 140-150 | 0.00426 | 3.6 | 3.6 | yes |
+| 2e2mu | 150-160 | 0.00393 | 4.04 | 4.04 | yes |
+| 2e2mu | 160-170 | 0.00363 | 5.15 | 5.15 | no |
 
 The VBF recovery gate checked primary and local branch inventories, the current
 allow-list, event-key join feasibility, and `h4l_ntuplize.py` provenance.
@@ -212,10 +218,10 @@ detailed S2 gate table is:
 
 | Model | AUC | overtrain gap | score chi2 | score ndf | score p | score gate | low-stat bin fraction | category gate | all S2 gates |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| JHEP-like diagnostic BDT | 0.9176 | 0.000192 | 2005 | 8 | 0 | False | 0.8939 | False | False |
-| mass-safe BDT | 0.7929 | 0.0005652 | 85.96 | 4 | 9.502e-18 | False | 0.9091 | False | False |
-| JHEP-like diagnostic logistic | 0.8428 | 7.091e-06 | 1307 | 9 | 1.012e-275 | False | 0.9242 | False | False |
-| mass-safe logistic | 0.743 | 0.000286 | 2186 | 9 | 0 | False | 0.9242 | False | False |
+| JHEP-like diagnostic BDT | 0.9176 | 0.000192 | 2005 | 8 | 0 | False | 0.8974 | False | False |
+| mass-safe BDT | 0.7929 | 0.0005652 | 85.96 | 4 | 9.502e-18 | False | 0.9103 | False | False |
+| JHEP-like diagnostic logistic | 0.8428 | 7.091e-06 | 1307 | 9 | 1.012e-275 | False | 0.9103 | False | False |
+| mass-safe logistic | 0.743 | 0.000286 | 2186 | 9 | 0 | False | 0.9231 | False | False |
 
 The repaired BDT is no longer random, but no trained classifier variant
 satisfies all S2 promotion gates.
@@ -226,9 +232,9 @@ DY+jets remains the nominal reducible fake proxy. The signal region is excluded
 from sideband constraints. The TTBar diagnostic is not promoted to a nominal
 component because the TTBar diagnostic / DY+jets fake-proxy ratios are below
 the Phase 2 thresholds:
-{'high_sideband_140_170': 0.16348247967166454, 'low_sideband_70_105': 0.09536477980847097, 'signal_window_105_140': 0.04440264879971137}.
+{'higgs_peak_control_105_140': 0.04440264879971137, 'high_sideband_140_170': 0.16348247967166454, 'low_sideband_70_105': 0.09536477980847097}.
 
-| Sample | 70 <= m4l < 105 | 105 < m4l < 140 | 140 < m4l <= 170 |
+| Sample | 70 <= m4l < 105 | Higgs-peak control | 140 < m4l <= 170 |
 | --- | --- | --- | --- |
 | DY+jets fake proxy | 2.62 | 17.7 | 4.58 |
 | TTBar diagnostic | 0.25 | 0.785 | 0.749 |
@@ -237,10 +243,8 @@ the Phase 2 thresholds:
 
 ## Fit-Ready Handoff
 
-The current Phase 4c observed fit uses the selected event table directly and
-builds templates over `70 < m4l < 170 GeV`, including the Z peak. The older
-`fit_inputs_s1.json` narrow-window templates are retained for traceability of
-earlier Phase 4a/legacy checks and are not the active Phase 4c fit window.
+The current Phase 4c observed fit and `fit_inputs_s1.json` handoff build
+templates over `70 < m4l < 170 GeV`, including the Z peak.
 The `4mu`, `4e`, and `2e2mu` categories remain the active simultaneous-fit
 categories because the repaired MVA still fails promotion gates.
 

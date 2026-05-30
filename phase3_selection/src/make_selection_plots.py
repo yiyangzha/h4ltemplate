@@ -32,7 +32,7 @@ def plot_cutflow_summary() -> int:
         "flavor_matched_lepton_id": "Flavor ID",
         "z_pair_sanity": "Z pairing",
         "broad_validation_window_70_170": "70-170",
-        "fit_window_105_140": "105-140",
+        "fit_window_70_170": "70-170 fit",
     }
     y = np.arange(len(steps), dtype=float)[::-1]
     data_counts = []
@@ -70,8 +70,8 @@ def plot_cutflow_summary() -> int:
     )
     caption = (
         "Cumulative Phase 3 cutflow for data raw counts and prompt-normalized MC weighted yields. "
-        "The rendered step labels are abbreviated for readability; `70-170` is the broad validation mass window and `105-140` is the fit window. "
-        "Every sample-level cutflow is monotonic, and the fit-window endpoint is 69 data events with 56.6098 expected MC events."
+        "The rendered step labels are abbreviated for readability; `70-170 fit` is the current Phase 4c fit window. "
+        "Every sample-level cutflow is monotonic, and the fit-window endpoint is computed from the active 70-170 GeV selection."
     )
     metadata = {
         "steps": steps,
@@ -192,7 +192,7 @@ def plot_m4l_windows() -> int:
             legend_loc="center right",
         )
         caption = (
-            f"Four-lepton mass distribution for the {channel} final-state category in `105 < m4l < 140 GeV`. "
+            f"Four-lepton mass distribution for the {channel} final-state category in `70 < m4l < 170 GeV`. "
             "These final-state categories are the conditional Phase 4 simultaneous-fit handoff because the classifier split failed the promotion gates and no real VBF category is available; "
             "Phase 4 must validate low-count Poisson/toy behavior and MC-stat stability before reporting fit results."
         )
@@ -209,7 +209,7 @@ def plot_m4l_windows() -> int:
 
 def plot_sidebands() -> int:
     sidebands = read_json(OUT / "sideband_fake_diagnostics.json")
-    regions = ["low_sideband_70_105", "signal_window_105_140", "high_sideband_140_170"]
+    regions = ["low_sideband_70_105", "higgs_peak_control_105_140", "high_sideband_140_170"]
     x = np.arange(len(regions), dtype=float)
     fig = __import__("matplotlib.pyplot").pyplot.subplots(figsize=(10, 10))[0]
     ax = fig.axes[0]
@@ -217,13 +217,13 @@ def plot_sidebands() -> int:
         y = np.array([sidebands["samples"][sample][region]["weighted_yield"] for region in regions], dtype=float)
         err = np.sqrt(np.array([sidebands["samples"][sample][region]["sumw2"] for region in regions], dtype=float))
         ax.errorbar(x, y, yerr=err, marker=marker, linestyle="-", label=sample_display_name(sample))
-    ax.set_xticks(x, ["Low sideband", "Signal window", "High sideband"])
+    ax.set_xticks(x, ["Low sideband", "Higgs-peak control", "High sideband"])
     ax.set_ylabel("Expected events")
     ax.set_xlabel("Region")
     ax.legend(loc="upper right", fontsize="x-small")
     __import__("mplhep").label.exp_label(exp="CMS", text="", loc=2, data=True, llabel="Open Simulation", rlabel=r"$13$ TeV, 10 fb$^{-1}$", ax=ax)
     caption = (
-        "DY+jets fake proxy and TTBar diagnostic reducible-background checks across the predeclared sideband and signal regions. "
+        "DY+jets fake proxy and TTBar diagnostic reducible-background checks across the predeclared sideband and Higgs-peak control regions. "
         f"TTBar diagnostic / DY+jets fake-proxy ratios are {sidebands['ttbar_decision']['ratios_ttbar_over_dy']}, so TTBar is not promoted to the nominal fake model by the Phase 2 thresholds."
     )
     save_and_register(fig, "sideband_dy_ttbar_diagnostics", caption, "phase3_selection/outputs/sideband_fake_diagnostics.json", sidebands["ttbar_decision"])
@@ -315,7 +315,7 @@ def plot_category_viability() -> int:
     ax.errorbar(x, background, marker="^", linestyle="None", color="#0072B2", label="Background")
     ax.errorbar(x + width, data, yerr=np.sqrt(data), marker="o", linestyle="None", color="black", label="Data")
     ax.set_xticks(x, channels)
-    ax.set_ylabel("Events in 105 < m4l < 140 GeV")
+    ax.set_ylabel("Events in 70 < m4l < 170 GeV")
     ax.set_xlabel("Final-state category")
     visible_top = max(max(signal), max(background), max(np.asarray(data) + np.sqrt(data)))
     if visible_top > 0.0:
