@@ -29,6 +29,17 @@ REPLACEMENTS = {
     "- [ ] [REF-MATRIX][FIG6] Inclusive `mu`: classify as matched": "- [x] [REF-MATRIX][FIG6] Inclusive `mu`: classify as matched",
 }
 
+TEXT_REPLACEMENTS = {
+    "Proof: `systematics_sources.json` row with central `10 fb^-1`,\n  uncertainty source hierarchy, fallback flag if user-provided, and prior scan.": "Proof: `systematics_sources.json` row with central `10 fb^-1`, public CMS 2017 luminosity uncertainty used as the scale reference, fallback flag, affected templates, and evaluation method.",
+    "Proof: mass workspace/scan JSON, injected-mass closure\n  table, or infeasibility log with filenames and failure modes.": "Proof: `analysis_note/results/expected_mass_scan.json` records the simultaneous `4mu`, `4e`, and `2e2mu` category shifted-template mass scan with `mu` profiled, active nuisance metadata, and injected-mass closure.",
+    "public/campaign search trail, yield-closure comparison, and per-process\n  nuisance in `systematics_sources.json`.": "the `systematics_sources.json` SP2 row records the Phase 3 normalization table, user-provided prompt effective cross sections, metadata denominators, and the Phase 4a per-process normalization nuisances used because public/campaign matches remain unavailable.",
+    "Proof: workspace includes bin-by-bin MC-stat modifiers and stability tests.": "Proof: `expected_covariance.json` and `expected_validation.json` document the actual grouped group/category MC-stat approximation from Phase 3 `sumw2`, plus alternative-binning stability tests; full bin-by-bin `staterror` profiling remains a documented expected-phase downscope.",
+    "Proof: input-validation verdict and explicit classifier input\n  allow/discard list.": "Proof: the `systematics_sources.json` SP6 row and Phase 3 `input_validation.json` document that `pvNdof`/PV variables are excluded under [A6], no classifier categories are promoted, and no PV-dependent fit nuisance is propagated in Phase 4a.",
+    "Proof: mass-fit workspace/scan JSON or infeasibility log.": "Proof: `analysis_note/results/expected_mass_scan.json` contains the category-simultaneous shifted-template mass-profile scan and injected-mass closure with `mu` profiled.",
+    "is reported. Proof: injected-mass closure table with bias threshold verdict.": "is reported. Proof: `expected_mass_scan.json` records injected masses 124, 125, and 126 GeV, recovered grid masses, bias threshold verdicts, and per-mass scan rows.",
+    "- [ ] [REF-MATRIX][D9] Mass: classify as matched only if the simultaneous\n  category mass extraction with `mu` profiled passes injected-mass closure;\n  otherwise classify as approximated detector-level peak comparison.": "- [x] [REF-MATRIX][D9] Mass: Phase 4a category-simultaneous shifted-template scan with `mu` profiled passes expected injected-mass closure, but the final AN must classify it as approximated detector-level mass-profile evidence rather than an official-quality matched CMS mass measurement because independent mass-hypothesis MC and official calibration inputs are unavailable.",
+}
+
 
 def main() -> None:
     ensure_dirs()
@@ -36,6 +47,8 @@ def main() -> None:
     path = ANALYSIS_ROOT / "COMMITMENTS.md"
     text = path.read_text()
     for old, new in REPLACEMENTS.items():
+        text = text.replace(old, new)
+    for old, new in TEXT_REPLACEMENTS.items():
         text = text.replace(old, new)
     path.write_text(text)
     append_session("Phase 4a commitment update\n\n- Updated `COMMITMENTS.md` for expected-inference items with Phase 4a JSON/figure evidence; downstream observed-data and Doc-phase items remain open.")

@@ -116,7 +116,7 @@
     "injection_bias_lt_20pct": true,
     "low_count_validated": true
   },
-  "created_utc": "2026-05-30T01:37:28+00:00",
+  "created_utc": "2026-05-30T02:36:03+00:00",
   "final_state_channel_compatibility": {
     "max_abs_pull_vs_combined": 0.0,
     "passes": true,

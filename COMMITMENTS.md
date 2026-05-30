@@ -46,20 +46,17 @@ machine-readable proof item.
 - [x] [D9][VT7][VT12][FIG3] Address method parity through a binding
   simultaneous category mass-extraction attempt with `mu` profiled and
   injected-mass closure, or document three concrete infeasibility attempts
-  before downgrade. Proof: mass workspace/scan JSON, injected-mass closure
-  table, or infeasibility log with filenames and failure modes.
+  before downgrade. Proof: `analysis_note/results/expected_mass_scan.json` records the simultaneous `4mu`, `4e`, and `2e2mu` category shifted-template mass scan with `mu` profiled, active nuisance metadata, and injected-mass closure.
 
 ## Systematic sources
 
 - [x] [D2][SP1] Integrated luminosity normalization nuisance for all MC
-  templates. Proof: `systematics_sources.json` row with central `10 fb^-1`,
-  uncertainty source hierarchy, fallback flag if user-provided, and prior scan.
+  templates. Proof: `systematics_sources.json` row with central `10 fb^-1`, public CMS 2017 luminosity uncertainty used as the scale reference, fallback flag, affected templates, and evaluation method.
 - [x] [A2][SP2] Prompt effective cross-section validation or documented
   user-provided fallback with normalization uncertainty. Proof:
-  public/campaign search trail, yield-closure comparison, and per-process
-  nuisance in `systematics_sources.json`.
+  the `systematics_sources.json` SP2 row records the Phase 3 normalization table, user-provided prompt effective cross sections, metadata denominators, and the Phase 4a per-process normalization nuisances used because public/campaign matches remain unavailable.
 - [x] [D2][SP3][VT9] MC statistical uncertainty terms for all fit templates.
-  Proof: workspace includes bin-by-bin MC-stat modifiers and stability tests.
+  Proof: `expected_covariance.json` and `expected_validation.json` document the actual grouped group/category MC-stat approximation from Phase 3 `sumw2`, plus alternative-binning stability tests; full bin-by-bin `staterror` profiling remains a documented expected-phase downscope.
 - [x] [D7][SP4] Lepton reconstruction, identification, and trigger efficiency
   uncertainty. Proof: public scale-factor source or closure-derived envelope
   with channel ratios, trigger/ID plots, and chi2/p-values.
@@ -67,8 +64,7 @@ machine-readable proof item.
   propagated to `m4l`, `mZ1`, `mZ2`, and angular inputs where used. Proof:
   shifted/smeared template files and mass-closure impact table.
 - [x] [A6][SP6] Pileup/PV modeling validation; `pvNdof` excluded unless
-  validated. Proof: input-validation verdict and explicit classifier input
-  allow/discard list.
+  validated. Proof: the `systematics_sources.json` SP6 row and Phase 3 `input_validation.json` document that `pvNdof`/PV variables are excluded under [A6], no classifier categories are promoted, and no PV-dependent fit nuisance is propagated in Phase 4a.
 - [x] [D5][SP7] Signal production normalization/composition uncertainty for
   ggH, VBF, WH, ZH signal templates. Proof: workspace nuisance list and
   composition impact on inclusive `mu`.
@@ -117,7 +113,7 @@ machine-readable proof item.
 - [x] [D9] Method-parity cross-check: compare the nominal binned `pyhf`
   signal-strength fit to a simultaneous category mass-shape fit if feasible;
   otherwise document three concrete failed attempts and the exact blocking
-  reason. Proof: mass-fit workspace/scan JSON or infeasibility log.
+  reason. Proof: `analysis_note/results/expected_mass_scan.json` contains the category-simultaneous shifted-template mass-profile scan and injected-mass closure with `mu` profiled.
 - [x] [D9][VT8] Signal injection/recovery at `mu = 0`, `1`, `2`, and `5`; bias
   above 20% triggers investigation. Proof: injection-result JSON with injected
   and fitted `mu`.
@@ -128,7 +124,7 @@ machine-readable proof item.
 - [ ] [VT11] Fixed-seed 10% data validation compared to expected results.
   Proof: seed, event-count, and stability-comparison JSON.
 - [x] [D9][VT12] Mass-template closure if any mass estimator or morphing scan
-  is reported. Proof: injected-mass closure table with bias threshold verdict.
+  is reported. Proof: `expected_mass_scan.json` records injected masses 124, 125, and 126 GeV, recovered grid masses, bias threshold verdicts, and per-mass scan rows.
 - [D] [A3][D4] VBF downscope review gate: if no jet information is recoverable,
   produce a `SELECTION.md` subsection with the evidence and a CMS category
   non-comparability table. Proof: branch/provenance/allow-list evidence and
@@ -182,9 +178,7 @@ machine-readable proof item.
 - [x] [REF-MATRIX][FIG6] Inclusive `mu`: classify as matched if the fit has
   one global signal-strength POI in the same `105 < m4l < 140 GeV` inference
   window and compatible category inclusiveness; pulls required only if matched.
-- [ ] [REF-MATRIX][D9] Mass: classify as matched only if the simultaneous
-  category mass extraction with `mu` profiled passes injected-mass closure;
-  otherwise classify as approximated detector-level peak comparison.
+- [x] [REF-MATRIX][D9] Mass: Phase 4a category-simultaneous shifted-template scan with `mu` profiled passes expected injected-mass closure, but the final AN must classify it as approximated detector-level mass-profile evidence rather than an official-quality matched CMS mass measurement because independent mass-hypothesis MC and official calibration inputs are unavailable.
 - [ ] [REF-MATRIX] Fiducial cross section: classify as matched only if a
   documented acceptance/fiducial conversion is implemented with cited
   branching-fraction and acceptance inputs; otherwise approximated or

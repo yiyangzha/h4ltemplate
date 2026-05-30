@@ -1,7 +1,7 @@
 # Phase 4a Expected Inference
 
 Session: `edmund_69a2`
-Created: 2026-05-30T01:37:33+00:00
+Created: 2026-05-30T02:36:12+00:00
 
 ## Summary
 
@@ -136,15 +136,18 @@ post-fit constraints.
 ## Mass-Template Closure
 
 The Phase 4a method-parity attempt uses shifted detector-level M125 templates
-with `mu` profiled at each mass grid point. It is not an official calibrated
-mass measurement, but it satisfies the expected-phase mass-template closure
-gate on the available templates.
+in the same simultaneous final-state category structure as the expected `mu`
+workspace, with `mu` profiled at each mass grid point. It is not an official
+calibrated mass measurement, but it satisfies the expected-phase
+mass-template closure gate on the available templates.
 
 - nominal best mass grid point: `125 GeV`
 - nominal best-fit `mu` in the mass scan: `1`
+- categories: `4mu, 4e, 2e2mu`
+- workspace parity: Uses the same final-state categories, fit-window binning, global mu POI, and active Phase 4a nuisance set as the expected signal-strength workspace.
 - injected-mass closure passes: `True`
 - promoted to nominal mass measurement: `False`
-- downgrade reason: Detector-level shifted-template closure passes, but independent mass-hypothesis MC and official lepton calibration/morphing inputs are unavailable; retain as method-parity closure rather than a nominal mass measurement.
+- downgrade reason: The required simultaneous category mass-extraction attempt passes the expected shifted-template closure, but independent mass-hypothesis MC and official lepton calibration/morphing inputs are unavailable; retain as method-parity closure rather than an official-quality mass measurement.
 - limitation: Uses shifted detector-level M125 templates because independent mass-hypothesis MC and official lepton calibration/morphing inputs are unavailable in the sandbox.
 
 | Injected mass [GeV] | Recovered grid [GeV] | bias [GeV] | bias gate |
@@ -155,25 +158,30 @@ gate on the available templates.
 
 ## Systematic Completeness
 
-| Source | Conventions | Ref 1 | Ref 2 | This analysis | Status |
-| --- | --- | --- | --- | --- | --- |
-| Integrated luminosity | SP1 | https://cms-results.web.cern.ch/cms-results/public-results/preliminary-results/LUM-20-001/ | CMS-PAS-LUM-20-001 public summary, 2017 full-year luminosity 42.12 +/- 0.34 fb^-1; used as a scale reference for the user-provided 10 fb^-1 subset. | Propagated in pyhf model | implemented |
-| Lepton reconstruction/ID/trigger efficiency | SP4 | phase3_selection/outputs/cut_motivation_diagnostics.json | Phase 3 cut-motivation closure: largest final-state lepton-ID data/MC step-efficiency discrepancy is about 3 percent; propagated as a rate envelope. | Propagated in pyhf model | implemented |
-| Signal production normalization/composition | SP7 | https://cms-results.web.cern.ch/cms-results/public-results/publications/HIG-16-041/ | CMS-HIG-16-041 and CMS-HIG-19-001 normalize H(125) signal to SM expectations; prompt effective signal cross sections are user-provided, so a 5 percent composition prior is scanned and marked fallback. | Propagated in pyhf model | implemented_fallback_prior |
-| qqZZ background normalization | SP9 | https://cms-results.web.cern.ch/cms-results/public-results/publications/HIG-19-001/ | Open-data fallback for prompt effective ZZ cross section; CMS references estimate ZZ from simulation and treat background normalization as a systematic source. | Propagated in pyhf model | implemented_fallback_prior |
-| ggZZ background normalization | SP9 | https://cms-results.web.cern.ch/cms-results/public-results/publications/HIG-19-001/ | Open-data fallback for small loop-induced ggZZ component; prior is wider than qqZZ because only prompt effective cross sections are available in this sandbox. | Propagated in pyhf model | implemented_fallback_prior |
-| DY+jets fake-proxy normalization | SP10 | phase3_selection/outputs/sideband_fake_diagnostics.json | Phase 3 sideband fake diagnostics show only 11 DY+jets raw entries in the two sidebands after selection, so the DY fake proxy is weakly constrained and assigned a broad fallback prior. | Propagated in pyhf model | implemented |
-| TTBar omission diagnostic | SP11 | phase3_selection/outputs/sideband_fake_diagnostics.json | Phase 3 TTBar/DY weighted-yield diagnostic in the signal window; TTBar is below promotion threshold and propagated as an omission envelope on reducible background. | Propagated in pyhf model | implemented |
-| Lepton momentum scale/resolution shape | SP5 | https://cds.cern.ch/record/1279137 | CMS momentum-scale public performance context reports per-mille-level deviations; propagated by shifting m4l templates by +/-0.1 percent. | Propagated in pyhf model | implemented |
-| MC statistical uncertainty | SP3 | phase3_selection/outputs/fit_inputs_s1.json | Derived from Phase 3 per-bin sumw2 templates. Implemented as group/category normalization nuisances and tested with alternative-bin stability because full per-bin staterror profiling is computationally impractical in this sandbox. | Propagated in pyhf model | implemented_grouped_approximation |
-| Higgs branching fraction | SP8 | https://pdg.lbl.gov/2024/tables/rpp2024-sum-gauge-higgs-bosons.pdf | PDG H->ZZ* fraction retained for cross-section conversions | Not used because Phase 4a reports detector-level mu only | not_applicable_no_cross_section_conversion |
-| Classifier/category migration | SP12 | phase3_selection/outputs/approach_comparison.json | S2 classifier categories rejected | No MVA categories used | not_applicable_mva_rejected |
-| Angular reconstruction | SP13 | phase3_selection/outputs/angular_closure.json | Angular inputs not used in nominal fit after S2 rejection | Closure retained as Phase 3 evidence | documented_not_propagated_no_angular_categories |
+| Source | Label | Size | Basis | Fallback | Affected | Evaluation | This analysis | Status |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Integrated luminosity | SP1 | 0.008072 | external_public_uncertainty | False | all MC templates | Log-normal normalization nuisance using public CMS 2017 luminosity uncertainty as scale reference for the user-provided 10 fb^-1 subset. | Propagated in pyhf model | implemented |
+| Lepton reconstruction/ID/trigger efficiency | SP4 | 0.03 | analysis_measured_envelope | False | all signal and background MC templates | Closure-derived rate envelope from Phase 3 trigger/flavor-ID data/MC step efficiencies. | Propagated in pyhf model | implemented |
+| Signal production normalization/composition | SP7 | 0.05 | fallback_prior_due_to_missing_generator_composition_inputs | True | signal_ggH, signal_VBF, signal_VH | Fallback signal production composition normsys, propagated separately for ggH, VBF, and VH groups. | Propagated in pyhf model | implemented_fallback_prior |
+| qqZZ background normalization | SP9 | 0.1 | fallback_prior_due_to_prompt_effective_cross_sections | True | background_ZZ | Fallback qqZZ normalization normsys on the prompt-effective qqZZ template. | Propagated in pyhf model | implemented_fallback_prior |
+| ggZZ background normalization | SP9 | 0.2 | fallback_prior_due_to_prompt_effective_cross_sections | True | background_ggZZ | Fallback ggZZ normalization normsys on the prompt-effective loop-induced ZZ template. | Propagated in pyhf model | implemented_fallback_prior |
+| DY+jets fake-proxy normalization | SP10 | 0.5 | analysis_measured_low_sideband_statistics | True | background_reducible | Broad DY fake-proxy normsys from low sideband statistics and DY-only fake-model limitation. | Propagated in pyhf model | implemented |
+| TTBar omission diagnostic | SP11 | 0.0444 | analysis_measured_omission_envelope | False | background_reducible | Omission-envelope normsys from Phase 3 TTBar/DY signal-window ratio. | Propagated in pyhf model | implemented |
+| Lepton momentum scale/resolution shape | SP5 | 0.001 | external_public_performance_envelope | False | all m4l templates | Histosys shape variation from refilling templates with m4l scaled by +/-0.1 percent. | Propagated in pyhf model | implemented |
+| MC statistical uncertainty | SP3 | n/a | analysis_measured_sumw2_grouped_approximation | False | all nonzero group/category templates | Grouped group/category normsys from Phase 3 sumw2; not a full bin-by-bin staterror model. | Propagated in pyhf model | implemented_grouped_approximation |
+| Prompt effective cross sections | SP2 | Per-sample user-prompt effective cross sections and metadata denominators; see prompt_xsec_records. | user_provided_prompt_effective_xsecs_with_per_process_normalization_nuisances | True | background_ZZ, background_ggZZ, background_reducible, signal_VBF, signal_VH, signal_ggH | Phase 3 recorded the prompt xsec, metadata denominator, and nominal weight for every MC sample; Phase 4a propagates per-process normalization nuisances rather than treating the prompt xsecs as independently verified public cross sections. | Implemented through the nominal MC weights plus signal/background normalization nuisance rows. | implemented_user_provided_fallback_with_per_process_nuisances |
+| Pileup/PV modeling | SP6 | n/a | validation_only_no_pv_reweighting_or_classifier_use | False | classifier inputs only; no nominal fit templates because nPV/PV variables are not used in the Phase 4a fit | Phase 3 input validation excluded pvNdof under [A6]; no classifier categories are promoted and no PV-dependent reweighting is applied, so no Phase 4a template nuisance is propagated. | Documented and not propagated because PV variables are not used in nominal categories or templates. | documented_not_propagated_no_pv_dependent_fit_inputs |
+| Higgs branching fraction | SP8 | n/a | not_used_no_cross_section_conversion | False | none | No fiducial/inclusive cross-section conversion is performed in Phase 4a. | Not used because Phase 4a reports detector-level mu only | not_applicable_no_cross_section_conversion |
+| Classifier/category migration | SP12 | n/a | not_applicable_mva_rejected | False | none | S2 classifier categories failed promotion gates and are not used in the nominal fit. | No MVA categories used | not_applicable_mva_rejected |
+| Angular reconstruction | SP13 | n/a | documented_not_propagated_no_angular_categories | False | none | Angular closure is retained from Phase 3, but angular inputs are not used after S2 rejection. | Closure retained as Phase 3 evidence | documented_not_propagated_no_angular_categories |
 
-Rows marked as fallback priors are explicitly downscoped expected-phase
-approximations caused by missing official generator-composition or effective
-cross-section inputs. They are propagated to avoid silently dropping the
-source, but they should not be read as precision external calibrations.
+Rows marked as fallback priors or user-provided prompt inputs are explicitly
+downscoped expected-phase approximations caused by missing official generator
+composition or effective-cross-section inputs. They are propagated to avoid
+silently dropping the source, but they should not be read as precision
+external calibrations. The machine-readable source table is duplicated to
+`analysis_note/results/systematics_sources.json` for reviewer and note-writer
+traceability.
 
 ## Figures
 
@@ -196,6 +204,9 @@ source, but they should not be read as precision external calibrations.
 | --- | --- | --- |
 | Phase 3 handoff has many low-count final-state bins. | Retained final-state model only after Poisson toys and alternative-binning checks passed. | `expected_validation.json`, `expected_binning_stability.png`, `expected_binning_low_count_summary.png` |
 | Full per-bin pyhf staterror model was computationally impractical. | Used grouped MC-stat normalization nuisances derived from `sumw2`, labelled the approximation in JSON/prose, and documented alternative-binning stability. | `expected_parameters.json`, `expected_covariance.json`, `expected_validation.json` |
+| Phase 4a review found the first mass scan was inclusive rather than category-simultaneous. | Rebuilt the mass-profile closure as a simultaneous `4mu`, `4e`, and `2e2mu` category scan with `mu` profiled and the active Phase 4a nuisance set. | `expected_mass_scan.json`, `expected_mass_profile_attempt.png` |
+| Phase 4a review found missing systematic-source evidence rows. | Added `systematics_sources.json`, including SP2 prompt-effective-cross-section and SP6 pileup/PV rows plus fallback flags, affected processes, and evaluation methods. | `systematics_sources.json`, `expected_systematics.json` |
+| Phase 4a review found MC-stat covariance rows inconsistent. | Recorded grouped MC-stat as a nonzero component consistently in the top-level covariance, per-systematic row, and variance-component breakdown. | `expected_covariance.json` |
 | Plot watcher reported a crowded binning-stability figure. | Split the display into two separately registered figures and rerendered the stability figure with extra x-axis padding/no data-overlapping legend. | `PLOT_WATCHER_RECHECK_vera_ee63.md` reports PASS with zero unresolved blockers. |
 | Earlier watcher files still contain stale FAIL/BLOCKED text. | Current figure status is determined by the later `PLOT_WATCHER_RECHECK_vera_ee63.md` PASS and the rerendered figure mtimes; stale watcher files are retained as audit history only. | `phase4_inference/4a_expected/review/validation/PLOT_WATCHER_RECHECK_vera_ee63.md` |
 | Exact Asimov GoF values can look tautological. | Labelled chi2=0/p=1 as expected self-consistency and pointed to toys, injections, corruption tests, and binning variants as the actual validation evidence. | `expected_validation.json`, Validation Tests section |
@@ -209,3 +220,4 @@ source, but they should not be read as precision external calibrations.
 - `analysis_note/results/expected_covariance.json`
 - `analysis_note/results/expected_validation.json`
 - `analysis_note/results/expected_mass_scan.json`
+- `analysis_note/results/systematics_sources.json`

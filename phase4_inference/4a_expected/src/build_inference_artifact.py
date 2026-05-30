@@ -53,14 +53,20 @@ def systematic_table(systematics: dict[str, Any]) -> str:
         rows.append(
             [
                 item["source"],
-                item["conventions"],
-                item["ref_1"],
-                item["ref_2"],
+                item.get("commitment_label", item["conventions"]),
+                fmt(item.get("nominal_or_variation_size", item.get("relative_variation"))),
+                item.get("variation_basis", "n/a"),
+                item.get("fallback_flag", False),
+                ", ".join(item.get("affected_templates_processes", [])) or "none",
+                item.get("evaluation_method", item.get("ref_2", "")),
                 item["this_analysis"],
-                item["status"],
+                item.get("phase4a_status", item["status"]),
             ]
         )
-    return table(["Source", "Conventions", "Ref 1", "Ref 2", "This analysis", "Status"], rows)
+    return table(
+        ["Source", "Label", "Size", "Basis", "Fallback", "Affected", "Evaluation", "This analysis", "Status"],
+        rows,
+    )
 
 
 def main() -> None:
@@ -204,12 +210,15 @@ post-fit constraints.
 ## Mass-Template Closure
 
 The Phase 4a method-parity attempt uses shifted detector-level M125 templates
-with `mu` profiled at each mass grid point. It is not an official calibrated
-mass measurement, but it satisfies the expected-phase mass-template closure
-gate on the available templates.
+in the same simultaneous final-state category structure as the expected `mu`
+workspace, with `mu` profiled at each mass grid point. It is not an official
+calibrated mass measurement, but it satisfies the expected-phase
+mass-template closure gate on the available templates.
 
 - nominal best mass grid point: `{fmt(mass['nominal_best_mass_grid_GeV'])} GeV`
 - nominal best-fit `mu` in the mass scan: `{fmt(mass['nominal_best_mu_hat'])}`
+- categories: `{', '.join(mass.get('categories', []))}`
+- workspace parity: {mass.get('workspace_parity', 'n/a')}
 - injected-mass closure passes: `{mass['closure_passes']}`
 - promoted to nominal mass measurement: `{mass['promoted_to_nominal_mass_measurement']}`
 - downgrade reason: {mass['downgrade_reason']}
@@ -221,10 +230,13 @@ gate on the available templates.
 
 {systematic_table(systematics)}
 
-Rows marked as fallback priors are explicitly downscoped expected-phase
-approximations caused by missing official generator-composition or effective
-cross-section inputs. They are propagated to avoid silently dropping the
-source, but they should not be read as precision external calibrations.
+Rows marked as fallback priors or user-provided prompt inputs are explicitly
+downscoped expected-phase approximations caused by missing official generator
+composition or effective-cross-section inputs. They are propagated to avoid
+silently dropping the source, but they should not be read as precision
+external calibrations. The machine-readable source table is duplicated to
+`analysis_note/results/systematics_sources.json` for reviewer and note-writer
+traceability.
 
 ## Figures
 
@@ -236,6 +248,9 @@ source, but they should not be read as precision external calibrations.
 | --- | --- | --- |
 | Phase 3 handoff has many low-count final-state bins. | Retained final-state model only after Poisson toys and alternative-binning checks passed. | `expected_validation.json`, `expected_binning_stability.png`, `expected_binning_low_count_summary.png` |
 | Full per-bin pyhf staterror model was computationally impractical. | Used grouped MC-stat normalization nuisances derived from `sumw2`, labelled the approximation in JSON/prose, and documented alternative-binning stability. | `expected_parameters.json`, `expected_covariance.json`, `expected_validation.json` |
+| Phase 4a review found the first mass scan was inclusive rather than category-simultaneous. | Rebuilt the mass-profile closure as a simultaneous `4mu`, `4e`, and `2e2mu` category scan with `mu` profiled and the active Phase 4a nuisance set. | `expected_mass_scan.json`, `expected_mass_profile_attempt.png` |
+| Phase 4a review found missing systematic-source evidence rows. | Added `systematics_sources.json`, including SP2 prompt-effective-cross-section and SP6 pileup/PV rows plus fallback flags, affected processes, and evaluation methods. | `systematics_sources.json`, `expected_systematics.json` |
+| Phase 4a review found MC-stat covariance rows inconsistent. | Recorded grouped MC-stat as a nonzero component consistently in the top-level covariance, per-systematic row, and variance-component breakdown. | `expected_covariance.json` |
 | Plot watcher reported a crowded binning-stability figure. | Split the display into two separately registered figures and rerendered the stability figure with extra x-axis padding/no data-overlapping legend. | `PLOT_WATCHER_RECHECK_vera_ee63.md` reports PASS with zero unresolved blockers. |
 | Earlier watcher files still contain stale FAIL/BLOCKED text. | Current figure status is determined by the later `PLOT_WATCHER_RECHECK_vera_ee63.md` PASS and the rerendered figure mtimes; stale watcher files are retained as audit history only. | `phase4_inference/4a_expected/review/validation/PLOT_WATCHER_RECHECK_vera_ee63.md` |
 | Exact Asimov GoF values can look tautological. | Labelled chi2=0/p=1 as expected self-consistency and pointed to toys, injections, corruption tests, and binning variants as the actual validation evidence. | `expected_validation.json`, Validation Tests section |
@@ -249,6 +264,7 @@ source, but they should not be read as precision external calibrations.
 - `analysis_note/results/expected_covariance.json`
 - `analysis_note/results/expected_validation.json`
 - `analysis_note/results/expected_mass_scan.json`
+- `analysis_note/results/systematics_sources.json`
 """
     (OUT / "INFERENCE_EXPECTED.md").write_text(text)
     append_session("Expected inference artifact written\n\n- Wrote `phase4_inference/4a_expected/outputs/INFERENCE_EXPECTED.md` from machine-readable expected-result JSON files.")

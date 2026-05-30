@@ -1,7 +1,7 @@
 [
   {
     "caption": "Expected Asimov four-lepton mass templates in the final-state categories used by the Phase 4a simultaneous fit. Points show the background expectation, Higgs signal expectation, and their total; no observed Open Data counts are used as pseudo-data.",
-    "created_utc": "2026-05-30T02:06:05+00:00",
+    "created_utc": "2026-05-30T02:36:07+00:00",
     "description": "Expected Asimov four-lepton mass templates in the final-state categories used by the Phase 4a simultaneous fit. Points show the background expectation, Higgs signal expectation, and their total; no observed Open Data counts are used as pseudo-data.",
     "id": "expected_m4l_final_state_templates",
     "metadata": {
@@ -17,7 +17,7 @@
   },
   {
     "caption": "Expected profile-likelihood scan for the global Higgs signal-strength parameter. The Asimov best fit is mu = 1 with symmetric expected uncertainty 0.575.",
-    "created_utc": "2026-05-30T02:06:06+00:00",
+    "created_utc": "2026-05-30T02:36:08+00:00",
     "description": "Expected profile-likelihood scan for the global Higgs signal-strength parameter. The Asimov best fit is mu = 1 with symmetric expected uncertainty 0.575.",
     "id": "expected_mu_profile_scan",
     "metadata": {
@@ -32,7 +32,7 @@
   },
   {
     "caption": "Expected nuisance impact ranking on the global signal strength, evaluated by fixing each nuisance at plus or minus one standard deviation and refitting the Asimov model.",
-    "created_utc": "2026-05-30T02:06:06+00:00",
+    "created_utc": "2026-05-30T02:36:08+00:00",
     "description": "Expected nuisance impact ranking on the global signal strength, evaluated by fixing each nuisance at plus or minus one standard deviation and refitting the Asimov model.",
     "id": "expected_nuisance_impacts",
     "metadata": {
@@ -55,7 +55,7 @@
   },
   {
     "caption": "Expected uncertainty breakdown for the Phase 4a Asimov signal-strength fit, derived from the stat-only, MC-stat, and full nuisance fits.",
-    "created_utc": "2026-05-30T02:06:06+00:00",
+    "created_utc": "2026-05-30T02:36:09+00:00",
     "description": "Expected uncertainty breakdown for the Phase 4a Asimov signal-strength fit, derived from the stat-only, MC-stat, and full nuisance fits.",
     "id": "expected_uncertainty_breakdown",
     "metadata": {
@@ -70,7 +70,7 @@
   },
   {
     "caption": "Signal injection and recovery test at mu = 0, 1, 2, and 5. All injected Asimov configurations are refit with the same nuisance model and checked against the 20 percent bias gate.",
-    "created_utc": "2026-05-30T02:06:07+00:00",
+    "created_utc": "2026-05-30T02:36:09+00:00",
     "description": "Signal injection and recovery test at mu = 0, 1, 2, and 5. All injected Asimov configurations are refit with the same nuisance model and checked against the 20 percent bias gate.",
     "id": "expected_signal_injection_recovery",
     "metadata": {
@@ -115,7 +115,7 @@
   },
   {
     "caption": "Low-count toy and closure-sensitivity validation summary. The intentionally corrupted mass-response tests fall below p = 0.05, demonstrating that the closure test is sensitive to a 20 percent model corruption.",
-    "created_utc": "2026-05-30T02:06:07+00:00",
+    "created_utc": "2026-05-30T02:36:10+00:00",
     "description": "Low-count toy and closure-sensitivity validation summary. The intentionally corrupted mass-response tests fall below p = 0.05, demonstrating that the closure test is sensitive to a 20 percent model corruption.",
     "id": "expected_low_count_validation",
     "metadata": {
@@ -154,7 +154,7 @@
   },
   {
     "caption": "Alternative-binning stability comparison for the expected signal-strength fit. The final-state nominal configuration is retained for the Asimov result after low-count toy validation, while inclusive/coarse variants provide stability cross-checks.",
-    "created_utc": "2026-05-30T02:06:07+00:00",
+    "created_utc": "2026-05-30T02:36:10+00:00",
     "description": "Alternative-binning stability comparison for the expected signal-strength fit. The final-state nominal configuration is retained for the Asimov result after low-count toy validation, while inclusive/coarse variants provide stability cross-checks.",
     "id": "expected_binning_stability",
     "metadata": {
@@ -256,7 +256,7 @@
   },
   {
     "caption": "Low-count bin summary for the alternative-binning stability comparison. The nominal final-state model retains low expected-count bins only after the dedicated Poisson toy validation passes.",
-    "created_utc": "2026-05-30T02:06:08+00:00",
+    "created_utc": "2026-05-30T02:36:10+00:00",
     "description": "Low-count bin summary for the alternative-binning stability comparison. The nominal final-state model retains low expected-count bins only after the dedicated Poisson toy validation passes.",
     "id": "expected_binning_low_count_summary",
     "metadata": {
@@ -358,7 +358,7 @@
   },
   {
     "caption": "Detector-level shifted-template mass-profile attempt with mu profiled. This is retained as method-parity evidence; it is not promoted to an official-quality mass measurement because independent mass-hypothesis MC and official calibration inputs are unavailable.",
-    "created_utc": "2026-05-30T02:06:08+00:00",
+    "created_utc": "2026-05-30T02:36:11+00:00",
     "description": "Detector-level shifted-template mass-profile attempt with mu profiled. This is retained as method-parity evidence; it is not promoted to an official-quality mass measurement because independent mass-hypothesis MC and official calibration inputs are unavailable.",
     "id": "expected_mass_profile_attempt",
     "metadata": {
@@ -370,7 +370,7 @@
   },
   {
     "caption": "Expected Phase 4a signal-strength precision compared with public CMS H to ZZ to four-lepton references. The expected uncertainty/reference ratio 3.19 is computed relative to CMS-HIG-16-041 only; CMS-HIG-19-001 is shown as an additional public comparison.",
-    "created_utc": "2026-05-30T02:06:08+00:00",
+    "created_utc": "2026-05-30T02:36:11+00:00",
     "description": "Expected Phase 4a signal-strength precision compared with public CMS H to ZZ to four-lepton references. The expected uncertainty/reference ratio 3.19 is computed relative to CMS-HIG-16-041 only; CMS-HIG-19-001 is shown as an additional public comparison.",
     "id": "expected_reference_comparison",
     "metadata": {

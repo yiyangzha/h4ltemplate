@@ -8,6 +8,7 @@ from typing import Any
 import matplotlib.pyplot as plt
 import mplhep as mh
 import numpy as np
+from mplhep.utils import mpl_magic
 
 import expected_common
 from expected_common import (
@@ -37,6 +38,13 @@ COLORS = {
     "DY+jets fake proxy": "#ff7f0e",
     "Expected total": "black",
 }
+
+
+def safe_mpl_magic(ax) -> None:
+    try:
+        mpl_magic(ax, soft_fail=True)
+    except Exception:
+        return
 
 
 def figure_registry() -> list[dict[str, Any]]:
@@ -118,11 +126,18 @@ def plot_expected_m4l() -> int:
         ax.errorbar(x, signal, xerr=xerr, marker="^", linestyle="None", color="#d62728", label="Higgs signal" if show_label else None)
         ax.errorbar(x, total, xerr=xerr, marker="s", linestyle="None", color="black", label="Expected total" if show_label else None)
         ax.set_ylabel(f"{channel} events")
+        mh.label.exp_label(
+            exp="CMS",
+            text="",
+            loc=2,
+            data=True,
+            llabel=f"Open Simulation ({channel})",
+            rlabel=r"$13$ TeV, 10 fb$^{-1}$" if show_label else "",
+            ax=ax,
+        )
         if show_label:
             ax.legend(loc="upper right", fontsize="x-small")
-            mh.label.add_text("CMS", x=0.045, y=0.86, fontsize="x-large", fontweight="bold", va="top", white_background=True, ax=ax)
-            mh.label.add_text("Open Simulation", x=0.045, y=0.64, fontsize="large", fontstyle="italic", va="top", white_background=True, ax=ax)
-            mh.label.add_text(r"$13$ TeV, 10 fb$^{-1}$", loc="over right", fontsize="large", ax=ax)
+        safe_mpl_magic(ax)
     axes[-1].set_xlabel(r"$m_{4\ell}$ [GeV]")
     caption = (
         "Expected Asimov four-lepton mass templates in the final-state categories used by the Phase 4a simultaneous fit. "
@@ -143,7 +158,8 @@ def plot_mu_scan(parameters: dict[str, Any]) -> int:
     ax.set_xlabel(r"Signal strength $\mu$")
     ax.set_ylabel(r"$-2\Delta\log L$")
     ax.set_ylim(bottom=0.0)
-    ax.legend(loc="upper right", fontsize="x-small")
+    ax.legend(loc="upper center", fontsize="x-small")
+    safe_mpl_magic(ax)
     mh.label.exp_label(exp="CMS", text="", loc=2, data=True, llabel="Open Simulation", rlabel=r"$13$ TeV, 10 fb$^{-1}$", ax=ax)
     caption = (
         "Expected profile-likelihood scan for the global Higgs signal-strength parameter. "
@@ -194,7 +210,8 @@ def plot_injection(validation: dict[str, Any]) -> int:
     ax.errorbar(x, y, marker="o", linestyle="None", color="black", label="Fit result")
     ax.set_xlabel(r"Injected $\mu$")
     ax.set_ylabel(r"Fitted $\mu$")
-    ax.legend(loc="lower right", fontsize="x-small")
+    ax.legend(loc="upper center", fontsize="x-small")
+    safe_mpl_magic(ax)
     mh.label.exp_label(exp="CMS", text="", loc=2, data=True, llabel="Open Simulation", rlabel=r"$13$ TeV", ax=ax)
     caption = "Signal injection and recovery test at mu = 0, 1, 2, and 5. All injected Asimov configurations are refit with the same nuisance model and checked against the 20 percent bias gate."
     save_and_register(fig, "expected_signal_injection_recovery", caption, "analysis_note/results/expected_validation.json", {"rows": rows})
@@ -215,6 +232,7 @@ def plot_validation(validation: dict[str, Any]) -> int:
     ax.set_xlabel("Validation metric value")
     ax.set_ylabel("Low-count and closure test")
     ax.legend(loc="lower right", fontsize="x-small")
+    safe_mpl_magic(ax)
     mh.label.exp_label(exp="CMS", text="", loc=2, data=True, llabel="Open Simulation", rlabel=r"$13$ TeV", ax=ax)
     caption = "Low-count toy and closure-sensitivity validation summary. The intentionally corrupted mass-response tests fall below p = 0.05, demonstrating that the closure test is sensitive to a 20 percent model corruption."
     save_and_register(fig, "expected_low_count_validation", caption, "analysis_note/results/expected_validation.json", {"toy": toy, "corruption": corruption})
@@ -279,6 +297,7 @@ def plot_mass_scan(mass_scan: dict[str, Any]) -> int:
     ax.set_xlabel(r"Shifted signal-template mass hypothesis [GeV]")
     ax.set_ylabel(r"$-2\Delta\log L$")
     ax.legend(loc="upper right", fontsize="x-small")
+    safe_mpl_magic(ax)
     mh.label.exp_label(exp="CMS", text="", loc=2, data=True, llabel="Open Simulation", rlabel=r"$13$ TeV", ax=ax)
     caption = (
         "Detector-level shifted-template mass-profile attempt with mu profiled. "
@@ -300,6 +319,7 @@ def plot_reference(validation: dict[str, Any], parameters: dict[str, Any]) -> in
     ax.set_xlabel(r"Signal strength $\mu$")
     ax.set_ylabel("Reference")
     ax.legend(loc="lower right", fontsize="x-small")
+    safe_mpl_magic(ax)
     mh.label.exp_label(exp="CMS", text="", loc=2, data=True, llabel="Open Simulation and public references", rlabel=r"$13$ TeV", ax=ax)
     caption = (
         "Expected Phase 4a signal-strength precision compared with public CMS H to ZZ to four-lepton references. "

@@ -441,6 +441,13 @@ def uncertainty_breakdown(grouped: dict[str, dict[str, Any]], channels: tuple[st
     stat_var = stat_only["uncertainty"]["err_sym"] ** 2
     mc_var = max(mc_stat["uncertainty"]["err_sym"] ** 2 - stat_var, 0.0)
     for syst in sorted(active_systematics):
+        if syst == "mc_stat":
+            per_syst[syst] = {
+                "uncertainty": mc_stat["uncertainty"]["err_sym"],
+                "variance_increment_over_stat": mc_var,
+                "treatment": "group_category_normsys_from_sumw2",
+            }
+            continue
         kwargs = {"m4l_up": m4l_up, "m4l_down": m4l_down} if syst == "m4l_scale" else {"m4l_up": None, "m4l_down": None}
         syst_fit = fit_configuration(grouped, channels, {syst}, include_staterror=False, **kwargs)
         per_syst[syst] = {
@@ -549,36 +556,76 @@ def corrupted_closure(events: dict[str, Any], active_systematics: set[str]) -> d
     return {"test": "mass-response corruption sensitivity", "rows": rows, "passes": bool(all(row["passes_failure_requirement"] for row in rows))}
 
 
-def mass_scan(events: dict[str, Any]) -> dict[str, Any]:
-    # Detector-level shifted-template attempt. The M125-only MC can be shifted,
-    # but this remains a template-closure exercise rather than a calibrated
-    # mass measurement because no independent mass-hypothesis MC is available.
+def shifted_category_templates(events: dict[str, Any], mass: float, *, nominal_mass: float, m4l_scale: float = 1.0) -> dict[str, dict[str, Any]]:
+    return event_group_templates(events, FIT_BINS, channels=CHANNELS, mass_shift_factor=(mass / nominal_mass) * m4l_scale)
+
+
+def fit_mass_hypothesis(events: dict[str, Any], mass: float, active: set[str], nominal_mass: float, main_data: np.ndarray) -> tuple[pyhf.Model, np.ndarray, float]:
+    rel = SYSTEMATIC_SOURCES["m4l_scale"]["relative"]
+    grouped = shifted_category_templates(events, mass, nominal_mass=nominal_mass)
+    m4l_up = shifted_category_templates(events, mass, nominal_mass=nominal_mass, m4l_scale=1.0 + rel)
+    m4l_down = shifted_category_templates(events, mass, nominal_mass=nominal_mass, m4l_scale=1.0 - rel)
+    model = make_model(
+        model_spec(
+            grouped,
+            CHANNELS,
+            include_systematics=active,
+            include_staterror=True,
+            m4l_up=m4l_up,
+            m4l_down=m4l_down,
+        )
+    )
+    best, nll = fit_model(model, main_data.tolist() + list(model.config.auxdata))
+    return model, best, nll
+
+
+def mass_scan(events: dict[str, Any], active_systematics: set[str]) -> dict[str, Any]:
+    # Detector-level shifted-template attempt using the same final-state
+    # category structure as the nominal mu workspace. The M125-only MC can be
+    # shifted, but this remains a template-closure exercise rather than a
+    # calibrated mass measurement because no independent mass-hypothesis MC is
+    # available.
     mass_values = np.arange(123.0, 127.01, 0.5)
     nominal_mass = 125.0
-    active = {"lumi", "lepton_eff", "mc_stat"}
-    nominal_templates = inclusive_from_channels(event_group_templates(events, FIT_BINS, channels=CHANNELS), CHANNELS)
-    nominal_model = make_model(model_spec(nominal_templates, ("inclusive",), include_systematics=active, include_staterror=True))
+    active = set(active_systematics)
+    nominal_templates = shifted_category_templates(events, nominal_mass, nominal_mass=nominal_mass)
+    nominal_up = shifted_category_templates(events, nominal_mass, nominal_mass=nominal_mass, m4l_scale=1.0 + SYSTEMATIC_SOURCES["m4l_scale"]["relative"])
+    nominal_down = shifted_category_templates(events, nominal_mass, nominal_mass=nominal_mass, m4l_scale=1.0 - SYSTEMATIC_SOURCES["m4l_scale"]["relative"])
+    nominal_model = make_model(
+        model_spec(
+            nominal_templates,
+            CHANNELS,
+            include_systematics=active,
+            include_staterror=True,
+            m4l_up=nominal_up,
+            m4l_down=nominal_down,
+        )
+    )
     nominal_main = np.asarray(nominal_model.expected_data(nominal_model.config.suggested_init(), include_auxdata=False), dtype=float)
     scan_rows = []
     for mass in mass_values:
-        factor = mass / nominal_mass
-        shifted = inclusive_from_channels(event_group_templates(events, FIT_BINS, channels=CHANNELS, mass_shift_factor=factor), CHANNELS)
-        model = make_model(model_spec(shifted, ("inclusive",), include_systematics=active, include_staterror=True))
-        best, nll = fit_model(model, nominal_main.tolist() + list(model.config.auxdata))
+        model, best, nll = fit_mass_hypothesis(events, float(mass), active, nominal_mass, nominal_main)
         scan_rows.append({"mass_hypothesis_GeV": float(mass), "mu_hat": float(best[model.config.poi_index]), "twice_nll": nll})
     best_nominal = min(scan_rows, key=lambda row: row["twice_nll"])
     closure = []
     for injected in (124.0, 125.0, 126.0):
-        injected_factor = injected / nominal_mass
-        injected_templates = inclusive_from_channels(event_group_templates(events, FIT_BINS, channels=CHANNELS, mass_shift_factor=injected_factor), CHANNELS)
-        injected_model = make_model(model_spec(injected_templates, ("inclusive",), include_systematics=active, include_staterror=True))
+        injected_templates = shifted_category_templates(events, injected, nominal_mass=nominal_mass)
+        injected_up = shifted_category_templates(events, injected, nominal_mass=nominal_mass, m4l_scale=1.0 + SYSTEMATIC_SOURCES["m4l_scale"]["relative"])
+        injected_down = shifted_category_templates(events, injected, nominal_mass=nominal_mass, m4l_scale=1.0 - SYSTEMATIC_SOURCES["m4l_scale"]["relative"])
+        injected_model = make_model(
+            model_spec(
+                injected_templates,
+                CHANNELS,
+                include_systematics=active,
+                include_staterror=True,
+                m4l_up=injected_up,
+                m4l_down=injected_down,
+            )
+        )
         injected_main = np.asarray(injected_model.expected_data(injected_model.config.suggested_init(), include_auxdata=False), dtype=float)
         closure_scan = []
         for mass in mass_values:
-            factor = mass / nominal_mass
-            shifted = inclusive_from_channels(event_group_templates(events, FIT_BINS, channels=CHANNELS, mass_shift_factor=factor), CHANNELS)
-            model = make_model(model_spec(shifted, ("inclusive",), include_systematics=active, include_staterror=True))
-            best, nll = fit_model(model, injected_main.tolist() + list(model.config.auxdata))
+            model, best, nll = fit_mass_hypothesis(events, float(mass), active, nominal_mass, injected_main)
             closure_scan.append({"mass_hypothesis_GeV": float(mass), "mu_hat": float(best[model.config.poi_index]), "twice_nll": nll})
         best_mass = min(closure_scan, key=lambda row: row["twice_nll"])["mass_hypothesis_GeV"]
         bias = best_mass - injected
@@ -594,7 +641,12 @@ def mass_scan(events: dict[str, Any]) -> dict[str, Any]:
     closure_passes = bool(all(row["passes_bias_gate"] for row in closure))
     return {
         "phase": "4a_expected",
-        "method": "inclusive shifted-template mass-profile closure with mu profiled in each shifted-template fit",
+        "method": "simultaneous final-state category shifted-template mass-profile closure with mu profiled in each shifted-template fit",
+        "workspace_parity": "Uses the same final-state categories, fit-window binning, global mu POI, and active Phase 4a nuisance set as the expected signal-strength workspace.",
+        "categories": list(CHANNELS),
+        "profiled_parameter": "mu",
+        "active_systematics": sorted(active),
+        "template_shift_procedure": "For mass hypothesis mH, selected MC event m4l values are scaled by mH / 125 GeV before refilling per-category templates; per-category normalizations are preserved by refilling the same selected weighted events in each final state.",
         "mass_grid_GeV": mass_values.tolist(),
         "nominal_best_mass_grid_GeV": best_nominal["mass_hypothesis_GeV"],
         "nominal_best_mu_hat": best_nominal["mu_hat"],
@@ -602,12 +654,34 @@ def mass_scan(events: dict[str, Any]) -> dict[str, Any]:
         "closure": closure,
         "closure_passes": closure_passes,
         "promoted_to_nominal_mass_measurement": False,
-        "downgrade_reason": "Detector-level shifted-template closure passes, but independent mass-hypothesis MC and official lepton calibration/morphing inputs are unavailable; retain as method-parity closure rather than a nominal mass measurement.",
+        "downgrade_reason": "The required simultaneous category mass-extraction attempt passes the expected shifted-template closure, but independent mass-hypothesis MC and official lepton calibration/morphing inputs are unavailable; retain as method-parity closure rather than an official-quality mass measurement.",
         "limitations": "Uses shifted detector-level M125 templates because independent mass-hypothesis MC and official lepton calibration/morphing inputs are unavailable in the sandbox.",
     }
 
 
 def systematic_table_payload(active_systematics: set[str]) -> dict[str, Any]:
+    affected = {
+        "lumi": ["all MC templates"],
+        "lepton_eff": ["all signal and background MC templates"],
+        "signal_theory": ["signal_ggH", "signal_VBF", "signal_VH"],
+        "zz_norm": ["background_ZZ"],
+        "ggzz_norm": ["background_ggZZ"],
+        "dy_norm": ["background_reducible"],
+        "ttbar_omission": ["background_reducible"],
+        "m4l_scale": ["all m4l templates"],
+        "mc_stat": ["all nonzero group/category templates"],
+    }
+    methods = {
+        "lumi": "Log-normal normalization nuisance using public CMS 2017 luminosity uncertainty as scale reference for the user-provided 10 fb^-1 subset.",
+        "lepton_eff": "Closure-derived rate envelope from Phase 3 trigger/flavor-ID data/MC step efficiencies.",
+        "signal_theory": "Fallback signal production composition normsys, propagated separately for ggH, VBF, and VH groups.",
+        "zz_norm": "Fallback qqZZ normalization normsys on the prompt-effective qqZZ template.",
+        "ggzz_norm": "Fallback ggZZ normalization normsys on the prompt-effective loop-induced ZZ template.",
+        "dy_norm": "Broad DY fake-proxy normsys from low sideband statistics and DY-only fake-model limitation.",
+        "ttbar_omission": "Omission-envelope normsys from Phase 3 TTBar/DY signal-window ratio.",
+        "m4l_scale": "Histosys shape variation from refilling templates with m4l scaled by +/-0.1 percent.",
+        "mc_stat": "Grouped group/category normsys from Phase 3 sumw2; not a full bin-by-bin staterror model.",
+    }
     rows = []
     for key, payload in SYSTEMATIC_SOURCES.items():
         status = "implemented" if key in active_systematics else "documented_not_applicable_or_downstream"
@@ -619,19 +693,85 @@ def systematic_table_payload(active_systematics: set[str]) -> dict[str, Any]:
         rows.append(
             {
                 "key": key,
+                "commitment_label": payload["conventions"],
                 "source": payload["label"],
                 "conventions": payload["conventions"],
+                "nominal_or_variation_size": payload["relative"],
                 "relative_variation": payload["relative"],
                 "variation_basis": basis,
+                "fallback_flag": bool(basis.startswith("fallback") or key in {"dy_norm"}),
+                "affected_templates_processes": affected.get(key, []),
+                "evaluation_method": methods.get(key, payload["source"]),
+                "citation_or_search_trail": [payload["url"], payload["source"]],
                 "ref_1": payload["url"],
                 "ref_2": payload["source"],
                 "this_analysis": "Propagated in pyhf model" if key in active_systematics else "Documented only",
+                "phase4a_status": status,
                 "status": status,
             }
         )
-    rows.append({"key": "higgs_branching_fraction", "source": "Higgs branching fraction", "conventions": "SP8", "relative_variation": None, "ref_1": "https://pdg.lbl.gov/2024/tables/rpp2024-sum-gauge-higgs-bosons.pdf", "ref_2": "PDG H->ZZ* fraction retained for cross-section conversions", "this_analysis": "Not used because Phase 4a reports detector-level mu only", "status": "not_applicable_no_cross_section_conversion"})
-    rows.append({"key": "classifier_migration", "source": "Classifier/category migration", "conventions": "SP12", "relative_variation": None, "ref_1": "phase3_selection/outputs/approach_comparison.json", "ref_2": "S2 classifier categories rejected", "this_analysis": "No MVA categories used", "status": "not_applicable_mva_rejected"})
-    rows.append({"key": "angular_reconstruction", "source": "Angular reconstruction", "conventions": "SP13", "relative_variation": None, "ref_1": "phase3_selection/outputs/angular_closure.json", "ref_2": "Angular inputs not used in nominal fit after S2 rejection", "this_analysis": "Closure retained as Phase 3 evidence", "status": "documented_not_propagated_no_angular_categories"})
+    normalization = read_json(PHASE3_OUT / "normalization.json")
+    prompt_records = [
+        {
+            "sample": row["sample"],
+            "group": row["group"],
+            "xsec_pb_user_prompt": row["xsec_pb_user_prompt"],
+            "metadata_generated_events": row["metadata_generated_events"],
+            "nominal_weight": row["nominal_weight"],
+        }
+        for row in normalization["records"]
+        if row["kind"] == "mc"
+    ]
+    rows.append(
+        {
+            "key": "prompt_effective_xsecs",
+            "commitment_label": "SP2",
+            "source": "Prompt effective cross sections",
+            "conventions": "SP2",
+            "nominal_or_variation_size": "Per-sample user-prompt effective cross sections and metadata denominators; see prompt_xsec_records.",
+            "relative_variation": None,
+            "variation_basis": "user_provided_prompt_effective_xsecs_with_per_process_normalization_nuisances",
+            "fallback_flag": True,
+            "affected_templates_processes": sorted(NOMINAL_SAMPLE_GROUPS),
+            "evaluation_method": "Phase 3 recorded the prompt xsec, metadata denominator, and nominal weight for every MC sample; Phase 4a propagates per-process normalization nuisances rather than treating the prompt xsecs as independently verified public cross sections.",
+            "citation_or_search_trail": [
+                "phase3_selection/outputs/normalization.json",
+                "phase2_strategy/outputs/STRATEGY.md [A2]/[SP2] requires user-provided fallback handling when public/campaign matches are unavailable.",
+            ],
+            "prompt_xsec_records": prompt_records,
+            "ref_1": "phase3_selection/outputs/normalization.json",
+            "ref_2": "Prompt/user-provided effective cross sections retained with per-process normalization nuisances.",
+            "this_analysis": "Implemented through the nominal MC weights plus signal/background normalization nuisance rows.",
+            "phase4a_status": "implemented_user_provided_fallback_with_per_process_nuisances",
+            "status": "implemented_user_provided_fallback_with_per_process_nuisances",
+        }
+    )
+    rows.append(
+        {
+            "key": "pileup_pv_modeling",
+            "commitment_label": "SP6",
+            "source": "Pileup/PV modeling",
+            "conventions": "SP6",
+            "nominal_or_variation_size": None,
+            "relative_variation": None,
+            "variation_basis": "validation_only_no_pv_reweighting_or_classifier_use",
+            "fallback_flag": False,
+            "affected_templates_processes": ["classifier inputs only; no nominal fit templates because nPV/PV variables are not used in the Phase 4a fit"],
+            "evaluation_method": "Phase 3 input validation excluded pvNdof under [A6]; no classifier categories are promoted and no PV-dependent reweighting is applied, so no Phase 4a template nuisance is propagated.",
+            "citation_or_search_trail": [
+                "phase3_selection/outputs/input_validation.json",
+                "phase3_selection/outputs/SELECTION.md",
+            ],
+            "ref_1": "phase3_selection/outputs/input_validation.json",
+            "ref_2": "pvNdof is explicitly excluded by Phase 2 [A6]; no PV variable enters the nominal fit.",
+            "this_analysis": "Documented and not propagated because PV variables are not used in nominal categories or templates.",
+            "phase4a_status": "documented_not_propagated_no_pv_dependent_fit_inputs",
+            "status": "documented_not_propagated_no_pv_dependent_fit_inputs",
+        }
+    )
+    rows.append({"key": "higgs_branching_fraction", "commitment_label": "SP8", "source": "Higgs branching fraction", "conventions": "SP8", "nominal_or_variation_size": None, "relative_variation": None, "variation_basis": "not_used_no_cross_section_conversion", "fallback_flag": False, "affected_templates_processes": [], "evaluation_method": "No fiducial/inclusive cross-section conversion is performed in Phase 4a.", "citation_or_search_trail": ["https://pdg.lbl.gov/2024/tables/rpp2024-sum-gauge-higgs-bosons.pdf"], "ref_1": "https://pdg.lbl.gov/2024/tables/rpp2024-sum-gauge-higgs-bosons.pdf", "ref_2": "PDG H->ZZ* fraction retained for cross-section conversions", "this_analysis": "Not used because Phase 4a reports detector-level mu only", "phase4a_status": "not_applicable_no_cross_section_conversion", "status": "not_applicable_no_cross_section_conversion"})
+    rows.append({"key": "classifier_migration", "commitment_label": "SP12", "source": "Classifier/category migration", "conventions": "SP12", "nominal_or_variation_size": None, "relative_variation": None, "variation_basis": "not_applicable_mva_rejected", "fallback_flag": False, "affected_templates_processes": [], "evaluation_method": "S2 classifier categories failed promotion gates and are not used in the nominal fit.", "citation_or_search_trail": ["phase3_selection/outputs/approach_comparison.json"], "ref_1": "phase3_selection/outputs/approach_comparison.json", "ref_2": "S2 classifier categories rejected", "this_analysis": "No MVA categories used", "phase4a_status": "not_applicable_mva_rejected", "status": "not_applicable_mva_rejected"})
+    rows.append({"key": "angular_reconstruction", "commitment_label": "SP13", "source": "Angular reconstruction", "conventions": "SP13", "nominal_or_variation_size": None, "relative_variation": None, "variation_basis": "documented_not_propagated_no_angular_categories", "fallback_flag": False, "affected_templates_processes": [], "evaluation_method": "Angular closure is retained from Phase 3, but angular inputs are not used after S2 rejection.", "citation_or_search_trail": ["phase3_selection/outputs/angular_closure.json"], "ref_1": "phase3_selection/outputs/angular_closure.json", "ref_2": "Angular inputs not used in nominal fit after S2 rejection", "this_analysis": "Closure retained as Phase 3 evidence", "phase4a_status": "documented_not_propagated_no_angular_categories", "status": "documented_not_propagated_no_angular_categories"})
     return {"phase": "4a_expected", "created_utc": now(), "sources": rows}
 
 
@@ -660,7 +800,7 @@ def main() -> None:
         combined_unc=full_fit["uncertainty"]["err_sym"],
     )
     corruption = corrupted_closure(events, active_systematics)
-    mass = mass_scan(events)
+    mass = mass_scan(events, active_systematics)
     reference_unc = (0.19 + 0.17) / 2.0
     precision_ratio = full_fit["uncertainty"]["err_sym"] / reference_unc
     parameters = {
@@ -698,6 +838,7 @@ def main() -> None:
         "phase": "4a_expected",
         "created_utc": now(),
         "parameters": ["mu"],
+        "mc_stat_treatment": "group_category_normsys_from_sumw2; not full bin-by-bin HistFactory staterror profiling",
         "stat": [[breakdown["variance_components"]["stat"]]],
         "mc_stat": [[breakdown["variance_components"]["mc_stat"]]],
         "syst": [[breakdown["variance_components"]["syst_total_including_mc_stat"]]],
@@ -741,7 +882,9 @@ def main() -> None:
     write_json(RESULTS / "expected_parameters.json", parameters)
     write_json(RESULTS / "expected_covariance.json", covariance)
     write_json(RESULTS / "expected_validation.json", validation)
-    write_json(RESULTS / "expected_systematics.json", systematic_table_payload(active_systematics))
+    systematics_payload = systematic_table_payload(active_systematics)
+    write_json(RESULTS / "expected_systematics.json", systematics_payload)
+    write_json(RESULTS / "systematics_sources.json", systematics_payload)
     write_json(RESULTS / "expected_mass_scan.json", mass)
     append_session(
         "Expected inference JSON written\n\n"

@@ -1,10 +1,11 @@
 {
-  "created_utc": "2026-05-30T01:37:28+00:00",
+  "created_utc": "2026-05-30T02:36:03+00:00",
   "mc_stat": [
     [
       0.0029560843175981955
     ]
   ],
+  "mc_stat_treatment": "group_category_normsys_from_sumw2; not full bin-by-bin HistFactory staterror profiling",
   "parameters": [
     "mu"
   ],
@@ -36,7 +37,7 @@
     ],
     "mc_stat": [
       [
-        0.0
+        0.0029560843175981955
       ]
     ],
     "signal_theory": [
@@ -102,8 +103,9 @@
         "variance_increment_over_stat": 0.002038162254275333
       },
       "mc_stat": {
-        "uncertainty": 0.553506043483151,
-        "variance_increment_over_stat": 0.0
+        "treatment": "group_category_normsys_from_sumw2",
+        "uncertainty": 0.5561699600751285,
+        "variance_increment_over_stat": 0.0029560843175981955
       },
       "signal_theory": {
         "uncertainty": 0.5557332799916891,

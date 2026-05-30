@@ -669,6 +669,28 @@
 
 - Updated `COMMITMENTS.md` for Phase 4a expected-inference evidence and formal classifier-migration downscope.
 
+## 2026-05-30 — Phase 4a blocking review fixes
+
+- Fixer `fiona_aebe` resolved the Phase 4a `ITERATE` findings from the
+  critical and plot-validation reviews.
+- Replaced the inclusive mass-profile closure with a simultaneous final-state
+  category shifted-template scan over `4mu`, `4e`, and `2e2mu`, with `mu`
+  profiled and injected-mass closure recorded in
+  `analysis_note/results/expected_mass_scan.json`.
+- Added `analysis_note/results/systematics_sources.json` with SP2
+  prompt-effective-cross-section evidence, SP6 pileup/PV documentation,
+  fallback flags, affected templates/processes, and evaluation methods.
+- Made grouped MC-stat covariance entries internally consistent and updated
+  `COMMITMENTS.md` to state the grouped approximation rather than full
+  bin-by-bin `staterror` profiling.
+- Regenerated the full Phase 4a expected figure set after replacing custom
+  final-state panel labels with `mh.label.exp_label(...)` and moving the
+  `expected_mu_profile_scan` legend away from the profile curve.
+- Verification passed: `pixi run p4a-all`, `pixi run lint-plots`, figure
+  registry smoke test, JSON sanity checks, and targeted visual inspection of
+  `expected_m4l_final_state_templates.png` and
+  `expected_mu_profile_scan.png`.
+
 ## 2026-05-30 — Phase 4a VERIFY Follow-up 2 self-critique
 
 - Re-read the expected artifact, result JSON, commitments, watcher feedback, and all current PNGs.
@@ -743,3 +765,37 @@
 ## 2026-05-30 — Phase 4a expected plots
 
 - Produced 10 expected-inference figures and registered them in `phase4_inference/4a_expected/outputs/FIGURES.json`.
+
+## 2026-05-30 — Phase 4a expected inference workspace
+
+- Executor `edmund_69a2` built the expected pyhf model from Phase 3 fit inputs using Asimov observations only.
+- Expected `mu = 1 +/- 0.5747` with final-state categories before review.
+- Low-count toy validation used 80 toys with seed 4269; success fraction 1.000, median bias -0.06065.
+
+## 2026-05-30 — Phase 4a expected inference workspace
+
+- Executor `edmund_69a2` built the expected pyhf model from Phase 3 fit inputs using Asimov observations only.
+- Expected `mu = 1 +/- 0.5747` with final-state categories before review.
+- Low-count toy validation used 80 toys with seed 4269; success fraction 1.000, median bias -0.06065.
+
+## 2026-05-30 — Phase 4a expected inference workspace
+
+- Executor `edmund_69a2` built the expected pyhf model from Phase 3 fit inputs using Asimov observations only.
+- Expected `mu = 1 +/- 0.5747` with final-state categories before review.
+- Low-count toy validation used 80 toys with seed 4269; success fraction 1.000, median bias -0.06065.
+
+## 2026-05-30 — Phase 4a expected plots
+
+- Produced 10 expected-inference figures and registered them in `phase4_inference/4a_expected/outputs/FIGURES.json`.
+
+## 2026-05-30 — Phase 4a expected inference artifact
+
+- Built `phase4_inference/4a_expected/outputs/INFERENCE_EXPECTED.md` from expected-result JSON files.
+
+## 2026-05-30 — Phase 4a commitment update
+
+- Updated `COMMITMENTS.md` for Phase 4a expected-inference evidence and formal classifier-migration downscope.
+
+## 2026-05-30 — Phase 4a commitment update
+
+- Updated `COMMITMENTS.md` for Phase 4a expected-inference evidence and formal classifier-migration downscope.

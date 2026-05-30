@@ -1,52 +1,68 @@
 {
+  "active_systematics": [
+    "dy_norm",
+    "ggzz_norm",
+    "lepton_eff",
+    "lumi",
+    "m4l_scale",
+    "mc_stat",
+    "signal_theory",
+    "ttbar_omission",
+    "zz_norm"
+  ],
+  "categories": [
+    "4mu",
+    "4e",
+    "2e2mu"
+  ],
   "closure": [
     {
       "bias_GeV": 0.0,
       "closure_scan_rows": [
         {
           "mass_hypothesis_GeV": 123.0,
-          "mu_hat": 1.531461302193409,
-          "twice_nll": 41.708529198189524
+          "mu_hat": 1.4747243426892866,
+          "twice_nll": 105.90920490414031
         },
         {
           "mass_hypothesis_GeV": 123.5,
-          "mu_hat": 1.0983169188094175,
-          "twice_nll": 39.13738439604168
+          "mu_hat": 1.1027548218181893,
+          "twice_nll": 103.92299022816482
         },
         {
           "mass_hypothesis_GeV": 124.0,
           "mu_hat": 1.0,
-          "twice_nll": 38.840551915097556
+          "twice_nll": 103.41490658544912
         },
         {
           "mass_hypothesis_GeV": 124.5,
-          "mu_hat": 0.9861758326358894,
-          "twice_nll": 39.0570692663844
+          "mu_hat": 1.0021762799534686,
+          "twice_nll": 103.76004378832192
         },
         {
           "mass_hypothesis_GeV": 125.0,
-          "mu_hat": 1.09237156814875,
-          "twice_nll": 39.55107792646952
+          "mu_hat": 1.1214456164585294,
+          "twice_nll": 104.30345932283177
         },
         {
           "mass_hypothesis_GeV": 125.5,
-          "mu_hat": 1.0741073611001706,
-          "twice_nll": 39.61383583852319
+          "mu_hat": 1.1331536873868118,
+          "twice_nll": 104.93183527245665
         },
         {
           "mass_hypothesis_GeV": 126.0,
-          "mu_hat": 1.0648613730348169,
-          "twice_nll": 40.200450786142355
+          "mu_hat": 1.136713488229294,
+          "twice_nll": 106.3452626852175
         },
         {
           "mass_hypothesis_GeV": 126.5,
-          "mu_hat": 1.0796636521795138,
-          "twice_nll": 41.217684304879256
+          "mu_hat": 1.1466823852554333,
+          "twice_nll": 107.90465874947665
         },
         {
           "mass_hypothesis_GeV": 127.0,
-          "mu_hat": 0.9662256353506324,
-          "twice_nll": 41.91912698082979
+          "mu_hat": 1.0317433395524074,
+          "twice_nll": 110.90605317775538
         }
       ],
       "injected_mass_GeV": 124.0,
@@ -58,48 +74,48 @@
       "closure_scan_rows": [
         {
           "mass_hypothesis_GeV": 123.0,
-          "mu_hat": 1.3541952153802286,
-          "twice_nll": 42.851844533924215
+          "mu_hat": 1.2540170118751868,
+          "twice_nll": 108.04214474224531
         },
         {
           "mass_hypothesis_GeV": 123.5,
-          "mu_hat": 0.9408301623993809,
-          "twice_nll": 40.158619637571434
+          "mu_hat": 0.9222620202085612,
+          "twice_nll": 105.79663098986184
         },
         {
           "mass_hypothesis_GeV": 124.0,
-          "mu_hat": 0.8675152174215967,
-          "twice_nll": 39.850738938674624
+          "mu_hat": 0.8510497989685384,
+          "twice_nll": 105.22923715580123
         },
         {
           "mass_hypothesis_GeV": 124.5,
-          "mu_hat": 0.8716296945655333,
-          "twice_nll": 39.35628237830799
+          "mu_hat": 0.8685294876082419,
+          "twice_nll": 104.54630396779655
         },
         {
           "mass_hypothesis_GeV": 125.0,
           "mu_hat": 1.0,
-          "twice_nll": 39.104720564218454
+          "twice_nll": 104.17723150400596
         },
         {
           "mass_hypothesis_GeV": 125.5,
-          "mu_hat": 1.041777922197618,
-          "twice_nll": 39.3784983102631
+          "mu_hat": 1.0356942966035467,
+          "twice_nll": 104.80848951524044
         },
         {
           "mass_hypothesis_GeV": 126.0,
-          "mu_hat": 1.0832597359488156,
-          "twice_nll": 39.58085594571463
+          "mu_hat": 1.1092274779550513,
+          "twice_nll": 105.93863715715375
         },
         {
           "mass_hypothesis_GeV": 126.5,
-          "mu_hat": 1.1609878356256529,
-          "twice_nll": 40.38169268203012
+          "mu_hat": 1.176840373523651,
+          "twice_nll": 107.4493123250204
         },
         {
           "mass_hypothesis_GeV": 127.0,
-          "mu_hat": 1.08850263030866,
-          "twice_nll": 40.73208088470062
+          "mu_hat": 1.1090100969661292,
+          "twice_nll": 110.10184656283033
         }
       ],
       "injected_mass_GeV": 125.0,
@@ -111,48 +127,48 @@
       "closure_scan_rows": [
         {
           "mass_hypothesis_GeV": 123.0,
-          "mu_hat": 1.2899899327861202,
-          "twice_nll": 44.996299688362605
+          "mu_hat": 1.2145857692614013,
+          "twice_nll": 111.2172425179254
         },
         {
           "mass_hypothesis_GeV": 123.5,
-          "mu_hat": 0.8477411262200062,
-          "twice_nll": 41.10366116696025
+          "mu_hat": 0.8188566926386184,
+          "twice_nll": 107.9331792262505
         },
         {
           "mass_hypothesis_GeV": 124.0,
-          "mu_hat": 0.7689366213033832,
-          "twice_nll": 40.20638400314791
+          "mu_hat": 0.7712230285522493,
+          "twice_nll": 106.78438483996288
         },
         {
           "mass_hypothesis_GeV": 124.5,
-          "mu_hat": 0.776329719234205,
-          "twice_nll": 39.73240792757328
+          "mu_hat": 0.7959403131396131,
+          "twice_nll": 106.0553736358054
         },
         {
           "mass_hypothesis_GeV": 125.0,
-          "mu_hat": 0.9084879534119126,
-          "twice_nll": 39.42145450034532
+          "mu_hat": 0.9176705470006974,
+          "twice_nll": 105.5641528635143
         },
         {
           "mass_hypothesis_GeV": 125.5,
-          "mu_hat": 0.9515440063316553,
-          "twice_nll": 39.214671522741895
+          "mu_hat": 0.9611124955351233,
+          "twice_nll": 104.57935725205769
         },
         {
           "mass_hypothesis_GeV": 126.0,
           "mu_hat": 1.0,
-          "twice_nll": 38.966800031832854
+          "twice_nll": 104.01876453304388
         },
         {
           "mass_hypothesis_GeV": 126.5,
-          "mu_hat": 1.0924028215105677,
-          "twice_nll": 39.17890583065691
+          "mu_hat": 1.0874102696608041,
+          "twice_nll": 104.635438675409
         },
         {
           "mass_hypothesis_GeV": 127.0,
-          "mu_hat": 1.0368989250603455,
-          "twice_nll": 39.5375777702231
+          "mu_hat": 1.0242415253059116,
+          "twice_nll": 105.462117240519
         }
       ],
       "injected_mass_GeV": 126.0,
@@ -161,7 +177,7 @@
     }
   ],
   "closure_passes": true,
-  "downgrade_reason": "Detector-level shifted-template closure passes, but independent mass-hypothesis MC and official lepton calibration/morphing inputs are unavailable; retain as method-parity closure rather than a nominal mass measurement.",
+  "downgrade_reason": "The required simultaneous category mass-extraction attempt passes the expected shifted-template closure, but independent mass-hypothesis MC and official lepton calibration/morphing inputs are unavailable; retain as method-parity closure rather than an official-quality mass measurement.",
   "limitations": "Uses shifted detector-level M125 templates because independent mass-hypothesis MC and official lepton calibration/morphing inputs are unavailable in the sandbox.",
   "mass_grid_GeV": [
     123.0,
@@ -174,56 +190,59 @@
     126.5,
     127.0
   ],
-  "method": "inclusive shifted-template mass-profile closure with mu profiled in each shifted-template fit",
+  "method": "simultaneous final-state category shifted-template mass-profile closure with mu profiled in each shifted-template fit",
   "nominal_best_mass_grid_GeV": 125.0,
   "nominal_best_mu_hat": 1.0,
   "phase": "4a_expected",
+  "profiled_parameter": "mu",
   "promoted_to_nominal_mass_measurement": false,
   "scan_rows": [
     {
       "mass_hypothesis_GeV": 123.0,
-      "mu_hat": 1.3541952153802286,
-      "twice_nll": 42.851844533924215
+      "mu_hat": 1.2540170118751868,
+      "twice_nll": 108.04214474224531
     },
     {
       "mass_hypothesis_GeV": 123.5,
-      "mu_hat": 0.9408301623993809,
-      "twice_nll": 40.158619637571434
+      "mu_hat": 0.9222620202085612,
+      "twice_nll": 105.79663098986184
     },
     {
       "mass_hypothesis_GeV": 124.0,
-      "mu_hat": 0.8675152174215967,
-      "twice_nll": 39.850738938674624
+      "mu_hat": 0.8510497989685384,
+      "twice_nll": 105.22923715580123
     },
     {
       "mass_hypothesis_GeV": 124.5,
-      "mu_hat": 0.8716296945655333,
-      "twice_nll": 39.35628237830799
+      "mu_hat": 0.8685294876082419,
+      "twice_nll": 104.54630396779655
     },
     {
       "mass_hypothesis_GeV": 125.0,
       "mu_hat": 1.0,
-      "twice_nll": 39.104720564218454
+      "twice_nll": 104.17723150400596
     },
     {
       "mass_hypothesis_GeV": 125.5,
-      "mu_hat": 1.041777922197618,
-      "twice_nll": 39.3784983102631
+      "mu_hat": 1.0356942966035467,
+      "twice_nll": 104.80848951524044
     },
     {
       "mass_hypothesis_GeV": 126.0,
-      "mu_hat": 1.0832597359488156,
-      "twice_nll": 39.58085594571463
+      "mu_hat": 1.1092274779550513,
+      "twice_nll": 105.93863715715375
     },
     {
       "mass_hypothesis_GeV": 126.5,
-      "mu_hat": 1.1609878356256529,
-      "twice_nll": 40.38169268203012
+      "mu_hat": 1.176840373523651,
+      "twice_nll": 107.4493123250204
     },
     {
       "mass_hypothesis_GeV": 127.0,
-      "mu_hat": 1.08850263030866,
-      "twice_nll": 40.73208088470062
+      "mu_hat": 1.1090100969661292,
+      "twice_nll": 110.10184656283033
     }
-  ]
+  ],
+  "template_shift_procedure": "For mass hypothesis mH, selected MC event m4l values are scaled by mH / 125 GeV before refilling per-category templates; per-category normalizations are preserved by refilling the same selected weighted events in each final state.",
+  "workspace_parity": "Uses the same final-state categories, fit-window binning, global mu POI, and active Phase 4a nuisance set as the expected signal-strength workspace."
 }
