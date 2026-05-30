@@ -653,6 +653,13 @@
 
 - Produced 10 expected-inference figures and registered them in `phase4_inference/4a_expected/outputs/FIGURES.json`.
 
+## 2026-05-30 — Phase 4a regression gate and corruption follow-up
+
+- Applied the user-requested broad-window update: MVA training/evaluation now records `70 < m4l < 170 GeV`; m4l plots include broad `70 < m4l < 170 GeV` display; signal-strength inference remains `105 < m4l < 140 GeV`.
+- Added `expected_systematic_shifts.json`, `expected_systematic_shift_summary`, and broad mass-scan metadata over `110-140 GeV` with Z/sideband-adjacent exclusions documented.
+- The final-state `m4l_scale_factor_0.8` corruption sensitivity did not reject after three attempts, so it is marked `documented_low_count_infeasible` rather than passed.
+- Regression gate `klaus_a64b` passed and `REGRESSION_CHECK_phase4a.md` records the Phase 4a boundary checklist.
+
 ## 2026-05-30 — Phase 4a per-figure validation
 
 - Completed Level 2 per-figure validation for all 10 registered expected-inference figures.

@@ -1,8 +1,8 @@
 # Session State
 
-Last updated: 2026-05-30T03:20:00Z
-Current phase: Phase 4a — Expected Inference
-Step in loop: REGRESSION_UPDATE_COMPLETE
+Last updated: 2026-05-30T03:37:40Z
+Current phase: Doc 4a — Analysis Note Draft
+Step in loop: ADVANCE
 Iteration count: 0
 
 ## Completed phases (commit hashes)
@@ -24,6 +24,14 @@ Iteration count: 0
 - Phase 3 review fixes: `01b0066`
 - Phase 3 targeted fix verification: `570d36c`
 - Phase 3 PASS boundary: `6940760`
+- Phase 4a expected inference initial execution and VERIFY: `5351db4`
+- Phase 4a per-figure validation: `8d19166`
+- Phase 4a initial review findings: `6b1a514`
+- Phase 4a review fixes: `ddcf18e`
+- Phase 4a targeted verification: `0cbd76c`
+- Phase 4a regression update: `be3a796`
+- Phase 4a regression gate: `f7c3dff`
+- Phase 4a corruption follow-up: `f214807`
 
 ## Current Work
 
@@ -44,21 +52,17 @@ Key Phase 3 artifacts:
 - `REGRESSION_CHECK_phase3.md`
 - `SESSION_SUMMARY_phase3.md`
 
-Phase 4a targeted regression update by `hana_c6cf` is complete. Phase 3 MVA
-training/evaluation metadata now records the broad `70 < m4l < 170 GeV`
-window and a tuned BDT trial; S1 remains nominal. Phase 4a now includes broad
-`m4l` display metadata, a broadened `110-140 GeV` shifted-template mass scan,
-per-systematic shifted-bin payloads, a systematic-shift summary figure, and
-formal grouped-MC-stat downscope labeling.
+Phase 4a expected inference has passed its blocking gate with a documented
+low-count limitation. Phase 3 MVA training/evaluation metadata now records the
+broad `70 < m4l < 170 GeV` window and a tuned BDT trial; S1 remains nominal.
+Phase 4a includes broad `m4l` display metadata, a broadened `110-140 GeV`
+shifted-template mass scan, per-systematic shifted-bin payloads, a
+systematic-shift summary figure, and formal grouped-MC-stat downscope labeling.
 
-The final-state simultaneous corruption sensitivity was run. It does not fully
-pass: `m4l_scale_factor_1.2` is rejected, but `m4l_scale_factor_0.8` is not
-(`p = 0.4595`). This is documented as a quantitative low-count limitation in
-`expected_validation.json` and `INFERENCE_EXPECTED.md`.
-
-Verification passed for commands and mechanical checks: `pixi run p3-all`,
-`pixi run p4a-all` plus rerun of Phase 4a fit/plots/artifact/commitments,
-`pixi run lint-plots`, registry smoke tests, and metadata sanity checks.
+The final-state simultaneous corruption sensitivity was run. `+20%` is
+rejected, while `-20%` is not (`p = 0.45954`) after three documented attempts.
+This is marked `documented_low_count_infeasible`, not passed. Phase 4b/4c must
+repeat stability checks on observed subsets and merge/rebin if needed.
 
 ## Pending Decisions For Human
 
@@ -84,3 +88,5 @@ after Doc 4b review PASS.
   `-0.06064996537909362`.
 - Phase 4a regression update added `expected_systematic_shifts.json`,
   `expected_m4l_broad_inclusive`, and `expected_systematic_shift_summary`.
+- Phase 4a PASS evidence is in `REGRESSION_CHECK_phase4a.md` and
+  `SESSION_SUMMARY_phase4a.md`.
