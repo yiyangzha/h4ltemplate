@@ -28,6 +28,7 @@ def main() -> None:
     params = read_json(RESULTS / "observed_parameters.json")
     validation = read_json(RESULTS / "observed_validation.json")
     covariance = read_json(RESULTS / "observed_covariance.json")
+    mass_scan = read_json(RESULTS / "observed_mass_scan.json")
     figures = read_json(OUT / "FIGURES.json")
     summary = params["subsample"]
     mu = params["mu"]
@@ -51,6 +52,10 @@ def main() -> None:
         for row in params["nuisance_impacts"][:10]
     ]
     fig_rows = [[fig["id"], fig["png"], fig["pdf"]] for fig in figures]
+    mass_rows = [
+        [row["mass_hypothesis_GeV"], row["mu_hat"], row["delta_twice_nll"], row["p_value_chi2"], row["fit_status"]]
+        for row in mass_scan["scan_rows"]
+    ]
     text = f"""# Phase 4c Observed-Data Inference
 
 Session: `zoran_44a0`
@@ -73,6 +78,7 @@ The full-data observed result is:
 - compatibility with Phase 4a expected within 2 sigma: `{expected['compatible_with_expected_2sigma']}`
 - compatibility with Phase 4b 10% result within 2 sigma: `{expected['compatible_with_partial_2sigma']}`
 - viability verdict: `{viability['viability_verdict']}`
+- observed shifted-template mass best grid point: `{fmt(mass_scan['best_mass_grid_GeV'])} GeV`
 
 ## Full Dataset
 
@@ -171,6 +177,28 @@ Full pull and impact payloads are in
 The grouped MC-stat treatment remains the reviewed Phase 4a approximation, not
 a full bin-by-bin HistFactory staterror profile.
 
+## Observed Mass Scan
+
+The full-data follow-up does not assume the observed Higgs candidate peak is at
+125 GeV. It scans shifted M125 detector-level templates with `mu` profiled at
+each mass hypothesis. The likelihood still uses the broad `70 < m4l < 170 GeV`
+fit bins, but the Z peak region is excluded from the Higgs mass-hypothesis grid.
+
+{table(['quantity', 'value'], [
+    ['scan min GeV', mass_scan['scan_range_GeV']['min']],
+    ['scan max GeV', mass_scan['scan_range_GeV']['max']],
+    ['scan step GeV', mass_scan['scan_range_GeV']['step']],
+    ['best mass grid GeV', mass_scan['best_mass_grid_GeV']],
+    ['best profiled mu', mass_scan['best_mu_hat']],
+    ['uncertainty meaningful', mass_scan['uncertainty']['meaningful']],
+    ['grid interval GeV', mass_scan['uncertainty']['interval_GeV']],
+    ['promoted to nominal mass measurement', mass_scan['promoted_to_nominal_mass_measurement']],
+])}
+
+{table(['mH hypothesis GeV', 'profiled mu', 'delta -2lnL', 'GoF p', 'fit status'], mass_rows)}
+
+Limitations: {mass_scan['limitations']}
+
 ## Figures
 
 {table(['figure', 'PNG', 'PDF'], fig_rows)}
@@ -185,12 +213,14 @@ a full bin-by-bin HistFactory staterror profile.
 | VBF and MVA/NN categories are not nominal categories. | Retained S1 final-state categories only; no VBF or classifier labels are used in the fit. | Phase 3 `selected_configuration.json`, `observed_parameters.json` |
 | Full-data viability must be checked honestly. | Evaluated the boundary, fit-triviality, and total-uncertainty gates; if the result is not competitive the verdict remains `LIMITED_NOT_COMPETITIVE` rather than being tuned. | `observed_validation.json`, `observed_uncertainty_viability.png` |
 | Data-sensitive systematics must be re-evaluated where possible. | Recomputed observed-data nuisance pulls, impacts, GoF, category compatibility, alternative binnings, and deterministic split diagnostics; external/fallback priors remain transferred because no new calibration or fake-rate inputs are available. | `observed_parameters.json`, `observed_systematics.json` |
+| Full-data mass must not be assumed to be 125 GeV. | Added an observed shifted-template mass scan with `mu` profiled at each mass hypothesis; classified as approximate detector-level evidence rather than an official calibrated mass measurement. | `observed_mass_scan.json`, `observed_mass_scan.png` |
 
 ## Machine-Readable Outputs
 
 - `analysis_note/results/observed_parameters.json`
 - `analysis_note/results/observed_validation.json`
 - `analysis_note/results/observed_covariance.json`
+- `analysis_note/results/observed_mass_scan.json`
 - `analysis_note/results/observed_systematics.json`
 - `analysis_note/results/observed_systematic_shifts.json`
 - `analysis_note/results/systematics_sources.json`

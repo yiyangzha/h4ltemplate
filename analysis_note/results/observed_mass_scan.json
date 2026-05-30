@@ -1,0 +1,356 @@
+{
+  "best_mass_grid_GeV": 125.0,
+  "best_mu_hat": 2.4776040008517612,
+  "best_twice_nll": 215.2210333698157,
+  "created_utc": "2026-05-30T05:33:15+00:00",
+  "downgrade_reason": "Observed mass scan uses shifted detector-level M125 templates rather than independent mass-hypothesis MC and official lepton calibration/morphing; classify as approximated evidence, not an official CMS-quality mass measurement.",
+  "excluded_ranges_GeV": [
+    {
+      "max": 105.0,
+      "min": 70.0,
+      "reason": "Excluded from the Higgs mass-hypothesis grid because this region contains the Z peak and the available M125 H->ZZ* shifted-template approximation is not a valid Higgs-mass model there."
+    },
+    {
+      "max": 170.0,
+      "min": 150.0,
+      "reason": "Used in the broad signal-strength fit as sideband/background constraint but not scanned as a Higgs mass hypothesis because only M125 shifted detector-level templates are available and high-mass independent signal MC is absent."
+    }
+  ],
+  "failed_grid_points": [
+    {
+      "chi2": null,
+      "delta_twice_nll": null,
+      "fit_status": "failed_after_all_fallbacks_FailedMinimization",
+      "fit_succeeded": false,
+      "mass_hypothesis_GeV": 110.0,
+      "mu_hat": null,
+      "mu_uncertainty": null,
+      "ndf": null,
+      "p_value_chi2": null,
+      "twice_nll": null
+    },
+    {
+      "chi2": null,
+      "delta_twice_nll": null,
+      "fit_status": "failed_after_all_fallbacks_FailedMinimization",
+      "fit_succeeded": false,
+      "mass_hypothesis_GeV": 112.5,
+      "mu_hat": null,
+      "mu_uncertainty": null,
+      "ndf": null,
+      "p_value_chi2": null,
+      "twice_nll": null
+    },
+    {
+      "chi2": null,
+      "delta_twice_nll": null,
+      "fit_status": "failed_after_all_fallbacks_FailedMinimization",
+      "fit_succeeded": false,
+      "mass_hypothesis_GeV": 115.0,
+      "mu_hat": null,
+      "mu_uncertainty": null,
+      "ndf": null,
+      "p_value_chi2": null,
+      "twice_nll": null
+    },
+    {
+      "chi2": null,
+      "delta_twice_nll": null,
+      "fit_status": "failed_after_all_fallbacks_FailedMinimization",
+      "fit_succeeded": false,
+      "mass_hypothesis_GeV": 117.5,
+      "mu_hat": null,
+      "mu_uncertainty": null,
+      "ndf": null,
+      "p_value_chi2": null,
+      "twice_nll": null
+    },
+    {
+      "chi2": null,
+      "delta_twice_nll": null,
+      "fit_status": "failed_after_all_fallbacks_FailedMinimization",
+      "fit_succeeded": false,
+      "mass_hypothesis_GeV": 145.0,
+      "mu_hat": null,
+      "mu_uncertainty": null,
+      "ndf": null,
+      "p_value_chi2": null,
+      "twice_nll": null
+    },
+    {
+      "chi2": null,
+      "delta_twice_nll": null,
+      "fit_status": "failed_after_all_fallbacks_FailedMinimization",
+      "fit_succeeded": false,
+      "mass_hypothesis_GeV": 147.5,
+      "mu_hat": null,
+      "mu_uncertainty": null,
+      "ndf": null,
+      "p_value_chi2": null,
+      "twice_nll": null
+    },
+    {
+      "chi2": null,
+      "delta_twice_nll": null,
+      "fit_status": "failed_after_all_fallbacks_FailedMinimization",
+      "fit_succeeded": false,
+      "mass_hypothesis_GeV": 150.0,
+      "mu_hat": null,
+      "mu_uncertainty": null,
+      "ndf": null,
+      "p_value_chi2": null,
+      "twice_nll": null
+    }
+  ],
+  "fit_fallback_policy": "Each grid point first uses the full Phase 4c nuisance model. If pyhf minimization fails for a shifted-template hypothesis, the scan records a fallback fit without the m4l_scale histosys; if that also fails, it records a final fallback without m4l_scale or grouped MC-stat. This keeps failures visible instead of dropping points silently.",
+  "fit_window_GeV": [
+    70.0,
+    170.0
+  ],
+  "limitations": "The scan is grid-level and model-limited: only M125 signal MC is available, the Z-peak region is excluded from Higgs mass hypotheses, and any interval is a shifted-template diagnostic rather than a calibrated mass uncertainty.",
+  "mass_grid_GeV": [
+    110.0,
+    112.5,
+    115.0,
+    117.5,
+    120.0,
+    122.5,
+    125.0,
+    127.5,
+    130.0,
+    132.5,
+    135.0,
+    137.5,
+    140.0,
+    142.5,
+    145.0,
+    147.5,
+    150.0
+  ],
+  "method": "observed simultaneous final-state shifted-template mass scan with mu profiled at each mass hypothesis",
+  "phase": "4c_observed",
+  "profiled_parameter": "mu",
+  "promoted_to_nominal_mass_measurement": false,
+  "scan_range_GeV": {
+    "max": 150.0,
+    "min": 110.0,
+    "step": 2.5
+  },
+  "scan_rows": [
+    {
+      "chi2": null,
+      "delta_twice_nll": null,
+      "fit_status": "failed_after_all_fallbacks_FailedMinimization",
+      "fit_succeeded": false,
+      "mass_hypothesis_GeV": 110.0,
+      "mu_hat": null,
+      "mu_uncertainty": null,
+      "ndf": null,
+      "p_value_chi2": null,
+      "twice_nll": null
+    },
+    {
+      "chi2": null,
+      "delta_twice_nll": null,
+      "fit_status": "failed_after_all_fallbacks_FailedMinimization",
+      "fit_succeeded": false,
+      "mass_hypothesis_GeV": 112.5,
+      "mu_hat": null,
+      "mu_uncertainty": null,
+      "ndf": null,
+      "p_value_chi2": null,
+      "twice_nll": null
+    },
+    {
+      "chi2": null,
+      "delta_twice_nll": null,
+      "fit_status": "failed_after_all_fallbacks_FailedMinimization",
+      "fit_succeeded": false,
+      "mass_hypothesis_GeV": 115.0,
+      "mu_hat": null,
+      "mu_uncertainty": null,
+      "ndf": null,
+      "p_value_chi2": null,
+      "twice_nll": null
+    },
+    {
+      "chi2": null,
+      "delta_twice_nll": null,
+      "fit_status": "failed_after_all_fallbacks_FailedMinimization",
+      "fit_succeeded": false,
+      "mass_hypothesis_GeV": 117.5,
+      "mu_hat": null,
+      "mu_uncertainty": null,
+      "ndf": null,
+      "p_value_chi2": null,
+      "twice_nll": null
+    },
+    {
+      "chi2": 237.68992267040846,
+      "delta_twice_nll": 140.403240824789,
+      "fit_status": "full_nuisance_fit",
+      "fit_succeeded": true,
+      "mass_hypothesis_GeV": 120.0,
+      "mu_hat": 1.7430361387825475,
+      "mu_uncertainty": 0.6764762387128976,
+      "ndf": 38,
+      "p_value_chi2": 1.000409570940459e-30,
+      "twice_nll": 355.6242741946047
+    },
+    {
+      "chi2": 90.5032909663102,
+      "delta_twice_nll": 40.18455685683102,
+      "fit_status": "full_nuisance_fit",
+      "fit_succeeded": true,
+      "mass_hypothesis_GeV": 122.5,
+      "mu_hat": 2.990172961386504,
+      "mu_uncertainty": 0.8058447876937376,
+      "ndf": 38,
+      "p_value_chi2": 3.5761197137134933e-06,
+      "twice_nll": 255.40559022664672
+    },
+    {
+      "chi2": 47.325956020331446,
+      "delta_twice_nll": 0.0,
+      "fit_status": "full_nuisance_fit",
+      "fit_succeeded": true,
+      "mass_hypothesis_GeV": 125.0,
+      "mu_hat": 2.4776040008517612,
+      "mu_uncertainty": 0.7763376700295836,
+      "ndf": 38,
+      "p_value_chi2": 0.14274016366544112,
+      "twice_nll": 215.2210333698157
+    },
+    {
+      "chi2": 71.00057954366153,
+      "delta_twice_nll": 19.748387367325847,
+      "fit_status": "full_nuisance_fit",
+      "fit_succeeded": true,
+      "mass_hypothesis_GeV": 127.5,
+      "mu_hat": 1.8104025038437785,
+      "mu_uncertainty": 0.7680110320380236,
+      "ndf": 38,
+      "p_value_chi2": 0.0009260398348681704,
+      "twice_nll": 234.96942073714155
+    },
+    {
+      "chi2": 124.95490500893821,
+      "delta_twice_nll": 50.88652604175962,
+      "fit_status": "full_nuisance_fit",
+      "fit_succeeded": true,
+      "mass_hypothesis_GeV": 130.0,
+      "mu_hat": 1.286964082551185,
+      "mu_uncertainty": 0.7205315583774548,
+      "ndf": 38,
+      "p_value_chi2": 3.364640244910111e-11,
+      "twice_nll": 266.1075594115753
+    },
+    {
+      "chi2": 214.8110780813713,
+      "delta_twice_nll": 95.4436921068438,
+      "fit_status": "full_nuisance_fit",
+      "fit_succeeded": true,
+      "mass_hypothesis_GeV": 132.5,
+      "mu_hat": 0.9700032076127926,
+      "mu_uncertainty": 0.7436239755549405,
+      "ndf": 38,
+      "p_value_chi2": 1.531851850932867e-26,
+      "twice_nll": 310.6647254766595
+    },
+    {
+      "chi2": 278.86504538886544,
+      "delta_twice_nll": 128.8690777973353,
+      "fit_status": "full_nuisance_fit",
+      "fit_succeeded": true,
+      "mass_hypothesis_GeV": 135.0,
+      "mu_hat": 0.5096295346459748,
+      "mu_uncertainty": 0.6644931612599089,
+      "ndf": 38,
+      "p_value_chi2": 1.9812819264075554e-38,
+      "twice_nll": 344.090111167151
+    },
+    {
+      "chi2": 354.80670344087423,
+      "delta_twice_nll": 185.22157206928904,
+      "fit_status": "full_nuisance_fit",
+      "fit_succeeded": true,
+      "mass_hypothesis_GeV": 137.5,
+      "mu_hat": 0.20854857080760625,
+      "mu_uncertainty": 0.6396161563505736,
+      "ndf": 38,
+      "p_value_chi2": 4.740629969616058e-53,
+      "twice_nll": 400.44260543910474
+    },
+    {
+      "chi2": 512.4747058963702,
+      "delta_twice_nll": 272.42093611680417,
+      "fit_status": "full_nuisance_fit",
+      "fit_succeeded": true,
+      "mass_hypothesis_GeV": 140.0,
+      "mu_hat": 0.0,
+      "mu_uncertainty": 0.6873394534846016,
+      "ndf": 38,
+      "p_value_chi2": 1.9872410145722913e-84,
+      "twice_nll": 487.64196948661987
+    },
+    {
+      "chi2": 947.5632131332761,
+      "delta_twice_nll": 357.1662903252036,
+      "fit_status": "full_nuisance_fit",
+      "fit_succeeded": true,
+      "mass_hypothesis_GeV": 142.5,
+      "mu_hat": 0.0,
+      "mu_uncertainty": 0.3145287257939666,
+      "ndf": 38,
+      "p_value_chi2": 4.074863789758324e-174,
+      "twice_nll": 572.3873236950193
+    },
+    {
+      "chi2": null,
+      "delta_twice_nll": null,
+      "fit_status": "failed_after_all_fallbacks_FailedMinimization",
+      "fit_succeeded": false,
+      "mass_hypothesis_GeV": 145.0,
+      "mu_hat": null,
+      "mu_uncertainty": null,
+      "ndf": null,
+      "p_value_chi2": null,
+      "twice_nll": null
+    },
+    {
+      "chi2": null,
+      "delta_twice_nll": null,
+      "fit_status": "failed_after_all_fallbacks_FailedMinimization",
+      "fit_succeeded": false,
+      "mass_hypothesis_GeV": 147.5,
+      "mu_hat": null,
+      "mu_uncertainty": null,
+      "ndf": null,
+      "p_value_chi2": null,
+      "twice_nll": null
+    },
+    {
+      "chi2": null,
+      "delta_twice_nll": null,
+      "fit_status": "failed_after_all_fallbacks_FailedMinimization",
+      "fit_succeeded": false,
+      "mass_hypothesis_GeV": 150.0,
+      "mu_hat": null,
+      "mu_uncertainty": null,
+      "ndf": null,
+      "p_value_chi2": null,
+      "twice_nll": null
+    }
+  ],
+  "template_shift_procedure": "For mass hypothesis mH, selected MC event m4l values are scaled by mH / 125 GeV before refilling final-state templates; this uses only the available M125 samples.",
+  "uncertainty": {
+    "criterion": "grid points with delta_twice_nll <= 1",
+    "interval_GeV": [
+      125.0,
+      125.0
+    ],
+    "meaningful": false,
+    "reason": "Coarse grid-level interval only; shifted M125 templates do not provide official calibrated interpolation."
+  },
+  "z_peak_treatment": "The full 70-170 GeV binned likelihood is used for observed counts and background constraints, but mass hypotheses below 110 GeV are not considered Higgs candidates."
+}

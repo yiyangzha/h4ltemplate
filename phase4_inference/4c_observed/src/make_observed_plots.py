@@ -71,6 +71,9 @@ def save(fig: plt.Figure, stem: str) -> tuple[str, str]:
     elif stem == "observed_split_consistency":
         fig.savefig(FIG / "observed_split_consistency.png", dpi=200, bbox_inches="tight")
         fig.savefig(FIG / "observed_split_consistency.pdf", dpi=200, bbox_inches="tight")
+    elif stem == "observed_mass_scan":
+        fig.savefig(FIG / "observed_mass_scan.png", dpi=200, bbox_inches="tight")
+        fig.savefig(FIG / "observed_mass_scan.pdf", dpi=200, bbox_inches="tight")
     else:
         fig.savefig(FIG / f"{stem}.png", dpi=200, bbox_inches="tight")
         fig.savefig(FIG / f"{stem}.pdf", dpi=200, bbox_inches="tight")
@@ -232,6 +235,22 @@ def plot_viability(parameters: dict, validation: dict) -> dict:
     return register("observed_uncertainty_viability", "Observed uncertainty breakdown and 50% relative-uncertainty viability threshold for the full-data signal-strength result.", {"viability": validation["viability"], "components": components}, "analysis_note/results/observed_covariance.json")
 
 
+def plot_mass_scan() -> dict:
+    mass = read_json(RESULTS / "observed_mass_scan.json")
+    rows = [row for row in mass["scan_rows"] if row.get("fit_succeeded")]
+    x = np.asarray([row["mass_hypothesis_GeV"] for row in rows], dtype=float)
+    y = np.asarray([row["delta_twice_nll"] for row in rows], dtype=float)
+    fig, ax = plt.subplots(figsize=(7, 4))
+    ax.errorbar(x, y, yerr=np.zeros_like(y), fmt="o-", color="black")
+    ax.axhline(1.0, color="gray", linewidth=1, linestyle="--")
+    ax.axvline(mass["best_mass_grid_GeV"], color="#4878a8", linewidth=1)
+    ax.set_xlabel(r"Shifted-template $m_H$ hypothesis [GeV]")
+    ax.set_ylabel(r"$\Delta(-2\log L)$")
+    mh.label.add_text(f"best grid: {mass['best_mass_grid_GeV']:.1f} GeV", ax=ax)
+    mh.cms.label("Open Data", data=True, lumi=10.0, com=13, ax=ax)
+    return register("observed_mass_scan", "Observed full-data shifted-template mass scan with signal strength profiled at each mass hypothesis; the Z-peak region is excluded from Higgs mass hypotheses and the result is an approximate detector-level diagnostic.", {"best_mass_grid_GeV": mass["best_mass_grid_GeV"], "scan_range_GeV": mass["scan_range_GeV"], "uncertainty": mass["uncertainty"]}, "analysis_note/results/observed_mass_scan.json")
+
+
 def main() -> None:
     ensure_dirs()
     logger = setup_logging()
@@ -248,10 +267,11 @@ def main() -> None:
         plot_stability(validation),
         plot_split(validation),
         plot_viability(parameters, validation),
+        plot_mass_scan(),
     ]
     write_json(OUT / "FIGURES.json", figures)
     append_session(f"Observed figures written\n\n- Registered {len(figures)} figures in `phase4_inference/4c_observed/outputs/FIGURES.json`.")
-    append_experiment(f"## 2026-05-30 — Phase 4c observed figures\n\n- Wrote and registered {len(figures)} full observed-data inference figures, including broad m4l, category overlays, expected comparison, nuisance diagnostics, and split/stability checks.")
+    append_experiment(f"## 2026-05-30 — Phase 4c observed figures\n\n- Wrote and registered {len(figures)} full observed-data inference figures, including broad m4l, category overlays, expected comparison, nuisance diagnostics, split/stability checks, and the observed shifted-template mass scan.")
     logger.info("Wrote %d Phase 4c figures", len(figures))
 
 

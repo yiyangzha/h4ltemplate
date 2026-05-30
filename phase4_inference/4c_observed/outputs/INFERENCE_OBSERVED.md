@@ -1,7 +1,7 @@
 # Phase 4c Observed-Data Inference
 
 Session: `zoran_44a0`
-Created: 2026-05-30T05:21:15+00:00
+Created: 2026-05-30T05:33:22+00:00
 
 ## Summary
 
@@ -20,6 +20,7 @@ The full-data observed result is:
 - compatibility with Phase 4a expected within 2 sigma: `True`
 - compatibility with Phase 4b 10% result within 2 sigma: `True`
 - viability verdict: `PASS`
+- observed shifted-template mass best grid point: `125 GeV`
 
 ## Full Dataset
 
@@ -141,6 +142,46 @@ Full pull and impact payloads are in
 The grouped MC-stat treatment remains the reviewed Phase 4a approximation, not
 a full bin-by-bin HistFactory staterror profile.
 
+## Observed Mass Scan
+
+The full-data follow-up does not assume the observed Higgs candidate peak is at
+125 GeV. It scans shifted M125 detector-level templates with `mu` profiled at
+each mass hypothesis. The likelihood still uses the broad `70 < m4l < 170 GeV`
+fit bins, but the Z peak region is excluded from the Higgs mass-hypothesis grid.
+
+| quantity | value |
+| --- | --- |
+| scan min GeV | 110 |
+| scan max GeV | 150 |
+| scan step GeV | 2.5 |
+| best mass grid GeV | 125 |
+| best profiled mu | 2.478 |
+| uncertainty meaningful | False |
+| grid interval GeV | [125.0, 125.0] |
+| promoted to nominal mass measurement | False |
+
+| mH hypothesis GeV | profiled mu | delta -2lnL | GoF p | fit status |
+| --- | --- | --- | --- | --- |
+| 110 | n/a | n/a | n/a | failed_after_all_fallbacks_FailedMinimization |
+| 112.5 | n/a | n/a | n/a | failed_after_all_fallbacks_FailedMinimization |
+| 115 | n/a | n/a | n/a | failed_after_all_fallbacks_FailedMinimization |
+| 117.5 | n/a | n/a | n/a | failed_after_all_fallbacks_FailedMinimization |
+| 120 | 1.743 | 140.4 | 1e-30 | full_nuisance_fit |
+| 122.5 | 2.99 | 40.18 | 3.576e-06 | full_nuisance_fit |
+| 125 | 2.478 | 0 | 0.1427 | full_nuisance_fit |
+| 127.5 | 1.81 | 19.75 | 0.000926 | full_nuisance_fit |
+| 130 | 1.287 | 50.89 | 3.365e-11 | full_nuisance_fit |
+| 132.5 | 0.97 | 95.44 | 1.532e-26 | full_nuisance_fit |
+| 135 | 0.5096 | 128.9 | 1.981e-38 | full_nuisance_fit |
+| 137.5 | 0.2085 | 185.2 | 4.741e-53 | full_nuisance_fit |
+| 140 | 0 | 272.4 | 1.987e-84 | full_nuisance_fit |
+| 142.5 | 0 | 357.2 | 4.075e-174 | full_nuisance_fit |
+| 145 | n/a | n/a | n/a | failed_after_all_fallbacks_FailedMinimization |
+| 147.5 | n/a | n/a | n/a | failed_after_all_fallbacks_FailedMinimization |
+| 150 | n/a | n/a | n/a | failed_after_all_fallbacks_FailedMinimization |
+
+Limitations: The scan is grid-level and model-limited: only M125 signal MC is available, the Z-peak region is excluded from Higgs mass hypotheses, and any interval is a shifted-template diagnostic rather than a calibrated mass uncertainty.
+
 ## Figures
 
 | figure | PNG | PDF |
@@ -153,6 +194,7 @@ a full bin-by-bin HistFactory staterror profile.
 | observed_binning_stability | figures/observed_binning_stability.png | figures/observed_binning_stability.pdf |
 | observed_split_consistency | figures/observed_split_consistency.png | figures/observed_split_consistency.pdf |
 | observed_uncertainty_viability | figures/observed_uncertainty_viability.png | figures/observed_uncertainty_viability.pdf |
+| observed_mass_scan | figures/observed_mass_scan.png | figures/observed_mass_scan.pdf |
 
 ## Findings And Resolutions
 
@@ -164,12 +206,14 @@ a full bin-by-bin HistFactory staterror profile.
 | VBF and MVA/NN categories are not nominal categories. | Retained S1 final-state categories only; no VBF or classifier labels are used in the fit. | Phase 3 `selected_configuration.json`, `observed_parameters.json` |
 | Full-data viability must be checked honestly. | Evaluated the boundary, fit-triviality, and total-uncertainty gates; if the result is not competitive the verdict remains `LIMITED_NOT_COMPETITIVE` rather than being tuned. | `observed_validation.json`, `observed_uncertainty_viability.png` |
 | Data-sensitive systematics must be re-evaluated where possible. | Recomputed observed-data nuisance pulls, impacts, GoF, category compatibility, alternative binnings, and deterministic split diagnostics; external/fallback priors remain transferred because no new calibration or fake-rate inputs are available. | `observed_parameters.json`, `observed_systematics.json` |
+| Full-data mass must not be assumed to be 125 GeV. | Added an observed shifted-template mass scan with `mu` profiled at each mass hypothesis; classified as approximate detector-level evidence rather than an official calibrated mass measurement. | `observed_mass_scan.json`, `observed_mass_scan.png` |
 
 ## Machine-Readable Outputs
 
 - `analysis_note/results/observed_parameters.json`
 - `analysis_note/results/observed_validation.json`
 - `analysis_note/results/observed_covariance.json`
+- `analysis_note/results/observed_mass_scan.json`
 - `analysis_note/results/observed_systematics.json`
 - `analysis_note/results/observed_systematic_shifts.json`
 - `analysis_note/results/systematics_sources.json`

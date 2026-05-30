@@ -265,6 +265,121 @@ def mu_profile_scan(fit: dict[str, Any]) -> list[dict[str, float]]:
     return [{"mu": float(mu), "delta_twice_nll": profile_q(fit["model"], fit["data"], float(mu), fit["best_nll"])} for mu in np.linspace(0.0, 10.0, 81)]
 
 
+def shifted_mass_templates(events: dict[str, Any], mass: float, *, nominal_mass: float = 125.0, m4l_scale: float = 1.0) -> dict[str, dict[str, Any]]:
+    return mc_templates(events, FIT_BINS, mass_shift_factor=(mass / nominal_mass) * m4l_scale)
+
+
+def mass_interval_from_grid(scan_rows: list[dict[str, Any]]) -> dict[str, Any]:
+    finite_rows = [row for row in scan_rows if row.get("fit_succeeded") and math.isfinite(row["delta_twice_nll"])]
+    in_one_sigma = [row for row in finite_rows if row["delta_twice_nll"] <= 1.0]
+    if not in_one_sigma:
+        return {
+            "meaningful": False,
+            "interval_GeV": None,
+            "reason": "No scanned grid point lies within delta_twice_nll <= 1 of the best point.",
+        }
+    interval = [min(row["mass_hypothesis_GeV"] for row in in_one_sigma), max(row["mass_hypothesis_GeV"] for row in in_one_sigma)]
+    best_mass = min(finite_rows, key=lambda row: row["delta_twice_nll"])["mass_hypothesis_GeV"]
+    at_scan_edge = best_mass in {finite_rows[0]["mass_hypothesis_GeV"], finite_rows[-1]["mass_hypothesis_GeV"]}
+    return {
+        "meaningful": bool(len(in_one_sigma) >= 2 and not at_scan_edge),
+        "interval_GeV": interval,
+        "criterion": "grid points with delta_twice_nll <= 1",
+        "reason": "Coarse grid-level interval only; shifted M125 templates do not provide official calibrated interpolation.",
+    }
+
+
+def observed_mass_scan(events: dict[str, Any], masks: dict[str, Any], active: set[str]) -> dict[str, Any]:
+    mass_values = np.arange(110.0, 150.01, 2.5)
+    observed = observed_counts(events, FIT_BINS, masks["keep"], CHANNELS)
+    rows = []
+    for mass in mass_values:
+        grouped = shifted_mass_templates(events, float(mass))
+        rel = SYSTEMATIC_SOURCES["m4l_scale"]["relative"]
+        m4l_up = shifted_mass_templates(events, float(mass), m4l_scale=1.0 + rel)
+        m4l_down = shifted_mass_templates(events, float(mass), m4l_scale=1.0 - rel)
+        fit_status = "full_nuisance_fit"
+        try:
+            fit = fit_configuration(grouped, observed, CHANNELS, FIT_BINS, active, m4l_up=m4l_up, m4l_down=m4l_down)
+        except Exception as exc:
+            fit_status = f"fallback_without_m4l_scale_after_{type(exc).__name__}"
+            try:
+                fit = fit_configuration(grouped, observed, CHANNELS, FIT_BINS, active - {"m4l_scale"})
+            except Exception as second_exc:
+                fit_status = f"fallback_without_m4l_scale_or_mcstat_after_{type(second_exc).__name__}"
+                try:
+                    fit = fit_configuration(grouped, observed, CHANNELS, FIT_BINS, set(), include_staterror=False)
+                except Exception as final_exc:
+                    rows.append(
+                        {
+                            "mass_hypothesis_GeV": float(mass),
+                            "mu_hat": None,
+                            "mu_uncertainty": None,
+                            "twice_nll": None,
+                            "fit_status": f"failed_after_all_fallbacks_{type(final_exc).__name__}",
+                            "fit_succeeded": False,
+                            "chi2": None,
+                            "ndf": None,
+                            "p_value_chi2": None,
+                        }
+                    )
+                    continue
+        rows.append(
+            {
+                "mass_hypothesis_GeV": float(mass),
+                "mu_hat": fit["uncertainty"]["muhat"],
+                "mu_uncertainty": fit["uncertainty"]["err_sym"],
+                "twice_nll": fit["best_nll"],
+                "fit_status": fit_status,
+                "fit_succeeded": True,
+                "chi2": fit["gof"]["combined"]["chi2"],
+                "ndf": fit["gof"]["combined"]["ndf"],
+                "p_value_chi2": fit["gof"]["combined"]["p_value_chi2"],
+            }
+        )
+    successful_rows = [row for row in rows if row.get("fit_succeeded")]
+    if not successful_rows:
+        raise RuntimeError("Observed mass scan had no successful mass-hypothesis fits.")
+    best_nll = min(row["twice_nll"] for row in successful_rows)
+    for row in rows:
+        row["delta_twice_nll"] = row["twice_nll"] - best_nll if row.get("fit_succeeded") else None
+    best = min(successful_rows, key=lambda row: row["twice_nll"])
+    interval = mass_interval_from_grid(rows)
+    return {
+        "phase": "4c_observed",
+        "created_utc": now(),
+        "method": "observed simultaneous final-state shifted-template mass scan with mu profiled at each mass hypothesis",
+        "profiled_parameter": "mu",
+        "fit_window_GeV": [70.0, 170.0],
+        "scan_range_GeV": {"min": float(mass_values[0]), "max": float(mass_values[-1]), "step": 2.5},
+        "mass_grid_GeV": mass_values.tolist(),
+        "excluded_ranges_GeV": [
+            {
+                "min": 70.0,
+                "max": 105.0,
+                "reason": "Excluded from the Higgs mass-hypothesis grid because this region contains the Z peak and the available M125 H->ZZ* shifted-template approximation is not a valid Higgs-mass model there.",
+            },
+            {
+                "min": 150.0,
+                "max": 170.0,
+                "reason": "Used in the broad signal-strength fit as sideband/background constraint but not scanned as a Higgs mass hypothesis because only M125 shifted detector-level templates are available and high-mass independent signal MC is absent.",
+            },
+        ],
+        "z_peak_treatment": "The full 70-170 GeV binned likelihood is used for observed counts and background constraints, but mass hypotheses below 110 GeV are not considered Higgs candidates.",
+        "template_shift_procedure": "For mass hypothesis mH, selected MC event m4l values are scaled by mH / 125 GeV before refilling final-state templates; this uses only the available M125 samples.",
+        "fit_fallback_policy": "Each grid point first uses the full Phase 4c nuisance model. If pyhf minimization fails for a shifted-template hypothesis, the scan records a fallback fit without the m4l_scale histosys; if that also fails, it records a final fallback without m4l_scale or grouped MC-stat. This keeps failures visible instead of dropping points silently.",
+        "scan_rows": rows,
+        "failed_grid_points": [row for row in rows if not row.get("fit_succeeded")],
+        "best_mass_grid_GeV": best["mass_hypothesis_GeV"],
+        "best_mu_hat": best["mu_hat"],
+        "best_twice_nll": best["twice_nll"],
+        "uncertainty": interval,
+        "promoted_to_nominal_mass_measurement": False,
+        "downgrade_reason": "Observed mass scan uses shifted detector-level M125 templates rather than independent mass-hypothesis MC and official lepton calibration/morphing; classify as approximated evidence, not an official CMS-quality mass measurement.",
+        "limitations": "The scan is grid-level and model-limited: only M125 signal MC is available, the Z-peak region is excluded from Higgs mass hypotheses, and any interval is a shifted-template diagnostic rather than a calibrated mass uncertainty.",
+    }
+
+
 def summarize_observed(events: dict[str, Any], masks: dict[str, Any]) -> dict[str, Any]:
     counts_fit = observed_counts(events, FIT_BINS, masks["keep"], CHANNELS)
     counts_broad = observed_counts(events, BROAD_BINS, masks["keep"], CHANNELS)
@@ -483,13 +598,15 @@ def main() -> None:
     write_json(RESULTS / "observed_parameters.json", parameters)
     write_json(RESULTS / "observed_validation.json", validation)
     write_json(RESULTS / "observed_covariance.json", covariance_payload(fit, grouped, observed, active, m4l_up, m4l_down))
+    mass_payload = observed_mass_scan(events, masks, active)
+    write_json(RESULTS / "observed_mass_scan.json", mass_payload)
     systematics = systematic_payload(active)
     write_json(RESULTS / "observed_systematics.json", systematics)
     write_json(RESULTS / "systematics_sources.json", systematics)
     write_json(RESULTS / "observed_systematic_shifts.json", systematic_shift_payload(grouped, m4l_up, m4l_down, active))
     update_commitments()
-    append_session(f"Observed inference JSON written\n\n- Kept {summary['kept_data_events']} / {summary['total_selected_data_events']} selected data events.\n- Observed fit-window counts: {summary['fit_window_counts_by_channel']}.\n- mu = {mu_payload['value']:.6g} -{mu_payload['uncertainty_minus']} +{mu_payload['uncertainty_plus']}.\n- Expected compatibility pull = {compat_expected['pull_vs_expected']:.3g}; partial compatibility pull = {compat_expected['pull_vs_partial']:.3g}.")
-    append_experiment(f"## 2026-05-30 — Phase 4c full-data observed inference\n\n- Executor `zoran_44a0` applied the latest user-requested Phase 4c instruction: the observed-data fit window is `70 < m4l < 170 GeV`, including the Z peak.\n- Full data kept {summary['kept_data_events']} of {summary['total_selected_data_events']} selected data events.\n- MC templates used full luminosity `{OBSERVED_LUMINOSITY_FB}` fb^-1 with no data-integral normalization.\n- Observed `mu = {mu_payload['value']:.4g}` with symmetric uncertainty `{mu_payload['uncertainty_symmetric']}`; expected-vs-observed pull `{compat_expected['pull_vs_expected']:.3g}` and partial-vs-observed pull `{compat_expected['pull_vs_partial']:.3g}`.")
+    append_session(f"Observed inference JSON written\n\n- Kept {summary['kept_data_events']} / {summary['total_selected_data_events']} selected data events.\n- Observed fit-window counts: {summary['fit_window_counts_by_channel']}.\n- mu = {mu_payload['value']:.6g} -{mu_payload['uncertainty_minus']} +{mu_payload['uncertainty_plus']}.\n- Expected compatibility pull = {compat_expected['pull_vs_expected']:.3g}; partial compatibility pull = {compat_expected['pull_vs_partial']:.3g}.\n- Observed shifted-template mass scan best grid point = {mass_payload['best_mass_grid_GeV']} GeV.")
+    append_experiment(f"## 2026-05-30 — Phase 4c full-data observed inference\n\n- Executor `zoran_44a0` applied the latest user-requested Phase 4c instruction: the observed-data fit window is `70 < m4l < 170 GeV`, including the Z peak.\n- Full data kept {summary['kept_data_events']} of {summary['total_selected_data_events']} selected data events.\n- MC templates used full luminosity `{OBSERVED_LUMINOSITY_FB}` fb^-1 with no data-integral normalization.\n- Observed `mu = {mu_payload['value']:.4g}` with symmetric uncertainty `{mu_payload['uncertainty_symmetric']}`; expected-vs-observed pull `{compat_expected['pull_vs_expected']:.3g}` and partial-vs-observed pull `{compat_expected['pull_vs_partial']:.3g}`.\n- Added an observed shifted-template mass scan over `{mass_payload['scan_range_GeV']['min']}-{mass_payload['scan_range_GeV']['max']}` GeV in `{mass_payload['scan_range_GeV']['step']}` GeV steps; best grid point `{mass_payload['best_mass_grid_GeV']}` GeV with profiled `mu = {mass_payload['best_mu_hat']:.4g}`. The Z peak region is excluded from Higgs mass hypotheses, and the result is not promoted to an official CMS-quality mass measurement.")
     logger.info("Wrote Phase 4c observed inference JSON outputs to %s", RESULTS)
 
 
