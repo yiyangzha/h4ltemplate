@@ -1208,7 +1208,7 @@ def tnp_probes(arrays: Mapping[str, ak.Array], br: Mapping[str, str], probe_pass
         probe_charge = int(charges[iev][probe])
         if tag_charge == 0 or probe_charge == 0 or tag_charge * probe_charge >= 0:
             continue
-        if event_pts[tag] <= 10.0 or not bool(tag_passes[iev][tag]):
+        if not bool(tag_passes[iev][tag]):
             continue
         out["pt"].append(event_pts[probe])
         out["eta"].append(etas[iev][probe])
@@ -1253,7 +1253,7 @@ def tnp_event_probes(arrays: Mapping[str, ak.Array], br: Mapping[str, str], even
         probe_charge = int(charges[iev][probe])
         if tag_charge == 0 or probe_charge == 0 or tag_charge * probe_charge >= 0:
             continue
-        if event_pts[tag] <= 10.0 or not bool(tag_passes[iev][tag]):
+        if not bool(tag_passes[iev][tag]):
             continue
         pair_mass, _, _, _ = system_kinematics(
             (event_pts[tag], etas[iev][tag], phis[iev][tag], masses[iev][tag]),
@@ -1680,9 +1680,8 @@ def plot_hist_comparison(
 ) -> None:
     fig, ax = plt.subplots()
     styles = {
-        "input": (BLUE, "-", "Input"),
-        "output": (RED, "-", "Output"),
-        "expected": (GRAY, "--", "Expected"),
+        "input": (BLUE, "-", "raw"),
+        "output": (RED, "-", "re-weighted"),
     }
     for sample, (color, linestyle, label) in styles.items():
         counts = hist_store.get(key_base + (sample,), np.zeros(len(edges) - 1))
@@ -1732,10 +1731,10 @@ def plot_efficiency(
     centers = 0.5 * (edges[:-1] + edges[1:])
 
     draw_specs = [
-        ("input", "mc_truth", BLUE, "o", "Input MC truth"),
-        ("input", "tnp", BLUE, "s", "Input TnP"),
-        ("output", "mc_truth", RED, "o", "Output MC truth"),
-        ("output", "tnp", RED, "s", "Output TnP"),
+        ("input", "mc_truth", BLUE, "o", "raw MC truth"),
+        ("input", "tnp", BLUE, "s", "raw TnP"),
+        ("output", "mc_truth", RED, "o", "re-weighted MC truth"),
+        ("output", "tnp", RED, "s", "re-weighted TnP"),
     ]
     for sample, method, color, marker, label in draw_specs:
         key = (flavor, branch, sample, method, var)
@@ -1758,26 +1757,6 @@ def plot_efficiency(
             capsize=2,
             label=label,
         )
-
-    expected_key = (flavor, branch, "expected", var)
-    if expected_key in expected_store:
-        expected, _ = efficiency_values(expected_store[expected_key])
-        valid = np.isfinite(expected)
-        first_label = True
-        for lo, hi, y, keep in zip(edges[:-1], edges[1:], expected, valid):
-            if not keep:
-                continue
-            ax.hlines(
-                y,
-                lo,
-                hi,
-                colors=GRAY,
-                linestyles="--",
-                linewidth=1.8,
-                zorder=10,
-                label="Expected" if first_label else None,
-            )
-            first_label = False
 
     ax.set_xlabel(xlabel)
     ax.set_ylabel("Efficiency")
