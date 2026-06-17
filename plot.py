@@ -202,6 +202,20 @@ def selected_event_efficiency_branches(plot_cfg: Mapping, modify_cfg: Mapping, f
     return {branch: all_cfgs[branch] for branch in selected if branch in all_cfgs}
 
 
+def tnp_tag_id_branch(flavor: str) -> str:
+    return "Muon_mediumId" if flavor == "muon" else "Electron_cutBased"
+
+
+def tnp_tag_id_cfg(cfg: Mapping, flavor: str) -> Mapping:
+    branch = tnp_tag_id_branch(flavor)
+    all_cfgs = efficiency_branch_cfgs(cfg, flavor)
+    if branch in all_cfgs:
+        return all_cfgs[branch]
+    if flavor == "muon":
+        return {"type": "bool"}
+    return {"type": "int_wp", "pass_threshold": 3}
+
+
 def fnv1a64(text: str) -> int:
     h = 1469598103934665603
     for byte in text.encode():
@@ -434,14 +448,18 @@ def cms_style() -> None:
         {
             "figure.figsize": (7.0, 6.0),
             "font.family": "DejaVu Sans",
-            "font.size": 12,
+            "font.size": 15,
+            "axes.labelsize": 17,
             "axes.linewidth": 1.2,
             "axes.grid": False,
+            "xtick.labelsize": 14,
+            "ytick.labelsize": 14,
             "xtick.direction": "in",
             "ytick.direction": "in",
             "xtick.top": True,
             "ytick.right": True,
             "legend.frameon": False,
+            "legend.fontsize": 13,
             "savefig.bbox": "tight",
         }
     )
@@ -641,12 +659,10 @@ def branch_requests(cfg: Mapping, plot_cfg: Mapping) -> List[str]:
     for flavor in ("muon", "electron"):
         br = lepton_branches(cfg, flavor)
         requested.extend(br.values())
-        prefix = flavor_prefix(flavor)
-        requested.append(f"{prefix}_genPartIdx")
+        requested.append(tnp_tag_id_branch(flavor))
         requested.extend(selected_efficiency_branches(plot_cfg, cfg, flavor).keys())
         requested.extend(selected_event_efficiency_branches(plot_cfg, cfg, flavor).keys())
     requested.extend(event_id_branches(cfg).values())
-    requested.extend(["GenPart_pdgId", "GenPart_statusFlags"])
     return list(dict.fromkeys(x for x in requested if x))
 
 
@@ -685,24 +701,31 @@ def build_base_efficiency_maps(
                     continue
                 pt = arrays[br["pt"]]
                 eta = arrays[br["eta"]]
-                truth = mc_truth_mask(arrays, flavor, pt)
-                flat_truth = ak.to_numpy(ak.flatten(truth, axis=1)).astype(bool)
-                flat_pt, _ = flatten_jagged(pt)
-                flat_eta, _ = flatten_jagged(eta)
+                charge = arrays.get(br.get("charge"))
                 energy = None
                 if cfg.get("efficiency", {}).get("binning", {}).get("energy"):
                     if br.get("energy") and br["energy"] in arrays:
-                        energy, _ = flatten_jagged(arrays[br["energy"]])
+                        energy = arrays[br["energy"]]
                     else:
-                        energy = flat_pt * np.cosh(flat_eta)
-                flat_bin, _, _, _ = flat_eff_bin(cfg, flat_pt, flat_eta, energy)
+                        energy = pt * np.cosh(eta)
                 for branch, ecfg in selected_efficiency_branches(plot_cfg, cfg, flavor).items():
                     if branch not in arrays:
                         continue
-                    passed = ak.to_numpy(ak.flatten(pass_mask(arrays[branch], ecfg), axis=1)).astype(float)
-                    maps[(flavor, branch)]["total"] += np.bincount(flat_bin[flat_truth], minlength=n_eff_bins(cfg))
+                    leading = os_probe_lepton_values(
+                        pt,
+                        eta,
+                        charge=charge,
+                        passed=pass_mask(arrays[branch], ecfg),
+                        energy=energy,
+                    )
+                    if len(leading["pt"]) == 0:
+                        continue
+                    flat_energy = leading["energy"] if energy is not None else None
+                    flat_bin, _, _, _ = flat_eff_bin(cfg, leading["pt"], leading["eta"], flat_energy)
+                    denom = leading["denom"].astype(bool)
+                    maps[(flavor, branch)]["total"] += np.bincount(flat_bin[denom], minlength=n_eff_bins(cfg))
                     maps[(flavor, branch)]["pass"] += np.bincount(
-                        flat_bin[flat_truth], weights=passed[flat_truth], minlength=n_eff_bins(cfg)
+                        flat_bin[denom], weights=leading["pass"][denom].astype(float), minlength=n_eff_bins(cfg)
                     )
 
                 for branch, ecfg in selected_event_efficiency_branches(plot_cfg, cfg, flavor).items():
@@ -814,26 +837,7 @@ def distorted_probability_flat(
 
 
 def mc_truth_mask(arrays: Mapping[str, ak.Array], flavor: str, pt_like):
-    prefix = flavor_prefix(flavor)
-    idx_name = f"{prefix}_genPartIdx"
-    if idx_name not in arrays or "GenPart_pdgId" not in arrays:
-        print(f"[WARN] Missing MC truth branches for {flavor}; using all reconstructed leptons as MC-truth denominator")
-        return ak.ones_like(pt_like, dtype=bool)
-
-    gen_idx = arrays[idx_name]
-    gen_pdg = arrays["GenPart_pdgId"]
-    gen_count = ak.num(gen_pdg, axis=1)
-    valid = (gen_idx >= 0) & (gen_idx < gen_count)
-    safe_idx = ak.where(valid, gen_idx, 0)
-    padded_pdg = ak.pad_none(gen_pdg, 1, clip=False)
-    matched_pdg = ak.fill_none(padded_pdg[safe_idx], 0)
-    mask = valid & (abs(matched_pdg) == (13 if flavor == "muon" else 11))
-
-    if "GenPart_statusFlags" in arrays:
-        flags = ak.fill_none(ak.pad_none(arrays["GenPart_statusFlags"], 1, clip=False)[safe_idx], 0)
-        prompt = ((flags & 1) != 0) | ((flags & (1 << 8)) != 0)
-        mask = mask & prompt
-    return mask
+    return ak.ones_like(pt_like, dtype=bool)
 
 
 def leading_event_values(pt, eta, phi, denom_mask=None) -> Dict[str, np.ndarray]:
@@ -850,6 +854,43 @@ def leading_event_values(pt, eta, phi, denom_mask=None) -> Dict[str, np.ndarray]
         out["eta"].append(etas[iev][lead])
         out["phi"].append(phis[iev][lead] if phis is not None else 0.0)
         out["denom"].append(bool(masks[iev][lead]) if masks is not None else True)
+    return {key: np.asarray(value) for key, value in out.items()}
+
+
+def os_probe_lepton_values(
+    pt,
+    eta,
+    phi=None,
+    charge=None,
+    passed=None,
+    energy=None,
+) -> Dict[str, np.ndarray]:
+    pts = ak.to_list(pt)
+    etas = ak.to_list(eta)
+    phis = ak.to_list(phi) if phi is not None else None
+    charges = ak.to_list(charge) if charge is not None else None
+    passes = ak.to_list(passed) if passed is not None else None
+    energies = ak.to_list(energy) if energy is not None else None
+    out = {"pt": [], "eta": [], "phi": [], "energy": [], "pass": [], "denom": []}
+    if charges is None:
+        return {key: np.asarray(value) for key, value in out.items()}
+    for iev, event_pts in enumerate(pts):
+        limit = min(len(event_pts), len(charges[iev]))
+        if limit < 2:
+            continue
+        ordered = sorted(range(limit), key=lambda idx: event_pts[idx], reverse=True)
+        tag = ordered[0]
+        probe = ordered[1]
+        tag_charge = int(charges[iev][tag])
+        probe_charge = int(charges[iev][probe])
+        if tag_charge == 0 or probe_charge == 0 or tag_charge * probe_charge >= 0:
+            continue
+        out["pt"].append(event_pts[probe])
+        out["eta"].append(etas[iev][probe])
+        out["phi"].append(phis[iev][probe] if phis is not None else 0.0)
+        out["energy"].append(energies[iev][probe] if energies is not None else 0.0)
+        out["pass"].append(bool(passes[iev][probe]) if passes is not None else True)
+        out["denom"].append(True)
     return {key: np.asarray(value) for key, value in out.items()}
 
 
@@ -957,8 +998,8 @@ def system_kinematics(l1: Tuple[float, float, float, float], l2: Tuple[float, fl
     return mass, pt, eta, phi
 
 
-def tnp_probes(arrays: Mapping[str, ak.Array], br: Mapping[str, str], passed) -> Dict[str, np.ndarray]:
-    required = [br.get("pt"), br.get("eta"), br.get("phi"), br.get("mass")]
+def tnp_probes(arrays: Mapping[str, ak.Array], br: Mapping[str, str], probe_passed, tag_passed) -> Dict[str, np.ndarray]:
+    required = [br.get("pt"), br.get("eta"), br.get("phi"), br.get("mass"), br.get("charge")]
     if any(name not in arrays for name in required):
         return {
             "pt": np.array([]),
@@ -972,45 +1013,33 @@ def tnp_probes(arrays: Mapping[str, ak.Array], br: Mapping[str, str], passed) ->
     etas = ak.to_list(arrays[br["eta"]])
     phis = ak.to_list(arrays[br["phi"]])
     masses = ak.to_list(arrays[br["mass"]])
-    charges = ak.to_list(arrays[br["charge"]]) if br.get("charge") in arrays else None
-    passes = ak.to_list(passed)
+    charges = ak.to_list(arrays[br["charge"]])
+    probe_passes = ak.to_list(probe_passed)
+    tag_passes = ak.to_list(tag_passed)
 
     out = {"pt": [], "eta": [], "phi": [], "mass": [], "pass": []}
     for iev, event_pts in enumerate(pts):
-        n = len(event_pts)
-        if n < 2:
+        limit = min(len(event_pts), len(charges[iev]), len(probe_passes[iev]), len(tag_passes[iev]))
+        if limit < 2:
             continue
-        best = None
-        best_delta = None
-        for i in range(n):
-            for j in range(i + 1, n):
-                if charges is not None and charges[iev][i] * charges[iev][j] >= 0:
-                    continue
-                mass, _, _, _ = system_kinematics(
-                    (event_pts[i], etas[iev][i], phis[iev][i], masses[iev][i]),
-                    (event_pts[j], etas[iev][j], phis[iev][j], masses[iev][j]),
-                )
-                if not (60.0 <= mass <= 120.0):
-                    continue
-                delta = abs(mass - Z_MASS)
-                if best_delta is None or delta < best_delta:
-                    best = (i, j)
-                    best_delta = delta
-        if best is None:
+        ordered = sorted(range(limit), key=lambda idx: event_pts[idx], reverse=True)
+        tag = ordered[0]
+        probe = ordered[1]
+        tag_charge = int(charges[iev][tag])
+        probe_charge = int(charges[iev][probe])
+        if tag_charge == 0 or probe_charge == 0 or tag_charge * probe_charge >= 0:
             continue
-        i, j = best
-        for tag, probe in ((i, j), (j, i)):
-            if event_pts[tag] < 20.0 or not passes[iev][tag]:
-                continue
-            out["pt"].append(event_pts[probe])
-            out["eta"].append(etas[iev][probe])
-            out["phi"].append(phis[iev][probe])
-            mass, _, _, _ = system_kinematics(
-                (event_pts[tag], etas[iev][tag], phis[iev][tag], masses[iev][tag]),
-                (event_pts[probe], etas[iev][probe], phis[iev][probe], masses[iev][probe]),
-            )
-            out["mass"].append(mass)
-            out["pass"].append(bool(passes[iev][probe]))
+        if event_pts[tag] <= 10.0 or not bool(tag_passes[iev][tag]):
+            continue
+        out["pt"].append(event_pts[probe])
+        out["eta"].append(etas[iev][probe])
+        out["phi"].append(phis[iev][probe])
+        mass, _, _, _ = system_kinematics(
+            (event_pts[tag], etas[iev][tag], phis[iev][tag], masses[iev][tag]),
+            (event_pts[probe], etas[iev][probe], phis[iev][probe], masses[iev][probe]),
+        )
+        out["mass"].append(mass)
+        out["pass"].append(bool(probe_passes[iev][probe]))
     return {key: np.asarray(value) for key, value in out.items()}
 
 
@@ -1162,6 +1191,15 @@ def save_tnp_fit_plot(plot_path: Path, title: str, tier: str, uid: str, mass, sa
         ROOT.RooFit.LineColor(ROOT.kRed + 1),
         ROOT.RooFit.Name(f"model_all_{uid}"),
     )
+    sim_pdf.plotOn(
+        frame,
+        ROOT.RooFit.Slice(sample, "all"),
+        ROOT.RooFit.ProjWData(sample_set, comb_data),
+        ROOT.RooFit.Components(f"bkg_all_{uid}"),
+        ROOT.RooFit.LineColor(ROOT.kRed + 2),
+        ROOT.RooFit.LineStyle(ROOT.kDashed),
+        ROOT.RooFit.Name(f"bkg_all_{uid}"),
+    )
     comb_data.plotOn(
         frame,
         ROOT.RooFit.Cut(f"{sample_name}=={sample_name}::pass"),
@@ -1176,19 +1214,35 @@ def save_tnp_fit_plot(plot_path: Path, title: str, tier: str, uid: str, mass, sa
         ROOT.RooFit.LineColor(ROOT.kBlue + 1),
         ROOT.RooFit.Name(f"model_pass_{uid}"),
     )
+    sim_pdf.plotOn(
+        frame,
+        ROOT.RooFit.Slice(sample, "pass"),
+        ROOT.RooFit.ProjWData(sample_set, comb_data),
+        ROOT.RooFit.Components(f"bkg_pass_{uid}"),
+        ROOT.RooFit.LineColor(ROOT.kBlue + 2),
+        ROOT.RooFit.LineStyle(ROOT.kDashed),
+        ROOT.RooFit.Name(f"bkg_pass_{uid}"),
+    )
 
     canvas = ROOT.TCanvas(f"canvas_{uid}", f"canvas_{uid}", 900, 700)
     frame.GetXaxis().SetTitle("m_{ll} [GeV]")
     frame.GetYaxis().SetTitle("Candidates")
+    frame.GetXaxis().SetTitleSize(0.052)
+    frame.GetYaxis().SetTitleSize(0.052)
+    frame.GetXaxis().SetLabelSize(0.044)
+    frame.GetYaxis().SetLabelSize(0.044)
     frame.Draw()
     legend = ROOT.TLegend(0.62, 0.70, 0.88, 0.88)
     legend.SetBorderSize(0)
     legend.SetFillStyle(0)
+    legend.SetTextSize(0.034)
     for object_name, label, option in (
         (f"data_all_{uid}", "all data", "pe"),
         (f"model_all_{uid}", f"all {tier}", "l"),
+        (f"bkg_all_{uid}", "all bkg exp", "l"),
         (f"data_pass_{uid}", "pass data", "pe"),
         (f"model_pass_{uid}", f"pass {tier}", "l"),
+        (f"bkg_pass_{uid}", "pass bkg exp", "l"),
     ):
         obj = frame.findObject(object_name)
         if obj:
@@ -1551,7 +1605,7 @@ def plot_efficiency(
     ax.set_xlabel(xlabel)
     ax.set_ylabel("A.U.")
     ax.set_ylim(0.0, 1.0)
-    ax.legend(fontsize=10)
+    ax.legend(fontsize=12)
     add_cms_label(ax)
     fig.savefig(figdir / filename)
     plt.close(fig)
@@ -1641,6 +1695,7 @@ def analyze(modify_cfg: Mapping, plot_cfg: Mapping, pairs: Sequence[Tuple[Path, 
                 if any(name not in arr_in or name not in arr_out for name in needed):
                     continue
                 charge_in = arr_in.get(br.get("charge"))
+                charge_out = arr_out.get(br.get("charge"))
                 pt_in = arr_in[br["pt"]]
                 eta_in = arr_in[br["eta"]]
                 phi_in = arr_in[br["phi"]]
@@ -1692,7 +1747,7 @@ def analyze(modify_cfg: Mapping, plot_cfg: Mapping, pairs: Sequence[Tuple[Path, 
 
                 selected_eff = selected_efficiency_branches(plot_cfg, modify_cfg, flavor)
                 selected_event_eff = selected_event_efficiency_branches(plot_cfg, modify_cfg, flavor)
-                if selected_eff or selected_event_eff:
+                if selected_event_eff:
                     truth_in = mc_truth_mask(arr_in, flavor, pt_in)
                     truth_out = mc_truth_mask(arr_out, flavor, pt_out)
 
@@ -1701,54 +1756,61 @@ def analyze(modify_cfg: Mapping, plot_cfg: Mapping, pairs: Sequence[Tuple[Path, 
                         continue
                     pass_in = pass_mask(arr_in[branch], ecfg)
                     pass_out = pass_mask(arr_out[branch], ecfg)
+                    leading_in = os_probe_lepton_values(pt_in, eta_in, phi_in, charge=charge_in, passed=pass_in)
+                    leading_out = os_probe_lepton_values(pt_out, eta_out, phi_out, charge=charge_out, passed=pass_out)
                     variables = eff_variables.get((flavor, branch), [])
-                    for sample, truth, passed, pt, eta, phi in (
-                        ("input", truth_in, pass_in, pt_in, eta_in, phi_in),
-                        ("output", truth_out, pass_out, pt_out, eta_out, phi_out),
+                    for sample, leading in (
+                        ("input", leading_in),
+                        ("output", leading_out),
                     ):
-                        values_by_var = {"pt": pt, "eta": eta, "phi": phi}
+                        values_by_var = {"pt": leading["pt"], "eta": leading["eta"], "phi": leading["phi"]}
                         for var in variables:
                             if var not in values_by_var or var not in eff_edges:
                                 print(f"[WARN] Unsupported efficiency variable {flavor}.{branch}.{var}; skipping")
                                 continue
-                            add_efficiency_counts(
+                            add_efficiency_counts_flat(
                                 eff_store,
                                 (flavor, branch, sample, "mc_truth", var),
                                 values_by_var[var],
-                                truth,
-                                passed,
+                                leading["denom"],
+                                leading["pass"],
                                 eff_edges[var],
                             )
 
-                    tnp_in = tnp_probes(arr_in, br, pass_in)
-                    tnp_out = tnp_probes(arr_out, br, pass_out)
+                    tag_branch = tnp_tag_id_branch(flavor)
+                    tag_cfg = tnp_tag_id_cfg(modify_cfg, flavor)
+                    tag_pass_in = pass_mask(arr_in[tag_branch], tag_cfg) if tag_branch in arr_in else ak.zeros_like(pt_in, dtype=bool)
+                    tag_pass_out = pass_mask(arr_out[tag_branch], tag_cfg) if tag_branch in arr_out else ak.zeros_like(pt_out, dtype=bool)
+                    tnp_in = tnp_probes(arr_in, br, pass_in, tag_pass_in)
+                    tnp_out = tnp_probes(arr_out, br, pass_out, tag_pass_out)
                     add_tnp_mass_candidates(tnp_mass_store, (flavor, branch, "input", "tnp"), tnp_in, eff_edges, variables)
                     add_tnp_mass_candidates(tnp_mass_store, (flavor, branch, "output", "tnp"), tnp_out, eff_edges, variables)
 
                     base_map = base_maps.get((flavor, branch))
-                    values_in_by_var = {"pt": pt_in, "eta": eta_in, "phi": phi_in}
                     if base_map is not None:
-                        exp_probs = distorted_probability(modify_cfg, base_map, ecfg, pt_exp, eta_in)
-                        values_by_var = {"pt": pt_exp, "eta": eta_in, "phi": phi_in}
+                        leading_exp = os_probe_lepton_values(pt_exp, eta_in, phi_in, charge=charge_in)
+                        exp_probs = distorted_probability_flat(modify_cfg, base_map, ecfg, leading_exp["pt"], leading_exp["eta"])
+                        values_by_var = {"pt": leading_exp["pt"], "eta": leading_exp["eta"], "phi": leading_exp["phi"]}
+                        values_in_by_var = {"pt": leading_in["pt"], "eta": leading_in["eta"], "phi": leading_in["phi"]}
                         for var in variables:
                             if var not in values_by_var or var not in eff_edges:
                                 continue
                             if var in ("pt", "eta"):
-                                add_expected_counts(
+                                add_expected_counts_flat(
                                     expected_eff_store,
                                     (flavor, branch, "expected", var),
                                     values_by_var[var],
                                     exp_probs,
                                     eff_edges[var],
-                                    truth_in,
+                                    leading_exp["denom"],
                                 )
                             elif var in values_in_by_var:
-                                add_efficiency_counts(
+                                add_efficiency_counts_flat(
                                     expected_eff_store,
                                     (flavor, branch, "expected", var),
                                     values_in_by_var[var],
-                                    truth_in,
-                                    pass_in,
+                                    leading_in["denom"],
+                                    leading_in["pass"],
                                     eff_edges[var],
                                 )
 

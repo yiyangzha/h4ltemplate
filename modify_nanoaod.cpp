@@ -1675,35 +1675,27 @@ void prescanFlavor(TTree* tree,
   enableBranchIfPresent(tree, br.n);
   enableBranchIfPresent(tree, br.pt);
   enableBranchIfPresent(tree, br.eta);
+  if (!br.charge.empty()) enableBranchIfPresent(tree, br.charge);
   if (useModifiedKinematics) {
-    enableBranchIfPresent(tree, br.charge);
     enableBranchIfPresent(tree, cfg.eventId.run);
     enableBranchIfPresent(tree, cfg.eventId.luminosityBlock);
     enableBranchIfPresent(tree, cfg.eventId.event);
   }
   for (const auto& e : effCfgs) enableBranchIfPresent(tree, e.name);
-  enableBranchIfPresent(tree, genPartIdxBranch(isMuon));
-  enableBranchIfPresent(tree, "nGenPart");
-  enableBranchIfPresent(tree, "GenPart_pdgId");
-  enableBranchIfPresent(tree, "GenPart_statusFlags");
-
   BranchBuffer n, pt, eta;
   if (!n.bind(tree, br.n, 1, true, context)) return;
   if (!pt.bind(tree, br.pt, maxN + 1, true, context)) return;
   if (!eta.bind(tree, br.eta, maxN + 1, true, context)) return;
   BranchBuffer charge;
-  if (useModifiedKinematics && !br.charge.empty()) charge.bind(tree, br.charge, maxN + 1, false, context);
+  if (br.charge.empty() || !charge.bind(tree, br.charge, maxN + 1, true, context)) {
+    logLine("WARN", context + ": missing charge branch; skipping OS-pair efficiency denominator");
+    return;
+  }
   BranchBuffer run, lumi, event;
   if (useModifiedKinematics) {
     run.bind(tree, cfg.eventId.run, 1, false, context);
     lumi.bind(tree, cfg.eventId.luminosityBlock, 1, false, context);
     event.bind(tree, cfg.eventId.event, 1, false, context);
-  }
-  TruthRuntime truth = bindTruthRuntime(tree, context);
-  BranchBuffer genPartIdx;
-  const bool haveTruth = bindFlavorTruthBranch(tree, genPartIdx, isMuon, maxN, context) && truth.genPdgId.bound();
-  if (!haveTruth) {
-    logLine("WARN", context + ": missing usable MC truth branches; using all reconstructed leptons as efficiency denominator");
   }
   BranchBuffer energy;
   bool useEnergy = false;
@@ -1736,33 +1728,66 @@ void prescanFlavor(TTree* tree,
     const std::uint64_t lumiValue = useModifiedKinematics && lumi.bound() ? lumi.getUInt64(0) : 0;
     const std::uint64_t eventValue = useModifiedKinematics && event.bound() ? event.getUInt64(0) : 0;
     const std::size_t nObj = static_cast<std::size_t>(n.getUInt64(0));
-    const std::size_t limit = std::min({nObj, pt.availableForN(nObj), eta.availableForN(nObj)});
+    const std::size_t limit = std::min({nObj, pt.availableForN(nObj), eta.availableForN(nObj), charge.availableForN(nObj)});
+    if (limit < 2) continue;
+
+    bool haveTag = false;
+    bool haveProbe = false;
+    double tagPt = 0.0;
+    double probePt = 0.0;
+    std::size_t tagIndex = 0;
+    std::size_t probeIndex = 0;
     for (std::size_t i = 0; i < limit; ++i) {
-      if (!truthMatchedLepton(genPartIdx, &truth, i, isMuon ? 13 : 11)) continue;
+      const int chargeValue = static_cast<int>(charge.getInt64(i));
       const double oldPt = pt.getDouble(i);
       const double etaValue = eta.getDouble(i);
-      const double oldEnergy = useEnergy && i < energy.availableForN(nObj) ? energy.getDouble(i) : std::numeric_limits<double>::quiet_NaN();
-      const int chargeValue = charge.bound() && i < charge.availableForN(nObj) ? static_cast<int>(charge.getInt64(i)) : 0;
-      const double newPt = useModifiedKinematics
+      const double rankPt = useModifiedKinematics
           ? modifiedLeptonPt(cfg, isMuon, oldPt, etaValue, chargeValue, runValue, lumiValue, eventValue, entry, i)
           : oldPt;
-      const double energyValue = useModifiedKinematics && std::isfinite(oldEnergy) && oldPt > 0.0
-          ? oldEnergy * (newPt / oldPt)
-          : oldEnergy;
-      const BinIndex idx = makeBinIndex(cfg.binning, newPt, etaValue, energyValue);
-      for (auto& e : effBranches) {
-        if (i >= e.branch.availableForN(nObj)) continue;
-        e.counts->add(idx.flat, originalPasses(e.cfg, e.branch, i));
+      if (!haveTag || rankPt > tagPt) {
+        if (haveTag) {
+          probePt = tagPt;
+          probeIndex = tagIndex;
+          haveProbe = true;
+        }
+        tagPt = rankPt;
+        tagIndex = i;
+        haveTag = true;
+      } else if (!haveProbe || rankPt > probePt) {
+        probePt = rankPt;
+        probeIndex = i;
+        haveProbe = true;
       }
-      if (joint.active()) {
-        const bool loose = originalPasses(effBranches[static_cast<std::size_t>(joint.loose)].cfg,
-                                          effBranches[static_cast<std::size_t>(joint.loose)].branch, i);
-        const bool medium = originalPasses(effBranches[static_cast<std::size_t>(joint.medium)].cfg,
-                                           effBranches[static_cast<std::size_t>(joint.medium)].branch, i);
-        const bool tight = originalPasses(effBranches[static_cast<std::size_t>(joint.tight)].cfg,
-                                          effBranches[static_cast<std::size_t>(joint.tight)].branch, i);
-        jointCounts.add(idx.flat, jointIdState(loose, medium, tight));
-      }
+    }
+    if (!haveTag || !haveProbe) continue;
+    const int tagCharge = static_cast<int>(charge.getInt64(tagIndex));
+    const int probeCharge = static_cast<int>(charge.getInt64(probeIndex));
+    if (tagCharge == 0 || probeCharge == 0 || tagCharge * probeCharge >= 0) continue;
+
+    const std::size_t i = probeIndex;
+    const double oldPt = pt.getDouble(i);
+    const double etaValue = eta.getDouble(i);
+    const double oldEnergy = useEnergy && i < energy.availableForN(nObj) ? energy.getDouble(i) : std::numeric_limits<double>::quiet_NaN();
+    const int chargeValue = charge.bound() && i < charge.availableForN(nObj) ? static_cast<int>(charge.getInt64(i)) : 0;
+    const double newPt = useModifiedKinematics
+        ? modifiedLeptonPt(cfg, isMuon, oldPt, etaValue, chargeValue, runValue, lumiValue, eventValue, entry, i)
+        : oldPt;
+    const double energyValue = useModifiedKinematics && std::isfinite(oldEnergy) && oldPt > 0.0
+        ? oldEnergy * (newPt / oldPt)
+        : oldEnergy;
+    const BinIndex idx = makeBinIndex(cfg.binning, newPt, etaValue, energyValue);
+    for (auto& e : effBranches) {
+      if (i >= e.branch.availableForN(nObj)) continue;
+      e.counts->add(idx.flat, originalPasses(e.cfg, e.branch, i));
+    }
+    if (joint.active()) {
+      const bool loose = originalPasses(effBranches[static_cast<std::size_t>(joint.loose)].cfg,
+                                        effBranches[static_cast<std::size_t>(joint.loose)].branch, i);
+      const bool medium = originalPasses(effBranches[static_cast<std::size_t>(joint.medium)].cfg,
+                                         effBranches[static_cast<std::size_t>(joint.medium)].branch, i);
+      const bool tight = originalPasses(effBranches[static_cast<std::size_t>(joint.tight)].cfg,
+                                        effBranches[static_cast<std::size_t>(joint.tight)].branch, i);
+      jointCounts.add(idx.flat, jointIdState(loose, medium, tight));
     }
   }
 }
