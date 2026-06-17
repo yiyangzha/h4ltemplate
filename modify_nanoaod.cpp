@@ -1836,7 +1836,7 @@ int main(int argc, char** argv) {
       return 0;
     }
 
-    logLine("INFO", "Stage A: pre-scanning input files for maximum lepton counts and efficiency maps");
+    logLine("INFO", "Stage A: pre-scanning all input files for one merged global efficiency calibration");
     std::vector<PreScanResult> scans(inputs.size());
     parallelFor(inputs.size(), cfg.threads, [&](std::size_t i) {
       scans[i] = prescanFile(cfg, inputs[i]);
@@ -1850,15 +1850,19 @@ int main(int argc, char** argv) {
     Calibration calibration = makeEmptyCalibration(cfg);
     for (const PreScanResult& scan : scans) mergeCalibration(calibration, scan.calibration);
     if (cfg.efficiencyEnabled) {
+      logLine("INFO", "Merged efficiency calibration will be used for every output file");
       for (const auto& kv : calibration.muon) {
         logLine("INFO", "Muon efficiency calibration " + quote(kv.first) + ": total=" + std::to_string(kv.second.globalTotal));
       }
       for (const auto& kv : calibration.electron) {
         logLine("INFO", "Electron efficiency calibration " + quote(kv.first) + ": total=" + std::to_string(kv.second.globalTotal));
       }
+      for (const auto& kv : calibration.event) {
+        logLine("INFO", "Event efficiency calibration " + quote(kv.first) + ": total=" + std::to_string(kv.second.globalTotal));
+      }
     }
 
-    logLine("INFO", "Stage B: writing modified ROOT files");
+    logLine("INFO", "Stage B: writing one modified ROOT file per input file using the merged calibration");
     parallelFor(scans.size(), cfg.threads, [&](std::size_t i) {
       modifyFile(cfg, calibration, scans[i], outputs[i]);
     });

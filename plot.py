@@ -1203,7 +1203,7 @@ def analyze(modify_cfg: Mapping, plot_cfg: Mapping, pairs: Sequence[Tuple[Path, 
     dilepton_specs = {item["flavor"]: item["variables"] for item in dilepton_distribution_specs(plot_cfg)}
     flavors_to_process = set(lepton_specs) | set(dilepton_specs) | {item["flavor"] for item in eff_specs}
 
-    print("[INFO] Stage A: learning input efficiency maps")
+    print("[INFO] Stage A: learning one merged input efficiency map from all input ROOT files")
     base_maps = build_base_efficiency_maps(modify_cfg, plot_cfg, [src for src, _ in pairs], chunk_size)
 
     eff_store: Dict[Tuple, Dict[str, np.ndarray]] = {}
@@ -1212,7 +1212,7 @@ def analyze(modify_cfg: Mapping, plot_cfg: Mapping, pairs: Sequence[Tuple[Path, 
     dilepton_store: Dict[Tuple, np.ndarray] = {}
 
     requested = branch_requests(modify_cfg, plot_cfg)
-    print("[INFO] Stage B: comparing input, expected, and output")
+    print("[INFO] Stage B: comparing all input/output ROOT pairs and merging them into common plots")
     for input_path, output_path in pairs:
         if not output_path.exists():
             raise RuntimeError(f"Expected output file does not exist: {output_path}")
