@@ -1,3 +1,7 @@
 modify_nanoaod
 modified
 figures
+.pixi
+!.pixi/config.toml
+pixi*
+.gitattributes
