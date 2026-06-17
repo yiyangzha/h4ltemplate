@@ -2,12 +2,14 @@
   "modify_config": "config.json",
   "figures": "figures",
   "tree_name": "Events",
-  "files": [
-    {
-      "input": "../higgs_tautau_2012/mc/DYJetsToLL.root",
-      "output": "modified/DYJetsToLL_modified.root"
-    }
-  ],
+  "input": {
+    "path": "../cms_h4l/raw/",
+    "recursive": false
+  },
+  "output": {
+    "directory": "modified",
+    "suffix": "_modified"
+  },
   "efficiencies": [
     {
       "level": "lepton",

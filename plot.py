@@ -11,6 +11,7 @@ parameters.
 from __future__ import annotations
 
 import argparse
+import glob
 import json
 import math
 from pathlib import Path
@@ -190,23 +191,136 @@ def fnv1a64(text: str) -> int:
     return h
 
 
-def file_pairs(plot_cfg: Mapping, base_dir: Path) -> List[Tuple[Path, Path]]:
+def short_hash_hex(text: str) -> str:
+    return f"{fnv1a64(text) & 0xFFFFFFFF:08x}"
+
+
+def contains_glob_meta(path: str) -> bool:
+    return any(char in path for char in "*?[")
+
+
+def path_entries(section: Mapping) -> List[str]:
+    entries: List[str] = []
+    if "path" in section:
+        entries.append(section["path"])
+    if "file" in section:
+        entries.append(section["file"])
+    entries.extend(section.get("paths", []))
+    entries.extend(section.get("files", []))
+    return entries
+
+
+def expand_root_paths(section: Mapping, base_dir: Path, allow_missing_file: bool = False) -> List[Path]:
+    recursive = bool(section.get("recursive", False))
+    files = set()
+    for raw in path_entries(section):
+        path = resolve_path(raw, base_dir)
+        raw_pattern = str(path)
+        if contains_glob_meta(raw):
+            for match in glob.glob(raw_pattern, recursive=recursive):
+                matched = Path(match)
+                if matched.is_file() and matched.suffix == ".root":
+                    files.add(matched.resolve())
+            continue
+        if path.is_dir():
+            iterator = path.rglob("*.root") if recursive else path.glob("*.root")
+            for match in iterator:
+                if match.is_file():
+                    files.add(match.resolve())
+            continue
+        if path.suffix == ".root" and (allow_missing_file or path.exists()):
+            files.add(path.resolve())
+    return sorted(files)
+
+
+def output_directory_from_config(output_cfg: Mapping, base_dir: Path, modify_cfg: Mapping) -> Optional[Path]:
+    if "directory" in output_cfg:
+        return resolve_path(output_cfg["directory"], base_dir)
+    entries = path_entries(output_cfg)
+    if len(entries) == 1 and not contains_glob_meta(entries[0]):
+        candidate = resolve_path(entries[0], base_dir)
+        if candidate.suffix != ".root":
+            return candidate
+        if candidate.is_dir():
+            return candidate
+    if not entries:
+        modify_output = modify_cfg.get("output", {})
+        return resolve_path(modify_output.get("directory", "modified"), base_dir)
+    return None
+
+
+def make_expected_outputs(inputs: Sequence[Path], out_dir: Path, suffix: str) -> List[Path]:
+    outputs = []
+    used = set()
+    for src in inputs:
+        ext = src.suffix or ".root"
+        out = out_dir / f"{src.stem}{suffix}{ext}"
+        resolved = out.resolve()
+        if resolved in used:
+            out = out_dir / f"{src.stem}_{short_hash_hex(str(src))}{suffix}{ext}"
+            resolved = out.resolve()
+        used.add(resolved)
+        outputs.append(out)
+    return outputs
+
+
+def match_outputs_by_suffix(inputs: Sequence[Path], outputs: Sequence[Path], suffix: str) -> Optional[List[Path]]:
+    by_name = {out.name: out for out in outputs}
+    matched = []
+    for src in inputs:
+        expected_name = f"{src.stem}{suffix}{src.suffix or '.root'}"
+        out = by_name.get(expected_name)
+        if out is None:
+            return None
+        matched.append(out)
+    return matched
+
+
+def file_pairs(plot_cfg: Mapping, modify_cfg: Mapping, base_dir: Path) -> List[Tuple[Path, Path]]:
+    suffix = plot_cfg.get("output", {}).get("suffix", modify_cfg.get("output", {}).get("suffix", "_modified"))
+
     if "files" in plot_cfg:
-        pairs = []
+        pairs: List[Tuple[Path, Path]] = []
         for item in plot_cfg["files"]:
             if "input" not in item or "output" not in item:
                 raise ValueError("Each config_plot.json files entry must contain input and output")
-            pairs.append((resolve_path(item["input"], base_dir), resolve_path(item["output"], base_dir)))
+            input_cfg = {"path": item["input"], "recursive": item.get("recursive", False)}
+            output_cfg = {"path": item["output"], "recursive": item.get("recursive", False), "suffix": item.get("suffix", suffix)}
+            inputs = expand_root_paths(input_cfg, base_dir, allow_missing_file=True)
+            out_dir = output_directory_from_config(output_cfg, base_dir, modify_cfg)
+            if out_dir is not None:
+                outputs = make_expected_outputs(inputs, out_dir, output_cfg["suffix"])
+            else:
+                outputs = expand_root_paths(output_cfg, base_dir, allow_missing_file=True)
+                matched = match_outputs_by_suffix(inputs, outputs, output_cfg["suffix"])
+                if matched is not None:
+                    outputs = matched
+            if len(inputs) != len(outputs):
+                raise ValueError(f"Cannot pair input/output files for config_plot files entry {item}")
+            pairs.extend(zip(inputs, outputs))
         return pairs
 
-    input_files = plot_cfg.get("input", {}).get("files", [])
-    output_files = plot_cfg.get("output", {}).get("files", [])
-    if len(input_files) != len(output_files):
-        raise ValueError("config_plot.json input.files and output.files must have the same length")
-    return [
-        (resolve_path(src, base_dir), resolve_path(dst, base_dir))
-        for src, dst in zip(input_files, output_files)
-    ]
+    input_cfg = plot_cfg.get("input", {})
+    output_cfg = plot_cfg.get("output", {})
+    inputs = expand_root_paths(input_cfg, base_dir, allow_missing_file=True)
+    if not inputs:
+        raise ValueError("config_plot.json input did not match any ROOT files")
+
+    out_dir = output_directory_from_config(output_cfg, base_dir, modify_cfg)
+    if out_dir is not None:
+        outputs = make_expected_outputs(inputs, out_dir, suffix)
+    else:
+        outputs = expand_root_paths(output_cfg, base_dir, allow_missing_file=True)
+        matched = match_outputs_by_suffix(inputs, outputs, suffix)
+        if matched is not None:
+            outputs = matched
+        elif len(outputs) != len(inputs):
+            raise ValueError(
+                "config_plot.json output must be a directory+suffix, or must match the number of input ROOT files"
+            )
+    if len(inputs) != len(outputs):
+        raise ValueError("config_plot.json input/output ROOT file counts do not match")
+    return list(zip(inputs, outputs))
 
 
 def open_tree(path: Path, tree_name: str):
@@ -1330,7 +1444,7 @@ def main() -> None:
     modify_config_path = resolve_path(plot_cfg.get("modify_config", "config.json"), base_dir)
     modify_cfg = load_config(modify_config_path)
 
-    pairs = file_pairs(plot_cfg, base_dir)
+    pairs = file_pairs(plot_cfg, modify_cfg, base_dir)
     if not pairs:
         raise SystemExit("No input/output ROOT file pairs found in config_plot.json")
     for src, dst in pairs:
