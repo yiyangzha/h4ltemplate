@@ -3,7 +3,7 @@
   "figures": "figures",
   "tree_name": "Events",
   "input": {
-    "path": "../cms_h4l/raw/",
+    "path": "../cms_h4l/raw/599809F9-6E6F-9B40-88BD-2C5049861107.root",
     "recursive": false
   },
   "output": {
