@@ -33,6 +33,7 @@
 #include <stdexcept>
 #include <string>
 #include <thread>
+#include <tuple>
 #include <utility>
 #include <vector>
 
@@ -306,6 +307,17 @@ std::vector<std::vector<double>> readDouble2D(const Json* j) {
   return out;
 }
 
+std::vector<double> signedEtaEdgesFromAbs(const std::vector<double>& absEta) {
+  if (absEta.empty()) return {};
+  std::vector<double> out;
+  out.reserve(absEta.size() * 2 - 1);
+  for (auto it = absEta.rbegin(); it != absEta.rend(); ++it) {
+    if (*it > 0.0) out.push_back(-*it);
+  }
+  for (double edge : absEta) out.push_back(edge);
+  return out;
+}
+
 // ------------------------------- Config ----------------------------------
 
 struct RegionScale {
@@ -330,8 +342,15 @@ struct DistortionConfig {
   double ptSlopeLog = 0.0;
   double ptReference = 45.0;
   std::vector<double> etaFactors;
+  std::vector<double> signedEtaFactors;
   std::vector<double> ptFactors;
   std::vector<std::vector<double>> binFactors;
+  std::vector<std::vector<double>> etaPtFactors;
+  double ptTurnonAmplitude = 0.0;
+  double ptTurnonCenter = 25.0;
+  double ptTurnonWidth = 8.0;
+  double ptTurnonShift = 0.0;
+  double ptTurnonWidthScale = 1.0;
 };
 
 enum class EffType { Bool, IntWP, FloatMax };
@@ -368,6 +387,7 @@ struct EventIdBranches {
 struct BinningConfig {
   std::vector<double> pt;
   std::vector<double> absEta;
+  std::vector<double> eta;
   std::vector<double> energy;
 };
 
@@ -469,8 +489,15 @@ DistortionConfig parseDistortion(const Json* obj, double defaultPtRef) {
   d.ptSlopeLog = getDouble(obj, "pt_slope_log", 0.0);
   d.ptReference = getDouble(obj, "pt_reference", defaultPtRef);
   d.etaFactors = readDoubleArray(child(obj, "eta_factors"));
+  d.signedEtaFactors = readDoubleArray(child(obj, "signed_eta_factors"));
   d.ptFactors = readDoubleArray(child(obj, "pt_factors"));
   d.binFactors = readDouble2D(child(obj, "bin_factors"));
+  d.etaPtFactors = readDouble2D(child(obj, "eta_pt_factors"));
+  d.ptTurnonAmplitude = getDouble(obj, "pt_turnon_amplitude", 0.0);
+  d.ptTurnonCenter = getDouble(obj, "pt_turnon_center", 25.0);
+  d.ptTurnonWidth = getDouble(obj, "pt_turnon_width", 8.0);
+  d.ptTurnonShift = getDouble(obj, "pt_turnon_shift", 0.0);
+  d.ptTurnonWidthScale = getDouble(obj, "pt_turnon_width_scale", 1.0);
   return d;
 }
 
@@ -574,6 +601,8 @@ Config parseConfig(const std::string& path) {
   const Json* binning = child(eff, "binning");
   cfg.binning.pt = readDoubleArray(child(binning, "pt"), {5, 10, 20, 30, 40, 50, 80, 120, 200});
   cfg.binning.absEta = readDoubleArray(child(binning, "abs_eta"), {0.0, 0.8, 1.2, 1.4442, 1.566, 2.0, 2.5});
+  cfg.binning.eta = readDoubleArray(child(binning, "eta"));
+  if (cfg.binning.eta.empty()) cfg.binning.eta = signedEtaEdgesFromAbs(cfg.binning.absEta);
   cfg.binning.energy = readDoubleArray(child(binning, "energy"));
   cfg.muonEffBranches = parseEffBranches(child(eff, "muon_branches"), cfg.scalePtReference);
   cfg.electronEffBranches = parseEffBranches(child(eff, "electron_branches"), cfg.scalePtReference);
@@ -587,6 +616,7 @@ Config parseConfig(const std::string& path) {
   };
   validateEdges(cfg.binning.pt, "pt");
   validateEdges(cfg.binning.absEta, "abs_eta");
+  validateEdges(cfg.binning.eta, "eta");
   if (!cfg.binning.energy.empty()) validateEdges(cfg.binning.energy, "energy");
   return cfg;
 }
@@ -977,6 +1007,7 @@ int findBinClamped(const std::vector<double>& edges, double x) {
 struct BinIndex {
   int pt = 0;
   int eta = 0;
+  int absEta = 0;
   int energy = 0;
   int flat = 0;
 };
@@ -984,9 +1015,10 @@ struct BinIndex {
 BinIndex makeBinIndex(const BinningConfig& b, double pt, double eta, double energy = std::numeric_limits<double>::quiet_NaN()) {
   BinIndex idx;
   idx.pt = findBinClamped(b.pt, pt);
-  idx.eta = findBinClamped(b.absEta, std::abs(eta));
+  idx.eta = findBinClamped(b.eta, eta);
+  idx.absEta = findBinClamped(b.absEta, std::abs(eta));
   const int nPt = static_cast<int>(b.pt.size() - 1);
-  const int nEta = static_cast<int>(b.absEta.size() - 1);
+  const int nEta = static_cast<int>(b.eta.size() - 1);
   if (!b.energy.empty()) {
     const double binEnergy = std::isfinite(energy) ? energy : std::max(0.0, pt) * std::cosh(eta);
     idx.energy = findBinClamped(b.energy, binEnergy);
@@ -1001,7 +1033,7 @@ BinIndex makeBinIndex(const BinningConfig& b, double pt, double eta, double ener
 
 int nFlatBins(const BinningConfig& b) {
   const int nPt = static_cast<int>(b.pt.size() - 1);
-  const int nEta = static_cast<int>(b.absEta.size() - 1);
+  const int nEta = static_cast<int>(b.eta.size() - 1);
   const int nEnergy = b.energy.empty() ? 1 : static_cast<int>(b.energy.size() - 1);
   return nPt * nEta * nEnergy;
 }
@@ -1073,20 +1105,40 @@ bool originalPasses(const EffBranchConfig& cfg, const BranchBuffer& branch, std:
   return branch.getInt64(i) >= cfg.passThreshold;
 }
 
+double sigmoid(double x) {
+  if (x >= 40.0) return 1.0;
+  if (x <= -40.0) return 0.0;
+  return 1.0 / (1.0 + std::exp(-x));
+}
+
 double distortedEfficiency(double base, const EffBranchConfig& cfg, const BinIndex& idx, double pt) {
   double p = base * cfg.distortion.globalFactor;
-  if (idx.eta >= 0 && idx.eta < static_cast<int>(cfg.distortion.etaFactors.size())) {
-    p *= cfg.distortion.etaFactors[idx.eta];
+  if (idx.absEta >= 0 && idx.absEta < static_cast<int>(cfg.distortion.etaFactors.size())) {
+    p *= cfg.distortion.etaFactors[idx.absEta];
+  }
+  if (idx.eta >= 0 && idx.eta < static_cast<int>(cfg.distortion.signedEtaFactors.size())) {
+    p *= cfg.distortion.signedEtaFactors[idx.eta];
   }
   if (idx.pt >= 0 && idx.pt < static_cast<int>(cfg.distortion.ptFactors.size())) {
     p *= cfg.distortion.ptFactors[idx.pt];
   }
-  if (idx.eta >= 0 && idx.eta < static_cast<int>(cfg.distortion.binFactors.size())) {
-    const auto& row = cfg.distortion.binFactors[idx.eta];
+  if (idx.absEta >= 0 && idx.absEta < static_cast<int>(cfg.distortion.binFactors.size())) {
+    const auto& row = cfg.distortion.binFactors[idx.absEta];
+    if (idx.pt >= 0 && idx.pt < static_cast<int>(row.size())) p *= row[idx.pt];
+  }
+  if (idx.eta >= 0 && idx.eta < static_cast<int>(cfg.distortion.etaPtFactors.size())) {
+    const auto& row = cfg.distortion.etaPtFactors[idx.eta];
     if (idx.pt >= 0 && idx.pt < static_cast<int>(row.size())) p *= row[idx.pt];
   }
   const double ptRef = std::max(cfg.distortion.ptReference, 1.0e-9);
   p *= 1.0 + cfg.distortion.ptSlopeLog * std::log(std::max(pt, 1.0e-9) / ptRef);
+  if (cfg.distortion.ptTurnonAmplitude != 0.0) {
+    const double width = std::max(cfg.distortion.ptTurnonWidth, 1.0e-3);
+    const double shiftedWidth = std::max(width * cfg.distortion.ptTurnonWidthScale, 1.0e-3);
+    const double nominal = sigmoid((pt - cfg.distortion.ptTurnonCenter) / width);
+    const double shifted = sigmoid((pt - cfg.distortion.ptTurnonCenter - cfg.distortion.ptTurnonShift) / shiftedWidth);
+    p *= 1.0 + cfg.distortion.ptTurnonAmplitude * (shifted - nominal);
+  }
   if (!std::isfinite(p)) p = 0.0;
   return std::clamp(p, 0.0, 1.0);
 }
@@ -1132,7 +1184,7 @@ std::uint64_t objectKey(const Config& cfg,
                         Long64_t entry,
                         std::size_t index,
                         int flavor,
-                        const std::string& stream) {
+                        std::uint64_t streamHash) {
   std::uint64_t key = cfg.seed;
   hashCombine(key, run);
   hashCombine(key, lumi);
@@ -1140,7 +1192,7 @@ std::uint64_t objectKey(const Config& cfg,
   if (run == 0 && lumi == 0 && event == 0) hashCombine(key, static_cast<std::uint64_t>(entry));
   hashCombine(key, static_cast<std::uint64_t>(index));
   hashCombine(key, static_cast<std::uint64_t>(flavor));
-  hashCombine(key, fnv1a64(stream));
+  hashCombine(key, streamHash);
   return key;
 }
 
@@ -1250,25 +1302,31 @@ struct PreScanResult {
   Calibration calibration;
 };
 
-std::size_t readMaxCount(TTree* tree, const std::string& branchName, const std::string& context) {
-  if (branchName.empty()) return 0;
+std::pair<std::size_t, std::size_t> readMaxLeptonCounts(TTree* tree, const Config& cfg, const std::string& input) {
   tree->ResetBranchAddresses();
   tree->SetBranchStatus("*", 0);
-  BranchBuffer n;
-  if (!n.bind(tree, branchName, 1, true, context)) return 0;
-  std::size_t maxN = 0;
+  BranchBuffer nMuon;
+  BranchBuffer nElectron;
+  const bool haveMuon = nMuon.bind(tree, cfg.muonBranches.n, 1, true, input + " [max nMuon]");
+  const bool haveElectron = nElectron.bind(tree, cfg.electronBranches.n, 1, true, input + " [max nElectron]");
+  std::size_t maxMuon = 0;
+  std::size_t maxElectron = 0;
+  if (!haveMuon && !haveElectron) return {maxMuon, maxElectron};
+
   const Long64_t entries = tree->GetEntries();
   for (Long64_t i = 0; i < entries; ++i) {
     tree->GetEntry(i);
-    maxN = std::max<std::size_t>(maxN, static_cast<std::size_t>(n.getUInt64(0)));
+    if (haveMuon) maxMuon = std::max<std::size_t>(maxMuon, static_cast<std::size_t>(nMuon.getUInt64(0)));
+    if (haveElectron) maxElectron = std::max<std::size_t>(maxElectron, static_cast<std::size_t>(nElectron.getUInt64(0)));
   }
-  return maxN;
+  return {maxMuon, maxElectron};
 }
 
 struct EffBranchRuntime {
   EffBranchConfig cfg;
   BranchBuffer branch;
   EffCounts* counts = nullptr;
+  std::uint64_t streamHash = 0;
 };
 
 void writeEfficiencyValue(EffBranchRuntime& branch, std::size_t index, bool pass) {
@@ -1446,8 +1504,7 @@ PreScanResult prescanFile(const Config& cfg, const std::string& input) {
   if (!tree) fail("Input file " + quote(input) + " does not contain tree " + quote(cfg.treeName));
   tree->SetCacheSize(64LL * 1024LL * 1024LL);
 
-  result.maxMuon = readMaxCount(tree, cfg.muonBranches.n, input + " [max nMuon]");
-  result.maxElectron = readMaxCount(tree, cfg.electronBranches.n, input + " [max nElectron]");
+  std::tie(result.maxMuon, result.maxElectron) = readMaxLeptonCounts(tree, cfg, input);
   prescanFlavor(tree, cfg, input, true, result.maxMuon, result.calibration);
   prescanFlavor(tree, cfg, input, false, result.maxElectron, result.calibration);
   prescanEventEfficiencies(tree, cfg, input, result.maxMuon, result.maxElectron, result.calibration);
@@ -1510,6 +1567,7 @@ FlavorRuntime bindFlavorForModification(TTree* tree,
       EffBranchRuntime brt;
       brt.cfg = e;
       brt.counts = const_cast<EffCounts*>(&it->second);
+      brt.streamHash = fnv1a64("efficiency:" + e.name);
       if (brt.branch.bind(tree, e.name, maxN + 1, true, context)) rt.effBranches.push_back(std::move(brt));
     }
   }
@@ -1544,6 +1602,7 @@ EventRuntime bindEventEfficienciesForModification(TTree* tree,
     brt.eff.cfg = e;
     brt.referenceFlavor = eventReferenceFlavor(e);
     brt.eff.counts = const_cast<EffCounts*>(&it->second);
+    brt.eff.streamHash = fnv1a64("efficiency:" + e.name);
     if (brt.eff.branch.bind(tree, e.name, 1, true, context)) rt.branches.push_back(std::move(brt));
   }
   return rt;
@@ -1560,6 +1619,7 @@ void processFlavor(FlavorRuntime& rt,
   const int flavorId = isMuon ? 13 : 11;
   const std::vector<RegionScale>& scaleRegions = isMuon ? cfg.muonScale : cfg.electronScale;
   const std::vector<RegionResolution>& resRegions = isMuon ? cfg.muonResolution : cfg.electronResolution;
+  static const std::uint64_t resolutionStreamHash = fnv1a64("resolution");
   const std::size_t nObj = static_cast<std::size_t>(rt.n.getUInt64(0));
   const std::size_t limit = std::min({nObj, rt.pt.availableForN(nObj), rt.eta.availableForN(nObj)});
   if (limit < nObj && !rt.warnedSizeMismatch) {
@@ -1580,7 +1640,7 @@ void processFlavor(FlavorRuntime& rt,
     if (cfg.resolutionEnabled) {
       const double sigma = resolutionSigma(resRegions, eta, oldPt, cfg.scalePtReference);
       if (sigma > 0.0) {
-        const std::uint64_t key = objectKey(cfg, run, lumi, eventId, entry, i, flavorId, "resolution");
+        const std::uint64_t key = objectKey(cfg, run, lumi, eventId, entry, i, flavorId, resolutionStreamHash);
         newPt *= 1.0 + normal01(key) * sigma;
       }
     }
@@ -1594,7 +1654,7 @@ void processFlavor(FlavorRuntime& rt,
         if (i >= e.branch.availableForN(nObj)) continue;
         const double base = e.counts->efficiency(idx.flat);
         const double p = distortedEfficiency(base, e.cfg, idx, newPt);
-        const std::uint64_t key = objectKey(cfg, run, lumi, eventId, entry, i, flavorId, "efficiency:" + e.cfg.name);
+        const std::uint64_t key = objectKey(cfg, run, lumi, eventId, entry, i, flavorId, e.streamHash);
         const bool pass = uniform01(key) < p;
         writeEfficiencyValue(e, i, pass);
       }
@@ -1622,7 +1682,7 @@ void processEventEfficiencies(EventRuntime& eventRt,
     const double base = e.eff.counts->efficiency(idx.flat);
     const double p = distortedEfficiency(base, e.eff.cfg, idx, leadPt);
     const int flavorId = e.referenceFlavor == "electron" ? 11 : 13;
-    const std::uint64_t key = objectKey(cfg, run, lumi, eventId, entry, leadIndex, flavorId, "efficiency:" + e.eff.cfg.name);
+    const std::uint64_t key = objectKey(cfg, run, lumi, eventId, entry, leadIndex, flavorId, e.eff.streamHash);
     writeEfficiencyValue(e.eff, 0, uniform01(key) < p);
   }
 }

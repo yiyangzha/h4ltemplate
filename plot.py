@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import argparse
 import glob
+import itertools
 import json
 import math
 from pathlib import Path
@@ -24,13 +25,24 @@ try:
     import uproot
 except ImportError as exc:
     raise SystemExit(
-        "Missing Python dependency. Install/use an environment with uproot, awkward, numpy, and matplotlib."
+        "Missing Python dependency. Use an environment with uproot, awkward, numpy, matplotlib, mplhep, and PyROOT."
     ) from exc
 
 import matplotlib
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+
+try:
+    import ROOT
+    import mplhep as hep
+except ImportError as exc:
+    raise SystemExit(
+        "Missing Python dependency. Use an environment with uproot, awkward, numpy, matplotlib, mplhep, and PyROOT."
+    ) from exc
+
+ROOT.gROOT.SetBatch(True)
+ROOT.RooMsgService.instance().setGlobalKillBelow(ROOT.RooFit.WARNING)
 
 
 BLUE = "#5790fc"
@@ -39,6 +51,7 @@ GRAY = "#9c9ca1"
 Z_MASS = 91.1876
 UINT64 = np.uint64
 MASK64 = (1 << 64) - 1
+TNP_FIT_COUNTER = itertools.count()
 
 
 def load_config(path: Path) -> dict:
@@ -381,11 +394,16 @@ def unflatten_like(flat: np.ndarray, counts: np.ndarray) -> ak.Array:
     return ak.unflatten(flat, counts)
 
 
+def signed_eta_edges_from_abs(abs_eta_edges: Sequence[float]) -> List[float]:
+    abs_edges = [float(x) for x in abs_eta_edges]
+    return [-x for x in reversed(abs_edges) if x > 0.0] + abs_edges
+
+
 def bin_edges(modify_cfg: Mapping, plot_cfg: Mapping) -> Dict[str, np.ndarray]:
     eff_binning = modify_cfg.get("efficiency", {}).get("binning", {})
     pt_edges = np.asarray(eff_binning.get("pt", [5, 10, 20, 30, 40, 50, 80, 120, 200]), dtype=float)
     abs_eta_edges = np.asarray(eff_binning.get("abs_eta", [0.0, 0.8, 1.2, 1.4442, 1.566, 2.0, 2.5]), dtype=float)
-    signed_eta = sorted(set([-float(x) for x in abs_eta_edges[:0:-1]] + [float(x) for x in abs_eta_edges]))
+    signed_eta = eff_binning.get("eta", signed_eta_edges_from_abs(abs_eta_edges))
 
     hist_pt = np.unique(np.concatenate(([0.0], pt_edges, [max(300.0, pt_edges[-1] * 1.5)])))
     validation = plot_cfg.get("binning", {})
@@ -405,6 +423,7 @@ def bin_edges(modify_cfg: Mapping, plot_cfg: Mapping) -> Dict[str, np.ndarray]:
 
 
 def cms_style() -> None:
+    hep.style.use("CMS")
     plt.rcParams.update(
         {
             "figure.figsize": (7.0, 6.0),
@@ -423,9 +442,8 @@ def cms_style() -> None:
 
 
 def add_cms_label(ax, right_text: str = "Simulation") -> None:
-    ax.text(0.0, 1.02, "CMS", transform=ax.transAxes, fontsize=16, fontweight="bold", va="bottom")
-    ax.text(0.13, 1.02, "Preliminary", transform=ax.transAxes, fontsize=12, va="bottom")
-    ax.text(1.0, 1.02, right_text, transform=ax.transAxes, fontsize=12, ha="right", va="bottom")
+    del right_text
+    hep.cms.label("Preliminary", data=False, com=13, ax=ax)
 
 
 def bin_index(values: np.ndarray, edges: np.ndarray) -> np.ndarray:
@@ -433,14 +451,18 @@ def bin_index(values: np.ndarray, edges: np.ndarray) -> np.ndarray:
     return np.clip(idx, 0, len(edges) - 2)
 
 
-def flat_eff_bin(cfg: Mapping, pt: np.ndarray, eta: np.ndarray, energy: Optional[np.ndarray] = None) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+def flat_eff_bin(
+    cfg: Mapping, pt: np.ndarray, eta: np.ndarray, energy: Optional[np.ndarray] = None
+) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     eff_binning = cfg.get("efficiency", {}).get("binning", {})
     pt_edges = np.asarray(eff_binning.get("pt", [5, 10, 20, 30, 40, 50, 80, 120, 200]), dtype=float)
-    eta_edges = np.asarray(eff_binning.get("abs_eta", [0.0, 0.8, 1.2, 1.4442, 1.566, 2.0, 2.5]), dtype=float)
+    abs_eta_edges = np.asarray(eff_binning.get("abs_eta", [0.0, 0.8, 1.2, 1.4442, 1.566, 2.0, 2.5]), dtype=float)
+    eta_edges = np.asarray(eff_binning.get("eta", signed_eta_edges_from_abs(abs_eta_edges)), dtype=float)
     energy_edges = eff_binning.get("energy")
 
     pt_bin = bin_index(pt, pt_edges)
-    eta_bin = bin_index(np.abs(eta), eta_edges)
+    eta_bin = bin_index(eta, eta_edges)
+    abs_eta_bin = bin_index(np.abs(eta), abs_eta_edges)
     n_pt = len(pt_edges) - 1
     n_eta = len(eta_edges) - 1
     if energy_edges:
@@ -451,13 +473,14 @@ def flat_eff_bin(cfg: Mapping, pt: np.ndarray, eta: np.ndarray, energy: Optional
         flat = (energy_bin * n_eta + eta_bin) * n_pt + pt_bin
     else:
         flat = eta_bin * n_pt + pt_bin
-    return flat, pt_bin, eta_bin
+    return flat, pt_bin, eta_bin, abs_eta_bin
 
 
 def n_eff_bins(cfg: Mapping) -> int:
     eff_binning = cfg.get("efficiency", {}).get("binning", {})
     n_pt = len(eff_binning.get("pt", [5, 10, 20, 30, 40, 50, 80, 120, 200])) - 1
-    n_eta = len(eff_binning.get("abs_eta", [0.0, 0.8, 1.2, 1.4442, 1.566, 2.0, 2.5])) - 1
+    abs_eta_edges = eff_binning.get("abs_eta", [0.0, 0.8, 1.2, 1.4442, 1.566, 2.0, 2.5])
+    n_eta = len(eff_binning.get("eta", signed_eta_edges_from_abs(abs_eta_edges))) - 1
     n_energy = max(1, len(eff_binning.get("energy", [])) - 1)
     return n_pt * n_eta * n_energy
 
@@ -664,7 +687,7 @@ def build_base_efficiency_maps(
                         energy, _ = flatten_jagged(arrays[br["energy"]])
                     else:
                         energy = flat_pt * np.cosh(flat_eta)
-                flat_bin, _, _ = flat_eff_bin(cfg, flat_pt, flat_eta, energy)
+                flat_bin, _, _, _ = flat_eff_bin(cfg, flat_pt, flat_eta, energy)
                 for branch, ecfg in selected_efficiency_branches(plot_cfg, cfg, flavor).items():
                     if branch not in arrays:
                         continue
@@ -681,7 +704,7 @@ def build_base_efficiency_maps(
                     event_pass = ak.to_numpy(pass_mask(arrays[branch], ecfg)).astype(float)
                     valid_events = ak.to_numpy(ak.num(pt, axis=1) > 0).astype(bool)
                     passed = event_pass[valid_events]
-                    event_bin, _, _ = flat_eff_bin(cfg, leading["pt"], leading["eta"])
+                    event_bin, _, _, _ = flat_eff_bin(cfg, leading["pt"], leading["eta"])
                     maps[(flavor, branch)]["total"] += np.bincount(event_bin, minlength=n_eff_bins(cfg))
                     maps[(flavor, branch)]["pass"] += np.bincount(event_bin, weights=passed, minlength=n_eff_bins(cfg))
     return maps
@@ -700,7 +723,7 @@ def distorted_probability(
     flat_energy = None
     if energy is not None:
         flat_energy, _ = flatten_jagged(energy)
-    flat_bin, pt_bin, eta_bin = flat_eff_bin(cfg, flat_pt, flat_eta, flat_energy)
+    flat_bin, pt_bin, eta_bin, abs_eta_bin = flat_eff_bin(cfg, flat_pt, flat_eta, flat_energy)
     passed = base_map["pass"][flat_bin]
     total = base_map["total"][flat_bin]
     global_total = float(np.sum(base_map["total"]))
@@ -713,6 +736,11 @@ def distorted_probability(
     eta_factors = distortion.get("eta_factors", [])
     if eta_factors:
         eta_arr = np.asarray(eta_factors, dtype=float)
+        valid = abs_eta_bin < len(eta_arr)
+        prob = np.where(valid, prob * eta_arr[np.clip(abs_eta_bin, 0, len(eta_arr) - 1)], prob)
+    signed_eta_factors = distortion.get("signed_eta_factors", [])
+    if signed_eta_factors:
+        eta_arr = np.asarray(signed_eta_factors, dtype=float)
         valid = eta_bin < len(eta_arr)
         prob = np.where(valid, prob * eta_arr[np.clip(eta_bin, 0, len(eta_arr) - 1)], prob)
     pt_factors = distortion.get("pt_factors", [])
@@ -725,10 +753,25 @@ def distorted_probability(
         for ieta, row in enumerate(bin_factors):
             row_arr = np.asarray(row, dtype=float)
             for ipt, factor in enumerate(row_arr):
+                prob = np.where((abs_eta_bin == ieta) & (pt_bin == ipt), prob * factor, prob)
+    eta_pt_factors = distortion.get("eta_pt_factors", [])
+    if eta_pt_factors:
+        for ieta, row in enumerate(eta_pt_factors):
+            row_arr = np.asarray(row, dtype=float)
+            for ipt, factor in enumerate(row_arr):
                 prob = np.where((eta_bin == ieta) & (pt_bin == ipt), prob * factor, prob)
 
     pt_ref = float(distortion.get("pt_reference", cfg.get("scale", {}).get("pt_reference", 45.0)))
     prob *= 1.0 + float(distortion.get("pt_slope_log", 0.0)) * np.log(np.maximum(flat_pt, 1.0e-9) / max(pt_ref, 1.0e-9))
+    turnon_amp = float(distortion.get("pt_turnon_amplitude", 0.0))
+    if turnon_amp != 0.0:
+        width = max(float(distortion.get("pt_turnon_width", 8.0)), 1.0e-3)
+        shifted_width = max(width * float(distortion.get("pt_turnon_width_scale", 1.0)), 1.0e-3)
+        center = float(distortion.get("pt_turnon_center", 25.0))
+        shift = float(distortion.get("pt_turnon_shift", 0.0))
+        nominal = 1.0 / (1.0 + np.exp(-np.clip((flat_pt - center) / width, -40.0, 40.0)))
+        shifted = 1.0 / (1.0 + np.exp(-np.clip((flat_pt - center - shift) / shifted_width, -40.0, 40.0)))
+        prob *= 1.0 + turnon_amp * (shifted - nominal)
     prob = np.clip(np.where(np.isfinite(prob), prob, 0.0), 0.0, 1.0)
     return unflatten_like(prob, counts)
 
@@ -742,7 +785,7 @@ def distorted_probability_flat(
 ):
     pt = np.asarray(pt, dtype=float)
     eta = np.asarray(eta, dtype=float)
-    flat_bin, pt_bin, eta_bin = flat_eff_bin(cfg, pt, eta)
+    flat_bin, pt_bin, eta_bin, abs_eta_bin = flat_eff_bin(cfg, pt, eta)
     passed = base_map["pass"][flat_bin]
     total = base_map["total"][flat_bin]
     global_total = float(np.sum(base_map["total"]))
@@ -755,6 +798,11 @@ def distorted_probability_flat(
     eta_factors = distortion.get("eta_factors", [])
     if eta_factors:
         eta_arr = np.asarray(eta_factors, dtype=float)
+        valid = abs_eta_bin < len(eta_arr)
+        prob = np.where(valid, prob * eta_arr[np.clip(abs_eta_bin, 0, len(eta_arr) - 1)], prob)
+    signed_eta_factors = distortion.get("signed_eta_factors", [])
+    if signed_eta_factors:
+        eta_arr = np.asarray(signed_eta_factors, dtype=float)
         valid = eta_bin < len(eta_arr)
         prob = np.where(valid, prob * eta_arr[np.clip(eta_bin, 0, len(eta_arr) - 1)], prob)
     pt_factors = distortion.get("pt_factors", [])
@@ -762,8 +810,25 @@ def distorted_probability_flat(
         pt_arr = np.asarray(pt_factors, dtype=float)
         valid = pt_bin < len(pt_arr)
         prob = np.where(valid, prob * pt_arr[np.clip(pt_bin, 0, len(pt_arr) - 1)], prob)
+    for ieta, row in enumerate(distortion.get("bin_factors", [])):
+        row_arr = np.asarray(row, dtype=float)
+        for ipt, factor in enumerate(row_arr):
+            prob = np.where((abs_eta_bin == ieta) & (pt_bin == ipt), prob * factor, prob)
+    for ieta, row in enumerate(distortion.get("eta_pt_factors", [])):
+        row_arr = np.asarray(row, dtype=float)
+        for ipt, factor in enumerate(row_arr):
+            prob = np.where((eta_bin == ieta) & (pt_bin == ipt), prob * factor, prob)
     pt_ref = float(distortion.get("pt_reference", cfg.get("scale", {}).get("pt_reference", 45.0)))
     prob *= 1.0 + float(distortion.get("pt_slope_log", 0.0)) * np.log(np.maximum(pt, 1.0e-9) / max(pt_ref, 1.0e-9))
+    turnon_amp = float(distortion.get("pt_turnon_amplitude", 0.0))
+    if turnon_amp != 0.0:
+        width = max(float(distortion.get("pt_turnon_width", 8.0)), 1.0e-3)
+        shifted_width = max(width * float(distortion.get("pt_turnon_width_scale", 1.0)), 1.0e-3)
+        center = float(distortion.get("pt_turnon_center", 25.0))
+        shift = float(distortion.get("pt_turnon_shift", 0.0))
+        nominal = 1.0 / (1.0 + np.exp(-np.clip((pt - center) / width, -40.0, 40.0)))
+        shifted = 1.0 / (1.0 + np.exp(-np.clip((pt - center - shift) / shifted_width, -40.0, 40.0)))
+        prob *= 1.0 + turnon_amp * (shifted - nominal)
     return np.clip(np.where(np.isfinite(prob), prob, 0.0), 0.0, 1.0)
 
 
@@ -907,7 +972,13 @@ def system_kinematics(l1: Tuple[float, float, float, float], l2: Tuple[float, fl
 def tnp_probes(arrays: Mapping[str, ak.Array], br: Mapping[str, str], passed) -> Dict[str, np.ndarray]:
     required = [br.get("pt"), br.get("eta"), br.get("phi"), br.get("mass")]
     if any(name not in arrays for name in required):
-        return {"pt": np.array([]), "eta": np.array([]), "phi": np.array([]), "pass": np.array([], dtype=bool)}
+        return {
+            "pt": np.array([]),
+            "eta": np.array([]),
+            "phi": np.array([]),
+            "mass": np.array([]),
+            "pass": np.array([], dtype=bool),
+        }
 
     pts = ak.to_list(arrays[br["pt"]])
     etas = ak.to_list(arrays[br["eta"]])
@@ -916,7 +987,7 @@ def tnp_probes(arrays: Mapping[str, ak.Array], br: Mapping[str, str], passed) ->
     charges = ak.to_list(arrays[br["charge"]]) if br.get("charge") in arrays else None
     passes = ak.to_list(passed)
 
-    out = {"pt": [], "eta": [], "phi": [], "pass": []}
+    out = {"pt": [], "eta": [], "phi": [], "mass": [], "pass": []}
     for iev, event_pts in enumerate(pts):
         n = len(event_pts)
         if n < 2:
@@ -946,6 +1017,11 @@ def tnp_probes(arrays: Mapping[str, ak.Array], br: Mapping[str, str], passed) ->
             out["pt"].append(event_pts[probe])
             out["eta"].append(etas[iev][probe])
             out["phi"].append(phis[iev][probe])
+            mass, _, _, _ = system_kinematics(
+                (event_pts[tag], etas[iev][tag], phis[iev][tag], masses[iev][tag]),
+                (event_pts[probe], etas[iev][probe], phis[iev][probe], masses[iev][probe]),
+            )
+            out["mass"].append(mass)
             out["pass"].append(bool(passes[iev][probe]))
     return {key: np.asarray(value) for key, value in out.items()}
 
@@ -953,7 +1029,13 @@ def tnp_probes(arrays: Mapping[str, ak.Array], br: Mapping[str, str], passed) ->
 def tnp_event_probes(arrays: Mapping[str, ak.Array], br: Mapping[str, str], event_passed) -> Dict[str, np.ndarray]:
     required = [br.get("pt"), br.get("eta"), br.get("phi"), br.get("mass")]
     if any(name not in arrays for name in required):
-        return {"pt": np.array([]), "eta": np.array([]), "phi": np.array([]), "pass": np.array([], dtype=bool)}
+        return {
+            "pt": np.array([]),
+            "eta": np.array([]),
+            "phi": np.array([]),
+            "mass": np.array([]),
+            "pass": np.array([], dtype=bool),
+        }
 
     pts = ak.to_list(arrays[br["pt"]])
     etas = ak.to_list(arrays[br["eta"]])
@@ -962,7 +1044,7 @@ def tnp_event_probes(arrays: Mapping[str, ak.Array], br: Mapping[str, str], even
     charges = ak.to_list(arrays[br["charge"]]) if br.get("charge") in arrays else None
     event_pass = ak.to_numpy(event_passed).astype(bool)
 
-    out = {"pt": [], "eta": [], "phi": [], "pass": []}
+    out = {"pt": [], "eta": [], "phi": [], "mass": [], "pass": []}
     for iev, event_pts in enumerate(pts):
         n = len(event_pts)
         if n < 2:
@@ -985,31 +1067,187 @@ def tnp_event_probes(arrays: Mapping[str, ak.Array], br: Mapping[str, str], even
                     best_delta = delta
         if best is None:
             continue
+        i, j = best
+        pair_mass, _, _, _ = system_kinematics(
+            (event_pts[i], etas[iev][i], phis[iev][i], masses[iev][i]),
+            (event_pts[j], etas[iev][j], phis[iev][j], masses[iev][j]),
+        )
         for probe in best:
             out["pt"].append(event_pts[probe])
             out["eta"].append(etas[iev][probe])
             out["phi"].append(phis[iev][probe])
+            out["mass"].append(pair_mass)
             out["pass"].append(bool(event_pass[iev]))
     return {key: np.asarray(value) for key, value in out.items()}
 
 
-def add_tnp_efficiency(
-    store: MutableMapping[Tuple, Dict[str, np.ndarray]],
+def add_tnp_mass_candidates(
+    store: MutableMapping[Tuple, Dict[str, List[List[np.ndarray]]]],
     key_base: Tuple,
     probes: Mapping[str, np.ndarray],
     edges_by_var: Mapping[str, np.ndarray],
     variables: Sequence[str],
 ) -> None:
+    masses = np.asarray(probes.get("mass", np.array([])), dtype=float)
+    passed = np.asarray(probes.get("pass", np.array([])), dtype=bool)
+    if len(masses) == 0:
+        return
+    mass_window = np.isfinite(masses) & (masses >= 60.0) & (masses <= 120.0)
     for var in variables:
+        if var not in probes or var not in edges_by_var:
+            continue
         edges = edges_by_var[var]
         key = key_base + (var,)
         if key not in store:
-            store[key] = {"num": np.zeros(len(edges) - 1), "den": np.zeros(len(edges) - 1)}
-        vals = probes[var]
-        passed = probes["pass"].astype(float)
-        finite = np.isfinite(vals)
-        store[key]["den"] += np.histogram(vals[finite], bins=edges)[0]
-        store[key]["num"] += np.histogram(vals[finite], bins=edges, weights=passed[finite])[0]
+            store[key] = {
+                "pass": [[] for _ in range(len(edges) - 1)],
+                "all": [[] for _ in range(len(edges) - 1)],
+            }
+        values = np.asarray(probes[var], dtype=float)
+        finite = mass_window & np.isfinite(values)
+        bins = np.searchsorted(edges, values, side="right") - 1
+        in_range = finite & (bins >= 0) & (bins < len(edges) - 1)
+        for ibin in range(len(edges) - 1):
+            bin_mask = in_range & (bins == ibin)
+            if not np.any(bin_mask):
+                continue
+            store[key]["pass"][ibin].append(masses[bin_mask & passed])
+            store[key]["all"][ibin].append(masses[bin_mask])
+
+
+def make_roodataset(name: str, mass_var, masses: np.ndarray):
+    data = ROOT.RooDataSet(name, name, ROOT.RooArgSet(mass_var))
+    args = ROOT.RooArgSet(mass_var)
+    for value in np.asarray(masses, dtype=float):
+        if not np.isfinite(value) or value < 60.0 or value > 120.0:
+            continue
+        mass_var.setVal(float(value))
+        data.add(args)
+    return data
+
+
+def acceptable_fit(result) -> bool:
+    if result is None:
+        return False
+    return int(result.status()) == 0 and int(result.covQual()) >= 2
+
+
+def fit_tnp_signal_efficiency(pass_masses: np.ndarray, all_masses: np.ndarray) -> Tuple[float, float]:
+    pass_masses = np.asarray(pass_masses, dtype=float)
+    all_masses = np.asarray(all_masses, dtype=float)
+    pass_masses = pass_masses[np.isfinite(pass_masses) & (pass_masses >= 60.0) & (pass_masses <= 120.0)]
+    all_masses = all_masses[np.isfinite(all_masses) & (all_masses >= 60.0) & (all_masses <= 120.0)]
+    n_pass = len(pass_masses)
+    n_all = len(all_masses)
+    if n_all < 20 or n_pass > n_all:
+        return np.nan, np.nan
+
+    uid = str(next(TNP_FIT_COUNTER))
+    mass = ROOT.RooRealVar(f"mll_{uid}", "m_{ll}", 60.0, 120.0)
+    mass.setRange("fit", 60.0, 120.0)
+    sample = ROOT.RooCategory(f"sample_{uid}", "sample")
+    sample.defineType("pass")
+    sample.defineType("all")
+
+    pass_data = make_roodataset(f"pass_data_{uid}", mass, pass_masses)
+    all_data = make_roodataset(f"all_data_{uid}", mass, all_masses)
+    comb_data = ROOT.RooDataSet(
+        f"comb_data_{uid}",
+        f"comb_data_{uid}",
+        ROOT.RooArgSet(mass, sample),
+        ROOT.RooFit.Index(sample),
+        ROOT.RooFit.Import("pass", pass_data),
+        ROOT.RooFit.Import("all", all_data),
+    )
+
+    mean = ROOT.RooRealVar(f"mean_{uid}", "mean", Z_MASS, 88.0, 94.0)
+    sigma1 = ROOT.RooRealVar(f"sigma1_{uid}", "sigma1", 1.5, 0.4, 5.0)
+    sigma2 = ROOT.RooRealVar(f"sigma2_{uid}", "sigma2", 2.8, 0.8, 8.0)
+    alpha_l = ROOT.RooRealVar(f"alpha_l_{uid}", "alpha_l", 1.5, 0.3, 5.0)
+    alpha_r = ROOT.RooRealVar(f"alpha_r_{uid}", "alpha_r", -1.8, -5.0, -0.3)
+    n_l = ROOT.RooRealVar(f"n_l_{uid}", "n_l", 3.0, 1.01, 20.0)
+    n_r = ROOT.RooRealVar(f"n_r_{uid}", "n_r", 3.0, 1.01, 20.0)
+    frac = ROOT.RooRealVar(f"frac_{uid}", "frac", 0.65, 0.0, 1.0)
+    cb_l = ROOT.RooCBShape(f"cb_l_{uid}", "cb_l", mass, mean, sigma1, alpha_l, n_l)
+    cb_r = ROOT.RooCBShape(f"cb_r_{uid}", "cb_r", mass, mean, sigma2, alpha_r, n_r)
+    signal = ROOT.RooAddPdf(f"signal_{uid}", "signal", ROOT.RooArgList(cb_l, cb_r), ROOT.RooArgList(frac))
+
+    slope_pass = ROOT.RooRealVar(f"slope_pass_{uid}", "slope_pass", -0.03, -1.0, 0.2)
+    slope_all = ROOT.RooRealVar(f"slope_all_{uid}", "slope_all", -0.03, -1.0, 0.2)
+    bkg_pass = ROOT.RooExponential(f"bkg_pass_{uid}", "bkg_pass", mass, slope_pass)
+    bkg_all = ROOT.RooExponential(f"bkg_all_{uid}", "bkg_all", mass, slope_all)
+
+    eff = ROOT.RooRealVar(f"tnp_eff_{uid}", "tnp_eff", min(max(n_pass / max(n_all, 1), 0.01), 0.99), 0.0, 1.0)
+    nsig_all = ROOT.RooRealVar(f"nsig_all_{uid}", "nsig_all", max(1.0, 0.8 * n_all), 0.0, 1.5 * n_all + 20.0)
+    nsig_pass = ROOT.RooFormulaVar(
+        f"nsig_pass_{uid}",
+        "nsig_pass",
+        "@0*@1",
+        ROOT.RooArgList(eff, nsig_all),
+    )
+    nbkg_pass = ROOT.RooRealVar(f"nbkg_pass_{uid}", "nbkg_pass", max(1.0, 0.2 * n_pass), 0.0, 1.5 * n_pass + 20.0)
+    nbkg_all = ROOT.RooRealVar(f"nbkg_all_{uid}", "nbkg_all", max(1.0, 0.2 * n_all), 0.0, 1.5 * n_all + 20.0)
+    model_pass = ROOT.RooAddPdf(
+        f"model_pass_{uid}",
+        "model_pass",
+        ROOT.RooArgList(signal, bkg_pass),
+        ROOT.RooArgList(nsig_pass, nbkg_pass),
+    )
+    model_all = ROOT.RooAddPdf(
+        f"model_all_{uid}",
+        "model_all",
+        ROOT.RooArgList(signal, bkg_all),
+        ROOT.RooArgList(nsig_all, nbkg_all),
+    )
+    sim_pdf = ROOT.RooSimultaneous(f"sim_pdf_{uid}", "sim_pdf", sample)
+    sim_pdf.addPdf(model_pass, "pass")
+    sim_pdf.addPdf(model_all, "all")
+
+    fit_options = [
+        ROOT.RooFit.Save(True),
+        ROOT.RooFit.Extended(True),
+        ROOT.RooFit.Range("fit"),
+        ROOT.RooFit.Strategy(1),
+        ROOT.RooFit.PrintLevel(-1),
+        ROOT.RooFit.Warnings(False),
+    ]
+    result = sim_pdf.fitTo(comb_data, *fit_options)
+    if not acceptable_fit(result):
+        for param in (alpha_l, alpha_r, n_l, n_r):
+            param.setConstant(True)
+        result = sim_pdf.fitTo(comb_data, *fit_options)
+    if not acceptable_fit(result):
+        for param in (sigma1, sigma2, frac):
+            param.setConstant(True)
+        result = sim_pdf.fitTo(comb_data, *fit_options)
+    if not acceptable_fit(result):
+        return np.nan, np.nan
+
+    value = float(eff.getVal())
+    error = float(eff.getError())
+    if not np.isfinite(value) or not np.isfinite(error):
+        return np.nan, np.nan
+    return np.clip(value, 0.0, 1.0), max(error, 0.0)
+
+
+def finalize_tnp_fits(
+    eff_store: MutableMapping[Tuple, Dict[str, np.ndarray]],
+    tnp_store: Mapping[Tuple, Dict[str, List[List[np.ndarray]]]],
+) -> None:
+    for key, payload in tnp_store.items():
+        n_bins = len(payload["pass"])
+        eff = np.full(n_bins, np.nan, dtype=float)
+        err = np.full(n_bins, np.nan, dtype=float)
+        for ibin in range(n_bins):
+            pass_masses = np.concatenate(payload["pass"][ibin]) if payload["pass"][ibin] else np.array([], dtype=float)
+            all_masses = np.concatenate(payload["all"][ibin]) if payload["all"][ibin] else np.array([], dtype=float)
+            eff[ibin], err[ibin] = fit_tnp_signal_efficiency(pass_masses, all_masses)
+        eff_store[key] = {
+            "eff": eff,
+            "err": err,
+            "num": eff.copy(),
+            "den": np.ones_like(eff),
+        }
 
 
 def leading_dilepton_values(pt, eta, phi, mass) -> Dict[str, np.ndarray]:
@@ -1042,6 +1280,17 @@ def normalize_hist(counts: np.ndarray, edges: np.ndarray, normalize: bool) -> np
     return counts / (total * widths)
 
 
+def hist_errors(counts: np.ndarray, edges: np.ndarray, normalize: bool) -> np.ndarray:
+    counts = np.asarray(counts, dtype=float)
+    errors = np.sqrt(np.maximum(counts, 0.0))
+    if not normalize:
+        return errors
+    total = float(np.sum(counts))
+    if total <= 0.0:
+        return np.zeros_like(counts, dtype=float)
+    return errors / (total * np.diff(edges))
+
+
 def step_values(values: np.ndarray) -> np.ndarray:
     if len(values) == 0:
         return np.array([])
@@ -1061,15 +1310,26 @@ def plot_hist_comparison(
     fig, ax = plt.subplots()
     styles = {
         "input": (BLUE, "-", "Input"),
-        "expected": (GRAY, "--", "Expected"),
         "output": (RED, "-", "Output"),
+        "expected": (GRAY, "--", "Expected"),
     }
     for sample, (color, linestyle, label) in styles.items():
         counts = hist_store.get(key_base + (sample,), np.zeros(len(edges) - 1))
         values = normalize_hist(counts, edges, normalize)
+        errors = hist_errors(counts, edges, normalize)
+        ax.fill_between(
+            edges,
+            step_values(np.maximum(values - errors, 0.0)),
+            step_values(values + errors),
+            step="post",
+            color=color,
+            alpha=0.8,
+            linewidth=0,
+        )
         ax.step(edges, step_values(values), where="post", color=color, linestyle=linestyle, linewidth=1.8, label=label)
     ax.set_xlabel(xlabel)
     ax.set_ylabel(ylabel)
+    ax.set_ylim(bottom=0.0)
     ax.legend()
     add_cms_label(ax)
     fig.savefig(figdir / filename)
@@ -1077,6 +1337,8 @@ def plot_hist_comparison(
 
 
 def efficiency_values(counts: Mapping[str, np.ndarray]) -> Tuple[np.ndarray, np.ndarray]:
+    if "eff" in counts and "err" in counts:
+        return np.asarray(counts["eff"], dtype=float), np.asarray(counts["err"], dtype=float)
     den = counts["den"]
     num = counts["num"]
     eff = np.divide(num, den, out=np.full_like(num, np.nan, dtype=float), where=den > 0)
@@ -1118,6 +1380,11 @@ def plot_efficiency(
             marker=marker,
             markersize=5,
             color=color,
+            markerfacecolor="none",
+            markeredgecolor=color,
+            markeredgewidth=1.2,
+            elinewidth=1.2,
+            capsize=2,
             label=label,
         )
 
@@ -1136,13 +1403,14 @@ def plot_efficiency(
                 colors=GRAY,
                 linestyles="--",
                 linewidth=1.8,
+                zorder=10,
                 label="Expected" if first_label else None,
             )
             first_label = False
 
     ax.set_xlabel(xlabel)
     ax.set_ylabel("A.U.")
-    ax.set_ylim(0.0, 1.15)
+    ax.set_ylim(0.0, 1.0)
     ax.legend(fontsize=10)
     add_cms_label(ax)
     fig.savefig(figdir / filename)
@@ -1208,6 +1476,7 @@ def analyze(modify_cfg: Mapping, plot_cfg: Mapping, pairs: Sequence[Tuple[Path, 
 
     eff_store: Dict[Tuple, Dict[str, np.ndarray]] = {}
     expected_eff_store: Dict[Tuple, Dict[str, np.ndarray]] = {}
+    tnp_mass_store: Dict[Tuple, Dict[str, List[List[np.ndarray]]]] = {}
     hist_store: Dict[Tuple, np.ndarray] = {}
     dilepton_store: Dict[Tuple, np.ndarray] = {}
 
@@ -1313,8 +1582,8 @@ def analyze(modify_cfg: Mapping, plot_cfg: Mapping, pairs: Sequence[Tuple[Path, 
 
                     tnp_in = tnp_probes(arr_in, br, pass_in)
                     tnp_out = tnp_probes(arr_out, br, pass_out)
-                    add_tnp_efficiency(eff_store, (flavor, branch, "input", "tnp"), tnp_in, eff_edges, variables)
-                    add_tnp_efficiency(eff_store, (flavor, branch, "output", "tnp"), tnp_out, eff_edges, variables)
+                    add_tnp_mass_candidates(tnp_mass_store, (flavor, branch, "input", "tnp"), tnp_in, eff_edges, variables)
+                    add_tnp_mass_candidates(tnp_mass_store, (flavor, branch, "output", "tnp"), tnp_out, eff_edges, variables)
 
                     base_map = base_maps.get((flavor, branch))
                     if base_map is not None:
@@ -1363,8 +1632,8 @@ def analyze(modify_cfg: Mapping, plot_cfg: Mapping, pairs: Sequence[Tuple[Path, 
 
                         tnp_in = tnp_event_probes(arr_in, br, pass_mask(arr_in[branch], ecfg))
                         tnp_out = tnp_event_probes(arr_out, br, pass_mask(arr_out[branch], ecfg))
-                        add_tnp_efficiency(eff_store, (flavor, branch, "input", "tnp"), tnp_in, eff_edges, variables)
-                        add_tnp_efficiency(eff_store, (flavor, branch, "output", "tnp"), tnp_out, eff_edges, variables)
+                        add_tnp_mass_candidates(tnp_mass_store, (flavor, branch, "input", "tnp"), tnp_in, eff_edges, variables)
+                        add_tnp_mass_candidates(tnp_mass_store, (flavor, branch, "output", "tnp"), tnp_out, eff_edges, variables)
 
                         base_map = base_maps.get((flavor, branch))
                         if base_map is not None and len(leading_exp["pt"]):
@@ -1380,6 +1649,9 @@ def analyze(modify_cfg: Mapping, plot_cfg: Mapping, pairs: Sequence[Tuple[Path, 
                                     exp_probs,
                                     eff_edges[var],
                                 )
+
+    print("[INFO] Fitting TnP pass/all dilepton mass spectra with RooFit")
+    finalize_tnp_fits(eff_store, tnp_mass_store)
 
     print(f"[INFO] Writing plots to {figdir}")
     for flavor, variables in lepton_specs.items():
