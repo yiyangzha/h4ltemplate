@@ -43,13 +43,23 @@ namespace fs = std::filesystem;
 namespace {
 
 constexpr double kPi = 3.141592653589793238462643383279502884;
+constexpr double kTruthMatchDeltaR = 0.1;
 constexpr std::size_t kTruthBranchCapacity = 20000;
 constexpr std::uint64_t kMinEfficiencyBinTotal = 20;
 std::mutex g_logMutex;
 
 void logLine(const std::string& level, const std::string& message) {
   std::lock_guard<std::mutex> lock(g_logMutex);
-  std::cerr << "[" << level << "] " << message << "\n";
+  std::cerr << "[" << level << "] " << message << "\n" << std::flush;
+}
+
+void logProgressLine(const std::string& context, Long64_t done, Long64_t total) {
+  if (total <= 0) return;
+  std::ostringstream os;
+  os << context << ": " << std::fixed << std::setprecision(1)
+     << (100.0 * static_cast<double>(done) / static_cast<double>(total))
+     << "% (" << done << "/" << total << ")";
+  logLine("INFO", os.str());
 }
 
 [[noreturn]] void fail(const std::string& message) {
@@ -1284,41 +1294,143 @@ double resolutionSigma(const std::vector<RegionResolution>& regions, double eta,
   return 0.0;
 }
 
-std::string genPartIdxBranch(bool isMuon) {
-  return std::string(isMuon ? "Muon" : "Electron") + "_genPartIdx";
-}
-
 struct TruthRuntime {
   BranchBuffer nGenPart;
+  BranchBuffer genPt;
+  BranchBuffer genEta;
+  BranchBuffer genPhi;
   BranchBuffer genPdgId;
+  BranchBuffer genMother;
   BranchBuffer genStatusFlags;
 };
 
 TruthRuntime bindTruthRuntime(TTree* tree, const std::string& context) {
   TruthRuntime rt;
   rt.nGenPart.bind(tree, "nGenPart", 1, false, context);
+  rt.genPt.bind(tree, "GenPart_pt", kTruthBranchCapacity, false, context);
+  rt.genEta.bind(tree, "GenPart_eta", kTruthBranchCapacity, false, context);
+  rt.genPhi.bind(tree, "GenPart_phi", kTruthBranchCapacity, false, context);
   rt.genPdgId.bind(tree, "GenPart_pdgId", kTruthBranchCapacity, false, context);
+  rt.genMother.bind(tree, "GenPart_genPartIdxMother", kTruthBranchCapacity, false, context);
   rt.genStatusFlags.bind(tree, "GenPart_statusFlags", kTruthBranchCapacity, false, context);
   return rt;
 }
 
-bool bindFlavorTruthBranch(TTree* tree, BranchBuffer& genPartIdx, bool isMuon, std::size_t maxN, const std::string& context) {
-  return genPartIdx.bind(tree, genPartIdxBranch(isMuon), maxN + 1, false, context);
+std::size_t truthNGen(const TruthRuntime& truth) {
+  if (!truth.genPdgId.bound()) return 0;
+  const std::size_t fromBranch = truth.nGenPart.bound()
+      ? static_cast<std::size_t>(truth.nGenPart.getUInt64(0))
+      : truth.genPdgId.size();
+  return std::min(fromBranch, truth.genPdgId.size());
 }
 
-bool truthMatchedLepton(const BranchBuffer& genPartIdx, const TruthRuntime* truth, std::size_t index, int pdgId) {
-  if (!truth || !genPartIdx.bound() || !truth->genPdgId.bound()) return true;
-  if (index >= genPartIdx.size()) return false;
-  const std::int64_t genIndex = genPartIdx.getInt64(index);
-  const std::size_t nGen = truth->nGenPart.bound() ? static_cast<std::size_t>(truth->nGenPart.getUInt64(0)) : truth->genPdgId.size();
-  if (genIndex < 0 || static_cast<std::size_t>(genIndex) >= nGen || static_cast<std::size_t>(genIndex) >= truth->genPdgId.size()) return false;
-  if (std::abs(static_cast<int>(truth->genPdgId.getInt64(static_cast<std::size_t>(genIndex)))) != pdgId) return false;
-  if (truth->genStatusFlags.bound() && static_cast<std::size_t>(genIndex) < truth->genStatusFlags.size()) {
-    const std::int64_t flags = truth->genStatusFlags.getInt64(static_cast<std::size_t>(genIndex));
-    const bool prompt = (flags & 1) != 0 || (flags & (1 << 8)) != 0;
-    if (!prompt) return false;
+bool truthHasZLeptonBranches(const TruthRuntime& truth) {
+  return truth.genPdgId.bound() && truth.genMother.bound() && truth.genPt.bound()
+      && truth.genEta.bound() && truth.genPhi.bound();
+}
+
+bool genStatusFlag(const TruthRuntime& truth, std::size_t index, int bit) {
+  if (!truth.genStatusFlags.bound() || index >= truth.genStatusFlags.size()) return false;
+  const std::int64_t flags = truth.genStatusFlags.getInt64(index);
+  return (flags & (std::int64_t{1} << bit)) != 0;
+}
+
+bool genPromptLike(const TruthRuntime& truth, std::size_t index) {
+  if (!truth.genStatusFlags.bound() || index >= truth.genStatusFlags.size()) return true;
+  return genStatusFlag(truth, index, 0) || genStatusFlag(truth, index, 8) || genStatusFlag(truth, index, 11);
+}
+
+bool hasAncestorPdg(const TruthRuntime& truth, std::size_t index, int absPdgId, std::size_t nGen) {
+  if (!truth.genMother.bound() || !truth.genPdgId.bound()) return false;
+  if (index >= truth.genMother.size()) return false;
+  std::int64_t mother = truth.genMother.getInt64(index);
+  std::size_t guard = 0;
+  while (mother >= 0 && static_cast<std::size_t>(mother) < nGen && guard++ < nGen) {
+    const std::size_t m = static_cast<std::size_t>(mother);
+    if (m >= truth.genPdgId.size()) return false;
+    if (std::abs(static_cast<int>(truth.genPdgId.getInt64(m))) == absPdgId) return true;
+    if (m >= truth.genMother.size()) return false;
+    mother = truth.genMother.getInt64(m);
   }
-  return true;
+  return false;
+}
+
+bool findLeadingGenZLepton(const TruthRuntime& truth,
+                           int absLeptonPdgId,
+                           double& genPt,
+                           double& genEta,
+                           double& genPhi) {
+  if (!truthHasZLeptonBranches(truth)) return false;
+  const std::size_t nGen = truthNGen(truth);
+  const std::size_t limit = std::min({nGen, truth.genPt.size(), truth.genEta.size(), truth.genPhi.size(), truth.genMother.size()});
+  std::vector<std::size_t> candidates;
+  bool haveLastCopy = false;
+  for (std::size_t i = 0; i < limit; ++i) {
+    if (std::abs(static_cast<int>(truth.genPdgId.getInt64(i))) != absLeptonPdgId) continue;
+    if (!genPromptLike(truth, i)) continue;
+    if (!hasAncestorPdg(truth, i, 23, nGen)) continue;
+    candidates.push_back(i);
+    if (genStatusFlag(truth, i, 13)) haveLastCopy = true;
+  }
+  if (candidates.empty()) return false;
+
+  bool haveLead = false;
+  std::size_t lead = 0;
+  double leadPt = 0.0;
+  for (std::size_t i : candidates) {
+    if (haveLastCopy && !genStatusFlag(truth, i, 13)) continue;
+    const double pt = truth.genPt.getDouble(i);
+    if (!std::isfinite(pt)) continue;
+    if (!haveLead || pt > leadPt) {
+      haveLead = true;
+      lead = i;
+      leadPt = pt;
+    }
+  }
+  if (!haveLead) return false;
+  genPt = truth.genPt.getDouble(lead);
+  genEta = truth.genEta.getDouble(lead);
+  genPhi = truth.genPhi.getDouble(lead);
+  return std::isfinite(genPt) && std::isfinite(genEta) && std::isfinite(genPhi);
+}
+
+double deltaPhi(double a, double b) {
+  return std::remainder(a - b, 2.0 * kPi);
+}
+
+double deltaR2(double eta1, double phi1, double eta2, double phi2) {
+  const double deta = eta1 - eta2;
+  const double dphi = deltaPhi(phi1, phi2);
+  return deta * deta + dphi * dphi;
+}
+
+bool matchLeadingGenZLeptonToReco(const TruthRuntime& truth,
+                                  int absLeptonPdgId,
+                                  const BranchBuffer& n,
+                                  const BranchBuffer& recoEta,
+                                  const BranchBuffer& recoPhi,
+                                  std::size_t& recoIndex) {
+  if (!n.bound() || !recoEta.bound() || !recoPhi.bound()) return false;
+  double genPt = 0.0;
+  double genEta = 0.0;
+  double genPhi = 0.0;
+  if (!findLeadingGenZLepton(truth, absLeptonPdgId, genPt, genEta, genPhi)) return false;
+  (void)genPt;
+
+  const std::size_t nObj = static_cast<std::size_t>(n.getUInt64(0));
+  const std::size_t limit = std::min({nObj, recoEta.availableForN(nObj), recoPhi.availableForN(nObj)});
+  const double maxDr2 = kTruthMatchDeltaR * kTruthMatchDeltaR;
+  double bestDr2 = maxDr2;
+  bool matched = false;
+  for (std::size_t i = 0; i < limit; ++i) {
+    const double dr2 = deltaR2(recoEta.getDouble(i), recoPhi.getDouble(i), genEta, genPhi);
+    if (std::isfinite(dr2) && dr2 < bestDr2) {
+      bestDr2 = dr2;
+      recoIndex = i;
+      matched = true;
+    }
+  }
+  return matched;
 }
 
 double modifiedLeptonPt(const Config& cfg,
@@ -1621,8 +1733,8 @@ bool leadingCalibrationKinematics(const Config& cfg,
                                   const BranchBuffer& n,
                                   const BranchBuffer& pt,
                                   const BranchBuffer& eta,
+                                  const BranchBuffer& phi,
                                   const BranchBuffer& charge,
-                                  const BranchBuffer& genPartIdx,
                                   const TruthRuntime& truth,
                                   std::uint64_t run,
                                   std::uint64_t lumi,
@@ -1632,27 +1744,21 @@ bool leadingCalibrationKinematics(const Config& cfg,
                                   double& leadingEta,
                                   std::size_t& leadingIndex,
                                   bool& leadingTruth) {
-  if (!n.bound() || !pt.bound() || !eta.bound()) return false;
+  if (!n.bound() || !pt.bound() || !eta.bound() || !phi.bound()) return false;
   const std::size_t nObj = static_cast<std::size_t>(n.getUInt64(0));
-  const std::size_t limit = std::min({nObj, pt.availableForN(nObj), eta.availableForN(nObj)});
-  if (limit == 0) return false;
-  bool haveLead = false;
-  for (std::size_t i = 0; i < limit; ++i) {
-    const double oldPt = pt.getDouble(i);
-    const double etaValue = eta.getDouble(i);
-    const int chargeValue = charge.bound() && i < charge.availableForN(nObj) ? static_cast<int>(charge.getInt64(i)) : 0;
-    const double candidatePt = useModifiedKinematics
-        ? modifiedLeptonPt(cfg, isMuon, oldPt, etaValue, chargeValue, run, lumi, eventId, entry, i)
-        : oldPt;
-    if (!haveLead || candidatePt > leadingPt) {
-      haveLead = true;
-      leadingPt = candidatePt;
-      leadingEta = etaValue;
-      leadingIndex = i;
-    }
-  }
-  if (!haveLead) return false;
-  leadingTruth = truthMatchedLepton(genPartIdx, &truth, leadingIndex, isMuon ? 13 : 11);
+  const std::size_t limit = std::min({nObj, pt.availableForN(nObj), eta.availableForN(nObj), phi.availableForN(nObj)});
+  std::size_t matchedIndex = 0;
+  if (!matchLeadingGenZLeptonToReco(truth, isMuon ? 13 : 11, n, eta, phi, matchedIndex)) return false;
+  if (matchedIndex >= limit) return false;
+  const double oldPt = pt.getDouble(matchedIndex);
+  const double etaValue = eta.getDouble(matchedIndex);
+  const int chargeValue = charge.bound() && matchedIndex < charge.availableForN(nObj) ? static_cast<int>(charge.getInt64(matchedIndex)) : 0;
+  leadingPt = useModifiedKinematics
+      ? modifiedLeptonPt(cfg, isMuon, oldPt, etaValue, chargeValue, run, lumi, eventId, entry, matchedIndex)
+      : oldPt;
+  leadingEta = etaValue;
+  leadingIndex = matchedIndex;
+  leadingTruth = true;
   return true;
 }
 
@@ -1675,20 +1781,31 @@ void prescanFlavor(TTree* tree,
   enableBranchIfPresent(tree, br.n);
   enableBranchIfPresent(tree, br.pt);
   enableBranchIfPresent(tree, br.eta);
+  enableBranchIfPresent(tree, br.phi);
   if (!br.charge.empty()) enableBranchIfPresent(tree, br.charge);
+  enableBranchIfPresent(tree, "nGenPart");
+  enableBranchIfPresent(tree, "GenPart_pt");
+  enableBranchIfPresent(tree, "GenPart_eta");
+  enableBranchIfPresent(tree, "GenPart_phi");
+  enableBranchIfPresent(tree, "GenPart_pdgId");
+  enableBranchIfPresent(tree, "GenPart_genPartIdxMother");
+  enableBranchIfPresent(tree, "GenPart_statusFlags");
   if (useModifiedKinematics) {
     enableBranchIfPresent(tree, cfg.eventId.run);
     enableBranchIfPresent(tree, cfg.eventId.luminosityBlock);
     enableBranchIfPresent(tree, cfg.eventId.event);
   }
   for (const auto& e : effCfgs) enableBranchIfPresent(tree, e.name);
-  BranchBuffer n, pt, eta;
+  BranchBuffer n, pt, eta, phi;
   if (!n.bind(tree, br.n, 1, true, context)) return;
   if (!pt.bind(tree, br.pt, maxN + 1, true, context)) return;
   if (!eta.bind(tree, br.eta, maxN + 1, true, context)) return;
+  if (!phi.bind(tree, br.phi, maxN + 1, true, context)) return;
   BranchBuffer charge;
-  if (br.charge.empty() || !charge.bind(tree, br.charge, maxN + 1, true, context)) {
-    logLine("WARN", context + ": missing charge branch; skipping OS-pair efficiency denominator");
+  if (!br.charge.empty()) charge.bind(tree, br.charge, maxN + 1, false, context);
+  TruthRuntime truth = bindTruthRuntime(tree, context);
+  if (!truthHasZLeptonBranches(truth)) {
+    logLine("WARN", context + ": missing GenPart truth branches for Z-lepton matching; skipping MC-truth efficiency denominator");
     return;
   }
   BranchBuffer run, lumi, event;
@@ -1728,43 +1845,9 @@ void prescanFlavor(TTree* tree,
     const std::uint64_t lumiValue = useModifiedKinematics && lumi.bound() ? lumi.getUInt64(0) : 0;
     const std::uint64_t eventValue = useModifiedKinematics && event.bound() ? event.getUInt64(0) : 0;
     const std::size_t nObj = static_cast<std::size_t>(n.getUInt64(0));
-    const std::size_t limit = std::min({nObj, pt.availableForN(nObj), eta.availableForN(nObj), charge.availableForN(nObj)});
-    if (limit < 2) continue;
-
-    bool haveTag = false;
-    bool haveProbe = false;
-    double tagPt = 0.0;
-    double probePt = 0.0;
-    std::size_t tagIndex = 0;
-    std::size_t probeIndex = 0;
-    for (std::size_t i = 0; i < limit; ++i) {
-      const int chargeValue = static_cast<int>(charge.getInt64(i));
-      const double oldPt = pt.getDouble(i);
-      const double etaValue = eta.getDouble(i);
-      const double rankPt = useModifiedKinematics
-          ? modifiedLeptonPt(cfg, isMuon, oldPt, etaValue, chargeValue, runValue, lumiValue, eventValue, entry, i)
-          : oldPt;
-      if (!haveTag || rankPt > tagPt) {
-        if (haveTag) {
-          probePt = tagPt;
-          probeIndex = tagIndex;
-          haveProbe = true;
-        }
-        tagPt = rankPt;
-        tagIndex = i;
-        haveTag = true;
-      } else if (!haveProbe || rankPt > probePt) {
-        probePt = rankPt;
-        probeIndex = i;
-        haveProbe = true;
-      }
-    }
-    if (!haveTag || !haveProbe) continue;
-    const int tagCharge = static_cast<int>(charge.getInt64(tagIndex));
-    const int probeCharge = static_cast<int>(charge.getInt64(probeIndex));
-    if (tagCharge == 0 || probeCharge == 0 || tagCharge * probeCharge >= 0) continue;
-
-    const std::size_t i = probeIndex;
+    std::size_t i = 0;
+    if (!matchLeadingGenZLeptonToReco(truth, isMuon ? 13 : 11, n, eta, phi, i)) continue;
+    if (i >= std::min({nObj, pt.availableForN(nObj), eta.availableForN(nObj), phi.availableForN(nObj)})) continue;
     const double oldPt = pt.getDouble(i);
     const double etaValue = eta.getDouble(i);
     const double oldEnergy = useEnergy && i < energy.availableForN(nObj) ? energy.getDouble(i) : std::numeric_limits<double>::quiet_NaN();
@@ -1807,15 +1890,19 @@ void prescanEventEfficiencies(TTree* tree,
   enableBranchIfPresent(tree, cfg.muonBranches.n);
   enableBranchIfPresent(tree, cfg.muonBranches.pt);
   enableBranchIfPresent(tree, cfg.muonBranches.eta);
+  enableBranchIfPresent(tree, cfg.muonBranches.phi);
   enableBranchIfPresent(tree, cfg.muonBranches.charge);
   enableBranchIfPresent(tree, cfg.electronBranches.n);
   enableBranchIfPresent(tree, cfg.electronBranches.pt);
   enableBranchIfPresent(tree, cfg.electronBranches.eta);
+  enableBranchIfPresent(tree, cfg.electronBranches.phi);
   enableBranchIfPresent(tree, cfg.electronBranches.charge);
-  enableBranchIfPresent(tree, genPartIdxBranch(true));
-  enableBranchIfPresent(tree, genPartIdxBranch(false));
   enableBranchIfPresent(tree, "nGenPart");
+  enableBranchIfPresent(tree, "GenPart_pt");
+  enableBranchIfPresent(tree, "GenPart_eta");
+  enableBranchIfPresent(tree, "GenPart_phi");
   enableBranchIfPresent(tree, "GenPart_pdgId");
+  enableBranchIfPresent(tree, "GenPart_genPartIdxMother");
   enableBranchIfPresent(tree, "GenPart_statusFlags");
   if (useModifiedKinematics) {
     enableBranchIfPresent(tree, cfg.eventId.run);
@@ -1824,21 +1911,22 @@ void prescanEventEfficiencies(TTree* tree,
   }
   for (const auto& e : cfg.eventEffBranches) enableBranchIfPresent(tree, e.name);
 
-  BranchBuffer nMuon, muPt, muEta, muCharge, muGenPartIdx;
-  BranchBuffer nElectron, elePt, eleEta, eleCharge, eleGenPartIdx;
+  BranchBuffer nMuon, muPt, muEta, muPhi, muCharge;
+  BranchBuffer nElectron, elePt, eleEta, elePhi, eleCharge;
   nMuon.bind(tree, cfg.muonBranches.n, 1, false, context);
   muPt.bind(tree, cfg.muonBranches.pt, maxMuon + 1, false, context);
   muEta.bind(tree, cfg.muonBranches.eta, maxMuon + 1, false, context);
+  muPhi.bind(tree, cfg.muonBranches.phi, maxMuon + 1, false, context);
   muCharge.bind(tree, cfg.muonBranches.charge, maxMuon + 1, false, context);
-  bindFlavorTruthBranch(tree, muGenPartIdx, true, maxMuon, context);
   nElectron.bind(tree, cfg.electronBranches.n, 1, false, context);
   elePt.bind(tree, cfg.electronBranches.pt, maxElectron + 1, false, context);
   eleEta.bind(tree, cfg.electronBranches.eta, maxElectron + 1, false, context);
+  elePhi.bind(tree, cfg.electronBranches.phi, maxElectron + 1, false, context);
   eleCharge.bind(tree, cfg.electronBranches.charge, maxElectron + 1, false, context);
-  bindFlavorTruthBranch(tree, eleGenPartIdx, false, maxElectron, context);
   TruthRuntime truth = bindTruthRuntime(tree, context);
-  if (!truth.genPdgId.bound()) {
-    logLine("WARN", context + ": missing usable MC truth branches; using all leading reconstructed leptons as event-efficiency denominator");
+  if (!truthHasZLeptonBranches(truth)) {
+    logLine("WARN", context + ": missing GenPart truth branches for Z-lepton matching; skipping event-efficiency denominator");
+    return;
   }
   BranchBuffer run, lumi, event;
   if (useModifiedKinematics) {
@@ -1871,11 +1959,11 @@ void prescanEventEfficiencies(TTree* tree,
       std::size_t leadIndex = 0;
       bool leadTruth = true;
       const bool haveLead = ref == "electron"
-          ? leadingCalibrationKinematics(cfg, false, useModifiedKinematics, nElectron, elePt, eleEta, eleCharge,
-                                         eleGenPartIdx, truth, runValue, lumiValue, eventValue, entry,
+          ? leadingCalibrationKinematics(cfg, false, useModifiedKinematics, nElectron, elePt, eleEta, elePhi, eleCharge,
+                                         truth, runValue, lumiValue, eventValue, entry,
                                          leadPt, leadEta, leadIndex, leadTruth)
-          : leadingCalibrationKinematics(cfg, true, useModifiedKinematics, nMuon, muPt, muEta, muCharge,
-                                         muGenPartIdx, truth, runValue, lumiValue, eventValue, entry,
+          : leadingCalibrationKinematics(cfg, true, useModifiedKinematics, nMuon, muPt, muEta, muPhi, muCharge,
+                                         truth, runValue, lumiValue, eventValue, entry,
                                          leadPt, leadEta, leadIndex, leadTruth);
       if (!haveLead) continue;
       if (!leadTruth) continue;
@@ -2199,6 +2287,15 @@ void modifyFile(const Config& cfg,
   if (!outTree) fail("Failed to clone tree structure for " + quote(scan.input));
 
   const Long64_t entries = inTree->GetEntries();
+  int lastProgressBucket = -1;
+  auto reportProgress = [&](Long64_t done) {
+    if (entries <= 0) return;
+    const int bucket = std::min(20, static_cast<int>(std::floor(20.0 * static_cast<double>(done) / static_cast<double>(entries))));
+    if (bucket == lastProgressBucket && done != entries) return;
+    lastProgressBucket = bucket;
+    logProgressLine("Processing " + quote(scan.input), done, entries);
+  };
+  reportProgress(0);
   for (Long64_t entry = 0; entry < entries; ++entry) {
     inTree->GetEntry(entry);
     const std::uint64_t runValue = run.bound() ? run.getUInt64(0) : 0;
@@ -2208,6 +2305,7 @@ void modifyFile(const Config& cfg,
     processFlavor(electron, cfg, runValue, lumiValue, eventValue, entry);
     processEventEfficiencies(eventEff, muon, electron, cfg, runValue, lumiValue, eventValue, entry);
     outTree->Fill();
+    reportProgress(entry + 1);
   }
 
   outFile->cd();

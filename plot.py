@@ -58,6 +58,16 @@ TNP_SINGLE_CB_MIN_PASS = 10
 TNP_DOUBLE_CB_MIN_ALL = 200
 TNP_DOUBLE_CB_MIN_PASS = 30
 MIN_EFF_BIN_TOTAL = 20
+TRUTH_MATCH_DR = 0.1
+GEN_TRUTH_BRANCHES = [
+    "nGenPart",
+    "GenPart_pt",
+    "GenPart_eta",
+    "GenPart_phi",
+    "GenPart_pdgId",
+    "GenPart_genPartIdxMother",
+    "GenPart_statusFlags",
+]
 
 
 def load_config(path: Path) -> dict:
@@ -379,6 +389,17 @@ def warn_missing(tree, requested: Iterable[str], context: str) -> None:
             print(f"[WARN] {context}: missing branch {name}")
 
 
+def print_progress(label: str, done: int, total: int, last_bucket: int) -> int:
+    if total <= 0:
+        return last_bucket
+    bucket = min(20, int(math.floor(20.0 * float(done) / float(total))))
+    if bucket == last_bucket and done != total:
+        return last_bucket
+    percent = 100.0 * float(done) / float(total)
+    print(f"[INFO] {label}: {percent:5.1f}% ({done}/{total})", flush=True)
+    return bucket
+
+
 def read_arrays(tree, branches: Iterable[str], start: int, stop: int, context: str) -> Dict[str, ak.Array]:
     wanted = list(dict.fromkeys(b for b in branches if b))
     warn_missing(tree, wanted, context)
@@ -663,6 +684,7 @@ def branch_requests(cfg: Mapping, plot_cfg: Mapping) -> List[str]:
         requested.extend(selected_efficiency_branches(plot_cfg, cfg, flavor).keys())
         requested.extend(selected_event_efficiency_branches(plot_cfg, cfg, flavor).keys())
     requested.extend(event_id_branches(cfg).values())
+    requested.extend(GEN_TRUTH_BRANCHES)
     return list(dict.fromkeys(x for x in requested if x))
 
 
@@ -692,6 +714,8 @@ def build_base_efficiency_maps(
     for path in inputs:
         tree = open_tree(path, tree_name)
         requested = branch_requests(cfg, plot_cfg)
+        progress_bucket = -1
+        progress_bucket = print_progress(f"Base efficiency {path}", 0, tree.num_entries, progress_bucket)
         for start in range(0, tree.num_entries, chunk_size):
             stop = min(tree.num_entries, start + chunk_size)
             arrays = read_arrays(tree, requested, start, stop, f"{path} base-efficiency")
@@ -701,7 +725,6 @@ def build_base_efficiency_maps(
                     continue
                 pt = arrays[br["pt"]]
                 eta = arrays[br["eta"]]
-                charge = arrays.get(br.get("charge"))
                 energy = None
                 if cfg.get("efficiency", {}).get("binning", {}).get("energy"):
                     if br.get("energy") and br["energy"] in arrays:
@@ -711,10 +734,12 @@ def build_base_efficiency_maps(
                 for branch, ecfg in selected_efficiency_branches(plot_cfg, cfg, flavor).items():
                     if branch not in arrays:
                         continue
-                    leading = os_probe_lepton_values(
+                    leading = gen_matched_z_leading_values(
+                        arrays,
+                        flavor,
                         pt,
                         eta,
-                        charge=charge,
+                        arrays.get(br.get("phi")),
                         passed=pass_mask(arrays[branch], ecfg),
                         energy=energy,
                     )
@@ -731,18 +756,18 @@ def build_base_efficiency_maps(
                 for branch, ecfg in selected_event_efficiency_branches(plot_cfg, cfg, flavor).items():
                     if branch not in arrays:
                         continue
-                    leading = leading_event_values(pt, eta, None, truth)
+                    leading = gen_matched_z_leading_values(arrays, flavor, pt, eta, arrays.get(br.get("phi")))
                     if len(leading["pt"]) == 0:
                         continue
                     event_pass = ak.to_numpy(pass_mask(arrays[branch], ecfg)).astype(float)
-                    valid_events = ak.to_numpy(ak.num(pt, axis=1) > 0).astype(bool)
-                    passed = event_pass[valid_events]
+                    passed = event_pass[leading["event"]]
                     event_bin, _, _, _ = flat_eff_bin(cfg, leading["pt"], leading["eta"])
                     denom = leading["denom"].astype(bool)
                     maps[(flavor, branch)]["total"] += np.bincount(event_bin[denom], minlength=n_eff_bins(cfg))
                     maps[(flavor, branch)]["pass"] += np.bincount(
                         event_bin[denom], weights=passed[denom], minlength=n_eff_bins(cfg)
                     )
+            progress_bucket = print_progress(f"Base efficiency {path}", stop, tree.num_entries, progress_bucket)
     return maps
 
 
@@ -836,8 +861,162 @@ def distorted_probability_flat(
     return apply_constrained_distortion(cfg, branch_cfg, base, pt, eta_bin, abs_eta_bin)
 
 
-def mc_truth_mask(arrays: Mapping[str, ak.Array], flavor: str, pt_like):
-    return ak.ones_like(pt_like, dtype=bool)
+def empty_truth_values() -> Dict[str, np.ndarray]:
+    return {
+        "pt": np.array([], dtype=float),
+        "eta": np.array([], dtype=float),
+        "phi": np.array([], dtype=float),
+        "energy": np.array([], dtype=float),
+        "pass": np.array([], dtype=bool),
+        "denom": np.array([], dtype=bool),
+        "event": np.array([], dtype=int),
+    }
+
+
+def gen_truth_available(arrays: Mapping[str, ak.Array]) -> bool:
+    required = ["GenPart_pt", "GenPart_eta", "GenPart_phi", "GenPart_pdgId", "GenPart_genPartIdxMother"]
+    return all(name in arrays for name in required)
+
+
+def lepton_abs_pdg_id(flavor: str) -> int:
+    return 13 if flavor == "muon" else 11
+
+
+def status_flag(flags, index: int, bit: int) -> bool:
+    return flags is not None and index < len(flags) and (int(flags[index]) & (1 << bit)) != 0
+
+
+def prompt_like_gen(flags, index: int) -> bool:
+    if flags is None or index >= len(flags):
+        return True
+    return status_flag(flags, index, 0) or status_flag(flags, index, 8) or status_flag(flags, index, 11)
+
+
+def has_ancestor_pdg(pdg_ids, mothers, index: int, abs_pdg_id: int, n_gen: int) -> bool:
+    if index >= len(mothers):
+        return False
+    mother = int(mothers[index])
+    guard = 0
+    while 0 <= mother < n_gen and guard < n_gen:
+        if mother >= len(pdg_ids):
+            return False
+        if abs(int(pdg_ids[mother])) == abs_pdg_id:
+            return True
+        if mother >= len(mothers):
+            return False
+        mother = int(mothers[mother])
+        guard += 1
+    return False
+
+
+def leading_gen_z_lepton_index(gen_pts, gen_pdg_ids, gen_mothers, gen_flags, n_gen: int, abs_lepton_pdg_id: int) -> Optional[int]:
+    limit = min(n_gen, len(gen_pts), len(gen_pdg_ids), len(gen_mothers))
+    candidates = []
+    have_last_copy = False
+    for idx in range(limit):
+        if abs(int(gen_pdg_ids[idx])) != abs_lepton_pdg_id:
+            continue
+        if not prompt_like_gen(gen_flags, idx):
+            continue
+        if not has_ancestor_pdg(gen_pdg_ids, gen_mothers, idx, 23, limit):
+            continue
+        try:
+            pt = float(gen_pts[idx])
+        except (TypeError, ValueError):
+            continue
+        if not np.isfinite(pt):
+            continue
+        last_copy = status_flag(gen_flags, idx, 13)
+        have_last_copy = have_last_copy or last_copy
+        candidates.append((idx, pt, last_copy))
+    if have_last_copy:
+        candidates = [item for item in candidates if item[2]]
+    if not candidates:
+        return None
+    return max(candidates, key=lambda item: item[1])[0]
+
+
+def delta_phi(a: float, b: float) -> float:
+    return (a - b + math.pi) % (2.0 * math.pi) - math.pi
+
+
+def gen_matched_z_leading_values(
+    arrays: Mapping[str, ak.Array],
+    flavor: str,
+    pt,
+    eta,
+    phi,
+    passed=None,
+    energy=None,
+) -> Dict[str, np.ndarray]:
+    if phi is None or not gen_truth_available(arrays):
+        return empty_truth_values()
+
+    reco_pts = ak.to_list(pt)
+    reco_etas = ak.to_list(eta)
+    reco_phis = ak.to_list(phi)
+    passes = ak.to_list(passed) if passed is not None else None
+    energies = ak.to_list(energy) if energy is not None else None
+    gen_pts = ak.to_list(arrays["GenPart_pt"])
+    gen_etas = ak.to_list(arrays["GenPart_eta"])
+    gen_phis = ak.to_list(arrays["GenPart_phi"])
+    gen_pdg_ids = ak.to_list(arrays["GenPart_pdgId"])
+    gen_mothers = ak.to_list(arrays["GenPart_genPartIdxMother"])
+    gen_flags = ak.to_list(arrays["GenPart_statusFlags"]) if "GenPart_statusFlags" in arrays else None
+    n_gen_values = ak.to_numpy(arrays["nGenPart"]).astype(int) if "nGenPart" in arrays else None
+    abs_pdg_id = lepton_abs_pdg_id(flavor)
+    max_dr2 = TRUTH_MATCH_DR * TRUTH_MATCH_DR
+    out = {key: [] for key in empty_truth_values()}
+
+    for iev, event_pts in enumerate(reco_pts):
+        if iev >= len(gen_pts):
+            continue
+        n_gen = int(n_gen_values[iev]) if n_gen_values is not None and iev < len(n_gen_values) else len(gen_pts[iev])
+        gen_flags_event = gen_flags[iev] if gen_flags is not None and iev < len(gen_flags) else None
+        lead_gen = leading_gen_z_lepton_index(
+            gen_pts[iev],
+            gen_pdg_ids[iev],
+            gen_mothers[iev],
+            gen_flags_event,
+            n_gen,
+            abs_pdg_id,
+        )
+        if lead_gen is None or lead_gen >= len(gen_etas[iev]) or lead_gen >= len(gen_phis[iev]):
+            continue
+
+        limit = min(len(event_pts), len(reco_etas[iev]), len(reco_phis[iev]))
+        if passes is not None:
+            limit = min(limit, len(passes[iev]))
+        if energies is not None:
+            limit = min(limit, len(energies[iev]))
+        best = None
+        best_dr2 = max_dr2
+        gen_eta = float(gen_etas[iev][lead_gen])
+        gen_phi = float(gen_phis[iev][lead_gen])
+        for idx in range(limit):
+            dr2 = (float(reco_etas[iev][idx]) - gen_eta) ** 2 + delta_phi(float(reco_phis[iev][idx]), gen_phi) ** 2
+            if np.isfinite(dr2) and dr2 < best_dr2:
+                best = idx
+                best_dr2 = dr2
+        if best is None:
+            continue
+
+        out["pt"].append(float(event_pts[best]))
+        out["eta"].append(float(reco_etas[iev][best]))
+        out["phi"].append(float(reco_phis[iev][best]))
+        out["energy"].append(float(energies[iev][best]) if energies is not None else 0.0)
+        out["pass"].append(bool(passes[iev][best]) if passes is not None else True)
+        out["denom"].append(True)
+        out["event"].append(iev)
+    return {
+        "pt": np.asarray(out["pt"], dtype=float),
+        "eta": np.asarray(out["eta"], dtype=float),
+        "phi": np.asarray(out["phi"], dtype=float),
+        "energy": np.asarray(out["energy"], dtype=float),
+        "pass": np.asarray(out["pass"], dtype=bool),
+        "denom": np.asarray(out["denom"], dtype=bool),
+        "event": np.asarray(out["event"], dtype=int),
+    }
 
 
 def leading_event_values(pt, eta, phi, denom_mask=None) -> Dict[str, np.ndarray]:
@@ -1043,8 +1222,8 @@ def tnp_probes(arrays: Mapping[str, ak.Array], br: Mapping[str, str], probe_pass
     return {key: np.asarray(value) for key, value in out.items()}
 
 
-def tnp_event_probes(arrays: Mapping[str, ak.Array], br: Mapping[str, str], event_passed) -> Dict[str, np.ndarray]:
-    required = [br.get("pt"), br.get("eta"), br.get("phi"), br.get("mass")]
+def tnp_event_probes(arrays: Mapping[str, ak.Array], br: Mapping[str, str], event_passed, tag_passed) -> Dict[str, np.ndarray]:
+    required = [br.get("pt"), br.get("eta"), br.get("phi"), br.get("mass"), br.get("charge")]
     if any(name not in arrays for name in required):
         return {
             "pt": np.array([]),
@@ -1058,43 +1237,33 @@ def tnp_event_probes(arrays: Mapping[str, ak.Array], br: Mapping[str, str], even
     etas = ak.to_list(arrays[br["eta"]])
     phis = ak.to_list(arrays[br["phi"]])
     masses = ak.to_list(arrays[br["mass"]])
-    charges = ak.to_list(arrays[br["charge"]]) if br.get("charge") in arrays else None
+    charges = ak.to_list(arrays[br["charge"]])
     event_pass = ak.to_numpy(event_passed).astype(bool)
+    tag_passes = ak.to_list(tag_passed)
 
     out = {"pt": [], "eta": [], "phi": [], "mass": [], "pass": []}
     for iev, event_pts in enumerate(pts):
-        n = len(event_pts)
-        if n < 2:
+        limit = min(len(event_pts), len(charges[iev]), len(tag_passes[iev]))
+        if limit < 2:
             continue
-        best = None
-        best_delta = None
-        for i in range(n):
-            for j in range(i + 1, n):
-                if charges is not None and charges[iev][i] * charges[iev][j] >= 0:
-                    continue
-                mass, _, _, _ = system_kinematics(
-                    (event_pts[i], etas[iev][i], phis[iev][i], masses[iev][i]),
-                    (event_pts[j], etas[iev][j], phis[iev][j], masses[iev][j]),
-                )
-                if not (60.0 <= mass <= 120.0):
-                    continue
-                delta = abs(mass - Z_MASS)
-                if best_delta is None or delta < best_delta:
-                    best = (i, j)
-                    best_delta = delta
-        if best is None:
+        ordered = sorted(range(limit), key=lambda idx: event_pts[idx], reverse=True)
+        tag = ordered[0]
+        probe = ordered[1]
+        tag_charge = int(charges[iev][tag])
+        probe_charge = int(charges[iev][probe])
+        if tag_charge == 0 or probe_charge == 0 or tag_charge * probe_charge >= 0:
             continue
-        i, j = best
+        if event_pts[tag] <= 10.0 or not bool(tag_passes[iev][tag]):
+            continue
         pair_mass, _, _, _ = system_kinematics(
-            (event_pts[i], etas[iev][i], phis[iev][i], masses[iev][i]),
-            (event_pts[j], etas[iev][j], phis[iev][j], masses[iev][j]),
+            (event_pts[tag], etas[iev][tag], phis[iev][tag], masses[iev][tag]),
+            (event_pts[probe], etas[iev][probe], phis[iev][probe], masses[iev][probe]),
         )
-        for probe in best:
-            out["pt"].append(event_pts[probe])
-            out["eta"].append(etas[iev][probe])
-            out["phi"].append(phis[iev][probe])
-            out["mass"].append(pair_mass)
-            out["pass"].append(bool(event_pass[iev]))
+        out["pt"].append(event_pts[probe])
+        out["eta"].append(etas[iev][probe])
+        out["phi"].append(phis[iev][probe])
+        out["mass"].append(pair_mass)
+        out["pass"].append(bool(event_pass[iev]))
     return {key: np.asarray(value) for key, value in out.items()}
 
 
@@ -1118,7 +1287,7 @@ def add_tnp_mass_candidates(
         if key not in store:
             store[key] = {
                 "pass": [[] for _ in range(len(edges) - 1)],
-                "all": [[] for _ in range(len(edges) - 1)],
+                "fail": [[] for _ in range(len(edges) - 1)],
             }
         values = np.asarray(probes[var], dtype=float)
         finite = mass_window & np.isfinite(values)
@@ -1129,13 +1298,13 @@ def add_tnp_mass_candidates(
             if not np.any(bin_mask):
                 continue
             store[key]["pass"][ibin].append(masses[bin_mask & passed])
-            store[key]["all"][ibin].append(masses[bin_mask])
+            store[key]["fail"][ibin].append(masses[bin_mask & ~passed])
 
 
-def make_combined_roodataset(name: str, mass_var, sample, pass_masses: np.ndarray, all_masses: np.ndarray):
+def make_combined_roodataset(name: str, mass_var, sample, pass_masses: np.ndarray, fail_masses: np.ndarray):
     data = ROOT.RooDataSet(name, name, ROOT.RooArgSet(mass_var, sample))
     args = ROOT.RooArgSet(mass_var, sample)
-    for label, masses in (("pass", pass_masses), ("all", all_masses)):
+    for label, masses in (("pass", pass_masses), ("fail", fail_masses)):
         sample.setLabel(label)
         for value in np.asarray(masses, dtype=float):
             if not np.isfinite(value) or value < 60.0 or value > 120.0:
@@ -1164,9 +1333,9 @@ def tnp_fit_plot_path(fit_dir: Path, key: Tuple, ibin: int, edges: Optional[np.n
     return fit_dir / filename
 
 
-def tnp_fit_plot_title(key: Tuple, ibin: int, edges: Optional[np.ndarray], tier: str, n_pass: int, n_all: int) -> str:
+def tnp_fit_plot_title(key: Tuple, ibin: int, edges: Optional[np.ndarray], tier: str, n_pass: int, n_fail: int) -> str:
     flavor, branch, sample, _, var = key
-    parts = [sample, flavor, branch, var, f"bin {ibin}", tier, f"pass/all {n_pass}/{n_all}"]
+    parts = [sample, flavor, branch, var, f"bin {ibin}", tier, f"pass/fail {n_pass}/{n_fail}"]
     if edges is not None and ibin + 1 < len(edges):
         parts.insert(5, f"{edges[ibin]:g} <= {var} < {edges[ibin + 1]:g}")
     return " | ".join(parts)
@@ -1179,26 +1348,26 @@ def save_tnp_fit_plot(plot_path: Path, title: str, tier: str, uid: str, mass, sa
     sample_set = ROOT.RooArgSet(sample)
     comb_data.plotOn(
         frame,
-        ROOT.RooFit.Cut(f"{sample_name}=={sample_name}::all"),
+        ROOT.RooFit.Cut(f"{sample_name}=={sample_name}::fail"),
         ROOT.RooFit.MarkerColor(ROOT.kRed + 1),
         ROOT.RooFit.LineColor(ROOT.kRed + 1),
-        ROOT.RooFit.Name(f"data_all_{uid}"),
+        ROOT.RooFit.Name(f"data_fail_{uid}"),
     )
     sim_pdf.plotOn(
         frame,
-        ROOT.RooFit.Slice(sample, "all"),
+        ROOT.RooFit.Slice(sample, "fail"),
         ROOT.RooFit.ProjWData(sample_set, comb_data),
         ROOT.RooFit.LineColor(ROOT.kRed + 1),
-        ROOT.RooFit.Name(f"model_all_{uid}"),
+        ROOT.RooFit.Name(f"model_fail_{uid}"),
     )
     sim_pdf.plotOn(
         frame,
-        ROOT.RooFit.Slice(sample, "all"),
+        ROOT.RooFit.Slice(sample, "fail"),
         ROOT.RooFit.ProjWData(sample_set, comb_data),
-        ROOT.RooFit.Components(f"bkg_all_{uid}"),
+        ROOT.RooFit.Components(f"bkg_fail_{uid}"),
         ROOT.RooFit.LineColor(ROOT.kRed + 2),
         ROOT.RooFit.LineStyle(ROOT.kDashed),
-        ROOT.RooFit.Name(f"bkg_all_{uid}"),
+        ROOT.RooFit.Name(f"bkg_fail_{uid}"),
     )
     comb_data.plotOn(
         frame,
@@ -1237,9 +1406,9 @@ def save_tnp_fit_plot(plot_path: Path, title: str, tier: str, uid: str, mass, sa
     legend.SetFillStyle(0)
     legend.SetTextSize(0.034)
     for object_name, label, option in (
-        (f"data_all_{uid}", "all data", "pe"),
-        (f"model_all_{uid}", f"all {tier}", "l"),
-        (f"bkg_all_{uid}", "all bkg exp", "l"),
+        (f"data_fail_{uid}", "fail data", "pe"),
+        (f"model_fail_{uid}", f"fail {tier}", "l"),
+        (f"bkg_fail_{uid}", "fail bkg exp", "l"),
         (f"data_pass_{uid}", "pass data", "pe"),
         (f"model_pass_{uid}", f"pass {tier}", "l"),
         (f"bkg_pass_{uid}", "pass bkg exp", "l"),
@@ -1251,10 +1420,10 @@ def save_tnp_fit_plot(plot_path: Path, title: str, tier: str, uid: str, mass, sa
     canvas.SaveAs(str(plot_path))
 
 
-def tnp_fit_model_tier(n_pass: int, n_all: int) -> str:
-    if n_all >= TNP_DOUBLE_CB_MIN_ALL and n_pass >= TNP_DOUBLE_CB_MIN_PASS:
+def tnp_fit_model_tier(n_pass: int, n_total: int) -> str:
+    if n_total >= TNP_DOUBLE_CB_MIN_ALL and n_pass >= TNP_DOUBLE_CB_MIN_PASS:
         return "double_cb"
-    if n_all >= TNP_SINGLE_CB_MIN_ALL and n_pass >= TNP_SINGLE_CB_MIN_PASS:
+    if n_total >= TNP_SINGLE_CB_MIN_ALL and n_pass >= TNP_SINGLE_CB_MIN_PASS:
         return "single_cb"
     return "gaussian"
 
@@ -1271,13 +1440,14 @@ def fit_tnp_signal_efficiency_with_model(
     sample,
     comb_data,
     n_pass: int,
-    n_all: int,
+    n_fail: int,
     plot_path: Optional[Path] = None,
     plot_title: Optional[str] = None,
 ) -> Tuple[float, float]:
+    n_total = n_pass + n_fail
     mean = ROOT.RooRealVar(f"mean_{uid}", "mean", Z_MASS, 88.0, 94.0)
-    slope_pass = ROOT.RooRealVar(f"slope_pass_{uid}", "slope_pass", -0.03, -1.0, 0.2)
-    slope_all = ROOT.RooRealVar(f"slope_all_{uid}", "slope_all", -0.03, -1.0, 0.2)
+    slope_pass = ROOT.RooRealVar(f"slope_pass_{uid}", "slope_pass", -0.02, -0.05, -0.001)
+    slope_fail = ROOT.RooRealVar(f"slope_fail_{uid}", "slope_fail", -0.02, -0.05, -0.001)
 
     if tier == "double_cb":
         sigma1 = ROOT.RooRealVar(f"sigma1_{uid}", "sigma1", 1.5, 0.4, 5.0)
@@ -1297,12 +1467,12 @@ def fit_tnp_signal_efficiency_with_model(
             ROOT.RooArgList(cb_l_pass, cb_r_pass),
             ROOT.RooArgList(frac),
         )
-        cb_l_all = ROOT.RooCBShape(f"cb_l_all_{uid}", "cb_l_all", mass, mean, sigma1, alpha_l, n_l)
-        cb_r_all = ROOT.RooCBShape(f"cb_r_all_{uid}", "cb_r_all", mass, mean, sigma2, alpha_r, n_r)
-        signal_all = ROOT.RooAddPdf(
-            f"signal_all_{uid}",
-            "signal_all",
-            ROOT.RooArgList(cb_l_all, cb_r_all),
+        cb_l_fail = ROOT.RooCBShape(f"cb_l_fail_{uid}", "cb_l_fail", mass, mean, sigma1, alpha_l, n_l)
+        cb_r_fail = ROOT.RooCBShape(f"cb_r_fail_{uid}", "cb_r_fail", mass, mean, sigma2, alpha_r, n_r)
+        signal_fail = ROOT.RooAddPdf(
+            f"signal_fail_{uid}",
+            "signal_fail",
+            ROOT.RooArgList(cb_l_fail, cb_r_fail),
             ROOT.RooArgList(frac),
         )
     elif tier == "single_cb":
@@ -1311,39 +1481,45 @@ def fit_tnp_signal_efficiency_with_model(
         n = ROOT.RooRealVar(f"n_{uid}", "n", 1.0)
         n.setConstant(True)
         signal_pass = ROOT.RooCBShape(f"signal_pass_{uid}", "signal_pass", mass, mean, sigma, alpha, n)
-        signal_all = ROOT.RooCBShape(f"signal_all_{uid}", "signal_all", mass, mean, sigma, alpha, n)
+        signal_fail = ROOT.RooCBShape(f"signal_fail_{uid}", "signal_fail", mass, mean, sigma, alpha, n)
     else:
         sigma = ROOT.RooRealVar(f"sigma_{uid}", "sigma", 2.0, 0.4, 8.0)
         signal_pass = ROOT.RooGaussian(f"signal_pass_{uid}", "signal_pass", mass, mean, sigma)
-        signal_all = ROOT.RooGaussian(f"signal_all_{uid}", "signal_all", mass, mean, sigma)
+        signal_fail = ROOT.RooGaussian(f"signal_fail_{uid}", "signal_fail", mass, mean, sigma)
 
     bkg_pass = ROOT.RooExponential(f"bkg_pass_{uid}", "bkg_pass", mass, slope_pass)
-    bkg_all = ROOT.RooExponential(f"bkg_all_{uid}", "bkg_all", mass, slope_all)
-    eff = ROOT.RooRealVar(f"tnp_eff_{uid}", "tnp_eff", min(max(n_pass / max(n_all, 1), 0.01), 0.99), 0.0, 1.0)
-    nsig_all = ROOT.RooRealVar(f"nsig_all_{uid}", "nsig_all", max(1.0, 0.8 * n_all), 0.0, 1.5 * n_all + 20.0)
+    bkg_fail = ROOT.RooExponential(f"bkg_fail_{uid}", "bkg_fail", mass, slope_fail)
+    eff = ROOT.RooRealVar(f"tnp_eff_{uid}", "tnp_eff", min(max(n_pass / max(n_total, 1), 0.01), 0.99), 0.0, 1.0)
+    nsig_total = ROOT.RooRealVar(f"nsig_total_{uid}", "nsig_total", max(1.0, 0.8 * n_total), 0.0, 1.5 * n_total + 20.0)
     nsig_pass = ROOT.RooFormulaVar(
         f"nsig_pass_{uid}",
         "nsig_pass",
         "@0*@1",
-        ROOT.RooArgList(eff, nsig_all),
+        ROOT.RooArgList(eff, nsig_total),
+    )
+    nsig_fail = ROOT.RooFormulaVar(
+        f"nsig_fail_{uid}",
+        "nsig_fail",
+        "(1.0-@0)*@1",
+        ROOT.RooArgList(eff, nsig_total),
     )
     nbkg_pass = ROOT.RooRealVar(f"nbkg_pass_{uid}", "nbkg_pass", max(1.0, 0.2 * n_pass), 0.0, 1.5 * n_pass + 20.0)
-    nbkg_all = ROOT.RooRealVar(f"nbkg_all_{uid}", "nbkg_all", max(1.0, 0.2 * n_all), 0.0, 1.5 * n_all + 20.0)
+    nbkg_fail = ROOT.RooRealVar(f"nbkg_fail_{uid}", "nbkg_fail", max(1.0, 0.2 * n_fail), 0.0, 1.5 * n_fail + 20.0)
     model_pass = ROOT.RooAddPdf(
         f"model_pass_{uid}",
         "model_pass",
         ROOT.RooArgList(signal_pass, bkg_pass),
         ROOT.RooArgList(nsig_pass, nbkg_pass),
     )
-    model_all = ROOT.RooAddPdf(
-        f"model_all_{uid}",
-        "model_all",
-        ROOT.RooArgList(signal_all, bkg_all),
-        ROOT.RooArgList(nsig_all, nbkg_all),
+    model_fail = ROOT.RooAddPdf(
+        f"model_fail_{uid}",
+        "model_fail",
+        ROOT.RooArgList(signal_fail, bkg_fail),
+        ROOT.RooArgList(nsig_fail, nbkg_fail),
     )
     sim_pdf = ROOT.RooSimultaneous(f"sim_pdf_{uid}", "sim_pdf", sample)
     sim_pdf.addPdf(model_pass, "pass")
-    sim_pdf.addPdf(model_all, "all")
+    sim_pdf.addPdf(model_fail, "fail")
 
     result = sim_pdf.fitTo(
         comb_data,
@@ -1368,34 +1544,35 @@ def fit_tnp_signal_efficiency_with_model(
 
 def fit_tnp_signal_efficiency(
     pass_masses: np.ndarray,
-    all_masses: np.ndarray,
+    fail_masses: np.ndarray,
     plot_dir: Optional[Path] = None,
     plot_key: Optional[Tuple] = None,
     ibin: Optional[int] = None,
     edges: Optional[np.ndarray] = None,
 ) -> Tuple[float, float]:
     pass_masses = np.asarray(pass_masses, dtype=float)
-    all_masses = np.asarray(all_masses, dtype=float)
+    fail_masses = np.asarray(fail_masses, dtype=float)
     pass_masses = pass_masses[np.isfinite(pass_masses) & (pass_masses >= 60.0) & (pass_masses <= 120.0)]
-    all_masses = all_masses[np.isfinite(all_masses) & (all_masses >= 60.0) & (all_masses <= 120.0)]
+    fail_masses = fail_masses[np.isfinite(fail_masses) & (fail_masses >= 60.0) & (fail_masses <= 120.0)]
     n_pass = len(pass_masses)
-    n_all = len(all_masses)
-    if n_all < TNP_MIN_FIT_ALL or n_pass > n_all:
+    n_fail = len(fail_masses)
+    n_total = n_pass + n_fail
+    if n_total < TNP_MIN_FIT_ALL:
         return np.nan, np.nan
 
     base_uid = str(next(TNP_FIT_COUNTER))
     mass = ROOT.RooRealVar(f"mll_{base_uid}", "m_{ll}", 60.0, 120.0)
     sample = ROOT.RooCategory(f"sample_{base_uid}", "sample")
     sample.defineType("pass")
-    sample.defineType("all")
-    comb_data = make_combined_roodataset(f"comb_data_{base_uid}", mass, sample, pass_masses, all_masses)
+    sample.defineType("fail")
+    comb_data = make_combined_roodataset(f"comb_data_{base_uid}", mass, sample, pass_masses, fail_masses)
 
-    for tier in tnp_fit_tiers(tnp_fit_model_tier(n_pass, n_all)):
+    for tier in tnp_fit_tiers(tnp_fit_model_tier(n_pass, n_total)):
         plot_path = None
         plot_title = None
         if plot_dir is not None and plot_key is not None and ibin is not None:
             plot_path = tnp_fit_plot_path(plot_dir, plot_key, ibin, edges, tier)
-            plot_title = tnp_fit_plot_title(plot_key, ibin, edges, tier, n_pass, n_all)
+            plot_title = tnp_fit_plot_title(plot_key, ibin, edges, tier, n_pass, n_fail)
         value, error = fit_tnp_signal_efficiency_with_model(
             tier,
             f"{base_uid}_{tier}",
@@ -1403,7 +1580,7 @@ def fit_tnp_signal_efficiency(
             sample,
             comb_data,
             n_pass,
-            n_all,
+            n_fail,
             plot_path,
             plot_title,
         )
@@ -1427,10 +1604,10 @@ def finalize_tnp_fits(
         var_edges = edges_by_var.get(key[-1]) if edges_by_var is not None else None
         for ibin in range(n_bins):
             pass_masses = np.concatenate(payload["pass"][ibin]) if payload["pass"][ibin] else np.array([], dtype=float)
-            all_masses = np.concatenate(payload["all"][ibin]) if payload["all"][ibin] else np.array([], dtype=float)
+            fail_masses = np.concatenate(payload["fail"][ibin]) if payload["fail"][ibin] else np.array([], dtype=float)
             eff[ibin], err[ibin] = fit_tnp_signal_efficiency(
                 pass_masses,
-                all_masses,
+                fail_masses,
                 fit_dir,
                 key,
                 ibin,
@@ -1603,7 +1780,7 @@ def plot_efficiency(
             first_label = False
 
     ax.set_xlabel(xlabel)
-    ax.set_ylabel("A.U.")
+    ax.set_ylabel("Efficiency")
     ax.set_ylim(0.0, 1.0)
     ax.legend(fontsize=12)
     add_cms_label(ax)
@@ -1684,6 +1861,9 @@ def analyze(modify_cfg: Mapping, plot_cfg: Mapping, pairs: Sequence[Tuple[Path, 
         if input_tree.num_entries != output_tree.num_entries:
             raise RuntimeError(f"Entry mismatch: {input_path} has {input_tree.num_entries}, {output_path} has {output_tree.num_entries}")
 
+        progress_label = f"Compare {input_path} -> {output_path}"
+        progress_bucket = -1
+        progress_bucket = print_progress(progress_label, 0, input_tree.num_entries, progress_bucket)
         for start in range(0, input_tree.num_entries, chunk_size):
             stop = min(input_tree.num_entries, start + chunk_size)
             arr_in = read_arrays(input_tree, requested, start, stop, f"{input_path} input")
@@ -1747,17 +1927,14 @@ def analyze(modify_cfg: Mapping, plot_cfg: Mapping, pairs: Sequence[Tuple[Path, 
 
                 selected_eff = selected_efficiency_branches(plot_cfg, modify_cfg, flavor)
                 selected_event_eff = selected_event_efficiency_branches(plot_cfg, modify_cfg, flavor)
-                if selected_event_eff:
-                    truth_in = mc_truth_mask(arr_in, flavor, pt_in)
-                    truth_out = mc_truth_mask(arr_out, flavor, pt_out)
 
                 for branch, ecfg in selected_eff.items():
                     if branch not in arr_in or branch not in arr_out:
                         continue
                     pass_in = pass_mask(arr_in[branch], ecfg)
                     pass_out = pass_mask(arr_out[branch], ecfg)
-                    leading_in = os_probe_lepton_values(pt_in, eta_in, phi_in, charge=charge_in, passed=pass_in)
-                    leading_out = os_probe_lepton_values(pt_out, eta_out, phi_out, charge=charge_out, passed=pass_out)
+                    leading_in = gen_matched_z_leading_values(arr_in, flavor, pt_in, eta_in, phi_in, passed=pass_in)
+                    leading_out = gen_matched_z_leading_values(arr_out, flavor, pt_out, eta_out, phi_out, passed=pass_out)
                     variables = eff_variables.get((flavor, branch), [])
                     for sample, leading in (
                         ("input", leading_in),
@@ -1788,7 +1965,7 @@ def analyze(modify_cfg: Mapping, plot_cfg: Mapping, pairs: Sequence[Tuple[Path, 
 
                     base_map = base_maps.get((flavor, branch))
                     if base_map is not None:
-                        leading_exp = os_probe_lepton_values(pt_exp, eta_in, phi_in, charge=charge_in)
+                        leading_exp = gen_matched_z_leading_values(arr_in, flavor, pt_exp, eta_in, phi_in)
                         exp_probs = distorted_probability_flat(modify_cfg, base_map, ecfg, leading_exp["pt"], leading_exp["eta"])
                         values_by_var = {"pt": leading_exp["pt"], "eta": leading_exp["eta"], "phi": leading_exp["phi"]}
                         values_in_by_var = {"pt": leading_in["pt"], "eta": leading_in["eta"], "phi": leading_in["phi"]}
@@ -1815,16 +1992,16 @@ def analyze(modify_cfg: Mapping, plot_cfg: Mapping, pairs: Sequence[Tuple[Path, 
                                 )
 
                 if selected_event_eff:
-                    leading_in = leading_event_values(pt_in, eta_in, phi_in, truth_in)
-                    leading_out = leading_event_values(pt_out, eta_out, phi_out, truth_out)
-                    leading_exp = leading_event_values(pt_exp, eta_in, phi_in, truth_in)
-                    valid_in = ak.to_numpy(ak.num(pt_in, axis=1) > 0).astype(bool)
-                    valid_out = ak.to_numpy(ak.num(pt_out, axis=1) > 0).astype(bool)
+                    leading_in = gen_matched_z_leading_values(arr_in, flavor, pt_in, eta_in, phi_in)
+                    leading_out = gen_matched_z_leading_values(arr_out, flavor, pt_out, eta_out, phi_out)
+                    leading_exp = gen_matched_z_leading_values(arr_in, flavor, pt_exp, eta_in, phi_in)
                     for branch, ecfg in selected_event_eff.items():
                         if branch not in arr_in or branch not in arr_out:
                             continue
-                        pass_in_event = ak.to_numpy(pass_mask(arr_in[branch], ecfg)).astype(bool)[valid_in]
-                        pass_out_event = ak.to_numpy(pass_mask(arr_out[branch], ecfg)).astype(bool)[valid_out]
+                        pass_in_all = ak.to_numpy(pass_mask(arr_in[branch], ecfg)).astype(bool)
+                        pass_out_all = ak.to_numpy(pass_mask(arr_out[branch], ecfg)).astype(bool)
+                        pass_in_event = pass_in_all[leading_in["event"]]
+                        pass_out_event = pass_out_all[leading_out["event"]]
                         variables = eff_variables.get((flavor, branch), [])
                         for sample, leading, passed in (
                             ("input", leading_in, pass_in_event),
@@ -1844,8 +2021,12 @@ def analyze(modify_cfg: Mapping, plot_cfg: Mapping, pairs: Sequence[Tuple[Path, 
                                     eff_edges[var],
                                 )
 
-                        tnp_in = tnp_event_probes(arr_in, br, pass_mask(arr_in[branch], ecfg))
-                        tnp_out = tnp_event_probes(arr_out, br, pass_mask(arr_out[branch], ecfg))
+                        tag_branch = tnp_tag_id_branch(flavor)
+                        tag_cfg = tnp_tag_id_cfg(modify_cfg, flavor)
+                        tag_pass_in = pass_mask(arr_in[tag_branch], tag_cfg) if tag_branch in arr_in else ak.zeros_like(pt_in, dtype=bool)
+                        tag_pass_out = pass_mask(arr_out[tag_branch], tag_cfg) if tag_branch in arr_out else ak.zeros_like(pt_out, dtype=bool)
+                        tnp_in = tnp_event_probes(arr_in, br, pass_mask(arr_in[branch], ecfg), tag_pass_in)
+                        tnp_out = tnp_event_probes(arr_out, br, pass_mask(arr_out[branch], ecfg), tag_pass_out)
                         add_tnp_mass_candidates(tnp_mass_store, (flavor, branch, "input", "tnp"), tnp_in, eff_edges, variables)
                         add_tnp_mass_candidates(tnp_mass_store, (flavor, branch, "output", "tnp"), tnp_out, eff_edges, variables)
 
@@ -1875,9 +2056,10 @@ def analyze(modify_cfg: Mapping, plot_cfg: Mapping, pairs: Sequence[Tuple[Path, 
                                         pass_in_event,
                                         eff_edges[var],
                                     )
+            progress_bucket = print_progress(progress_label, stop, input_tree.num_entries, progress_bucket)
 
     fit_dir = figdir / "fit"
-    print(f"[INFO] Fitting TnP pass/all dilepton mass spectra with RooFit and writing fit plots to {fit_dir}")
+    print(f"[INFO] Fitting TnP pass/fail dilepton mass spectra with RooFit and writing fit plots to {fit_dir}")
     finalize_tnp_fits(eff_store, tnp_mass_store, fit_dir, eff_edges)
 
     print(f"[INFO] Writing plots to {figdir}")
