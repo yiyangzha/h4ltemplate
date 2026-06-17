@@ -334,7 +334,7 @@ struct DistortionConfig {
   std::vector<std::vector<double>> binFactors;
 };
 
-enum class EffType { Bool, IntWP };
+enum class EffType { Bool, IntWP, FloatMax };
 
 struct EffBranchConfig {
   std::string name;
@@ -342,6 +342,10 @@ struct EffBranchConfig {
   int passThreshold = 1;
   int passValue = 1;
   int failValue = 0;
+  double floatThreshold = 0.0;
+  double passDoubleValue = 0.0;
+  double failDoubleValue = 1.0;
+  std::string referenceFlavor;
   DistortionConfig distortion;
 };
 
@@ -395,6 +399,7 @@ struct Config {
   BinningConfig binning;
   std::vector<EffBranchConfig> muonEffBranches;
   std::vector<EffBranchConfig> electronEffBranches;
+  std::vector<EffBranchConfig> eventEffBranches;
 };
 
 const Json* child(const Json* j, const std::string& key) {
@@ -488,9 +493,15 @@ std::vector<EffBranchConfig> parseEffBranches(const Json* obj, double defaultPtR
       cfg.passThreshold = getInt(b, "pass_threshold", 1);
       cfg.passValue = getInt(b, "pass_value", cfg.passThreshold);
       cfg.failValue = getInt(b, "fail_value", 0);
+    } else if (type == "float_max") {
+      cfg.type = EffType::FloatMax;
+      cfg.floatThreshold = getDouble(b, "max", getDouble(b, "pass_threshold", 0.15));
+      cfg.passDoubleValue = getDouble(b, "pass_value", 0.5 * cfg.floatThreshold);
+      cfg.failDoubleValue = getDouble(b, "fail_value", 2.0 * cfg.floatThreshold);
     } else {
       fail("Unsupported efficiency branch type " + quote(type) + " for branch " + quote(kv.first));
     }
+    cfg.referenceFlavor = getString(b, "reference_flavor", "");
     cfg.distortion = parseDistortion(child(b, "distortion"), defaultPtRef);
     out.push_back(cfg);
   }
@@ -566,6 +577,7 @@ Config parseConfig(const std::string& path) {
   cfg.binning.energy = readDoubleArray(child(binning, "energy"));
   cfg.muonEffBranches = parseEffBranches(child(eff, "muon_branches"), cfg.scalePtReference);
   cfg.electronEffBranches = parseEffBranches(child(eff, "electron_branches"), cfg.scalePtReference);
+  cfg.eventEffBranches = parseEffBranches(child(eff, "event_branches"), cfg.scalePtReference);
 
   auto validateEdges = [](const std::vector<double>& edges, const std::string& name) {
     if (edges.size() < 2) fail(name + " binning must contain at least two edges");
@@ -1037,6 +1049,7 @@ struct EffCounts {
 struct Calibration {
   std::map<std::string, EffCounts> muon;
   std::map<std::string, EffCounts> electron;
+  std::map<std::string, EffCounts> event;
 };
 
 Calibration makeEmptyCalibration(const Config& cfg) {
@@ -1044,16 +1057,19 @@ Calibration makeEmptyCalibration(const Config& cfg) {
   const int bins = nFlatBins(cfg.binning);
   for (const auto& b : cfg.muonEffBranches) c.muon.emplace(b.name, EffCounts(bins));
   for (const auto& b : cfg.electronEffBranches) c.electron.emplace(b.name, EffCounts(bins));
+  for (const auto& b : cfg.eventEffBranches) c.event.emplace(b.name, EffCounts(bins));
   return c;
 }
 
 void mergeCalibration(Calibration& into, const Calibration& from) {
   for (const auto& kv : from.muon) into.muon[kv.first].merge(kv.second);
   for (const auto& kv : from.electron) into.electron[kv.first].merge(kv.second);
+  for (const auto& kv : from.event) into.event[kv.first].merge(kv.second);
 }
 
 bool originalPasses(const EffBranchConfig& cfg, const BranchBuffer& branch, std::size_t i) {
   if (cfg.type == EffType::Bool) return branch.getBool(i);
+  if (cfg.type == EffType::FloatMax) return branch.getDouble(i) <= cfg.floatThreshold;
   return branch.getInt64(i) >= cfg.passThreshold;
 }
 
@@ -1255,8 +1271,52 @@ struct EffBranchRuntime {
   EffCounts* counts = nullptr;
 };
 
+void writeEfficiencyValue(EffBranchRuntime& branch, std::size_t index, bool pass) {
+  if (branch.cfg.type == EffType::Bool) {
+    branch.branch.setInt(index, pass ? 1 : 0);
+  } else if (branch.cfg.type == EffType::IntWP) {
+    branch.branch.setInt(index, pass ? branch.cfg.passValue : branch.cfg.failValue);
+  } else if (branch.cfg.type == EffType::FloatMax) {
+    const bool currentPass = branch.branch.getDouble(index) <= branch.cfg.floatThreshold;
+    if (currentPass != pass) {
+      branch.branch.setDouble(index, pass ? branch.cfg.passDoubleValue : branch.cfg.failDoubleValue);
+    }
+  }
+}
+
 void enableBranchIfPresent(TTree* tree, const std::string& name) {
   if (!name.empty() && tree->GetBranch(name.c_str())) tree->SetBranchStatus(name.c_str(), 1);
+}
+
+std::string eventReferenceFlavor(const EffBranchConfig& cfg) {
+  if (!cfg.referenceFlavor.empty()) return cfg.referenceFlavor;
+  if (cfg.name.find("Ele") != std::string::npos || cfg.name.find("Ele") != std::string::npos) return "electron";
+  if (cfg.name.find("Mu") != std::string::npos) return "muon";
+  return "muon";
+}
+
+bool leadingKinematics(const BranchBuffer& n,
+                       const BranchBuffer& pt,
+                       const BranchBuffer& eta,
+                       double& leadingPt,
+                       double& leadingEta,
+                       std::size_t& leadingIndex) {
+  if (!n.bound() || !pt.bound() || !eta.bound()) return false;
+  const std::size_t nObj = static_cast<std::size_t>(n.getUInt64(0));
+  const std::size_t limit = std::min({nObj, pt.availableForN(nObj), eta.availableForN(nObj)});
+  if (limit == 0) return false;
+  leadingIndex = 0;
+  leadingPt = pt.getDouble(0);
+  leadingEta = eta.getDouble(0);
+  for (std::size_t i = 1; i < limit; ++i) {
+    const double candidatePt = pt.getDouble(i);
+    if (candidatePt > leadingPt) {
+      leadingPt = candidatePt;
+      leadingEta = eta.getDouble(i);
+      leadingIndex = i;
+    }
+  }
+  return true;
 }
 
 void prescanFlavor(TTree* tree,
@@ -1320,6 +1380,61 @@ void prescanFlavor(TTree* tree,
   }
 }
 
+void prescanEventEfficiencies(TTree* tree,
+                              const Config& cfg,
+                              const std::string& input,
+                              std::size_t maxMuon,
+                              std::size_t maxElectron,
+                              Calibration& outCal) {
+  if (!cfg.efficiencyEnabled || cfg.eventEffBranches.empty()) return;
+  const std::string context = input + " [event prescan]";
+  tree->ResetBranchAddresses();
+  tree->SetBranchStatus("*", 0);
+  enableBranchIfPresent(tree, cfg.muonBranches.n);
+  enableBranchIfPresent(tree, cfg.muonBranches.pt);
+  enableBranchIfPresent(tree, cfg.muonBranches.eta);
+  enableBranchIfPresent(tree, cfg.electronBranches.n);
+  enableBranchIfPresent(tree, cfg.electronBranches.pt);
+  enableBranchIfPresent(tree, cfg.electronBranches.eta);
+  for (const auto& e : cfg.eventEffBranches) enableBranchIfPresent(tree, e.name);
+
+  BranchBuffer nMuon, muPt, muEta, nElectron, elePt, eleEta;
+  nMuon.bind(tree, cfg.muonBranches.n, 1, false, context);
+  muPt.bind(tree, cfg.muonBranches.pt, maxMuon + 1, false, context);
+  muEta.bind(tree, cfg.muonBranches.eta, maxMuon + 1, false, context);
+  nElectron.bind(tree, cfg.electronBranches.n, 1, false, context);
+  elePt.bind(tree, cfg.electronBranches.pt, maxElectron + 1, false, context);
+  eleEta.bind(tree, cfg.electronBranches.eta, maxElectron + 1, false, context);
+
+  std::vector<EffBranchRuntime> eventBranches;
+  for (const auto& e : cfg.eventEffBranches) {
+    EffBranchRuntime rt;
+    rt.cfg = e;
+    auto it = outCal.event.find(e.name);
+    if (it == outCal.event.end()) continue;
+    rt.counts = &it->second;
+    if (rt.branch.bind(tree, e.name, 1, true, context)) eventBranches.push_back(std::move(rt));
+  }
+  if (eventBranches.empty()) return;
+
+  const Long64_t entries = tree->GetEntries();
+  for (Long64_t entry = 0; entry < entries; ++entry) {
+    tree->GetEntry(entry);
+    for (auto& e : eventBranches) {
+      const std::string ref = eventReferenceFlavor(e.cfg);
+      double leadPt = 0.0;
+      double leadEta = 0.0;
+      std::size_t leadIndex = 0;
+      const bool haveLead = ref == "electron"
+          ? leadingKinematics(nElectron, elePt, eleEta, leadPt, leadEta, leadIndex)
+          : leadingKinematics(nMuon, muPt, muEta, leadPt, leadEta, leadIndex);
+      if (!haveLead) continue;
+      const BinIndex idx = makeBinIndex(cfg.binning, leadPt, leadEta);
+      e.counts->add(idx.flat, originalPasses(e.cfg, e.branch, 0));
+    }
+  }
+}
+
 PreScanResult prescanFile(const Config& cfg, const std::string& input) {
   PreScanResult result;
   result.input = input;
@@ -1335,6 +1450,7 @@ PreScanResult prescanFile(const Config& cfg, const std::string& input) {
   result.maxElectron = readMaxCount(tree, cfg.electronBranches.n, input + " [max nElectron]");
   prescanFlavor(tree, cfg, input, true, result.maxMuon, result.calibration);
   prescanFlavor(tree, cfg, input, false, result.maxElectron, result.calibration);
+  prescanEventEfficiencies(tree, cfg, input, result.maxMuon, result.maxElectron, result.calibration);
   tree->ResetBranchAddresses();
   tree->SetBranchStatus("*", 1);
   return result;
@@ -1402,6 +1518,37 @@ FlavorRuntime bindFlavorForModification(TTree* tree,
   return rt;
 }
 
+struct EventEffRuntime {
+  EffBranchRuntime eff;
+  std::string referenceFlavor;
+};
+
+struct EventRuntime {
+  std::vector<EventEffRuntime> branches;
+};
+
+EventRuntime bindEventEfficienciesForModification(TTree* tree,
+                                                  const Config& cfg,
+                                                  const Calibration& cal,
+                                                  const std::string& input) {
+  EventRuntime rt;
+  if (!cfg.efficiencyEnabled || cfg.eventEffBranches.empty()) return rt;
+  const std::string context = input + " [event modify]";
+  for (const auto& e : cfg.eventEffBranches) {
+    auto it = cal.event.find(e.name);
+    if (it == cal.event.end() || it->second.globalTotal == 0) {
+      logLine("WARN", context + ": no calibration entries for event efficiency branch " + quote(e.name) + "; branch will not be modified");
+      continue;
+    }
+    EventEffRuntime brt;
+    brt.eff.cfg = e;
+    brt.referenceFlavor = eventReferenceFlavor(e);
+    brt.eff.counts = const_cast<EffCounts*>(&it->second);
+    if (brt.eff.branch.bind(tree, e.name, 1, true, context)) rt.branches.push_back(std::move(brt));
+  }
+  return rt;
+}
+
 void processFlavor(FlavorRuntime& rt,
                    const Config& cfg,
                    std::uint64_t run,
@@ -1449,13 +1596,34 @@ void processFlavor(FlavorRuntime& rt,
         const double p = distortedEfficiency(base, e.cfg, idx, newPt);
         const std::uint64_t key = objectKey(cfg, run, lumi, eventId, entry, i, flavorId, "efficiency:" + e.cfg.name);
         const bool pass = uniform01(key) < p;
-        if (e.cfg.type == EffType::Bool) {
-          e.branch.setInt(i, pass ? 1 : 0);
-        } else {
-          e.branch.setInt(i, pass ? e.cfg.passValue : e.cfg.failValue);
-        }
+        writeEfficiencyValue(e, i, pass);
       }
     }
+  }
+}
+
+void processEventEfficiencies(EventRuntime& eventRt,
+                              const FlavorRuntime& muon,
+                              const FlavorRuntime& electron,
+                              const Config& cfg,
+                              std::uint64_t run,
+                              std::uint64_t lumi,
+                              std::uint64_t eventId,
+                              Long64_t entry) {
+  if (!cfg.efficiencyEnabled || eventRt.branches.empty()) return;
+  for (auto& e : eventRt.branches) {
+    const FlavorRuntime& ref = e.referenceFlavor == "electron" ? electron : muon;
+    if (!ref.active) continue;
+    double leadPt = 0.0;
+    double leadEta = 0.0;
+    std::size_t leadIndex = 0;
+    if (!leadingKinematics(ref.n, ref.pt, ref.eta, leadPt, leadEta, leadIndex)) continue;
+    const BinIndex idx = makeBinIndex(cfg.binning, leadPt, leadEta);
+    const double base = e.eff.counts->efficiency(idx.flat);
+    const double p = distortedEfficiency(base, e.eff.cfg, idx, leadPt);
+    const int flavorId = e.referenceFlavor == "electron" ? 11 : 13;
+    const std::uint64_t key = objectKey(cfg, run, lumi, eventId, entry, leadIndex, flavorId, "efficiency:" + e.eff.cfg.name);
+    writeEfficiencyValue(e.eff, 0, uniform01(key) < p);
   }
 }
 
@@ -1521,6 +1689,7 @@ void modifyFile(const Config& cfg,
 
   FlavorRuntime muon = bindFlavorForModification(inTree, cfg, calibration, scan.input, true, scan.maxMuon);
   FlavorRuntime electron = bindFlavorForModification(inTree, cfg, calibration, scan.input, false, scan.maxElectron);
+  EventRuntime eventEff = bindEventEfficienciesForModification(inTree, cfg, calibration, scan.input);
 
   const char* mode = cfg.overwrite ? "RECREATE" : "CREATE";
   std::unique_ptr<TFile> outFile(TFile::Open(outputPath.c_str(), mode));
@@ -1539,6 +1708,7 @@ void modifyFile(const Config& cfg,
     const std::uint64_t eventValue = event.bound() ? event.getUInt64(0) : 0;
     processFlavor(muon, cfg, runValue, lumiValue, eventValue, entry);
     processFlavor(electron, cfg, runValue, lumiValue, eventValue, entry);
+    processEventEfficiencies(eventEff, muon, electron, cfg, runValue, lumiValue, eventValue, entry);
     outTree->Fill();
   }
 

@@ -1,0 +1,91 @@
+{
+  "modify_config": "config.json",
+  "figures": "figures",
+  "tree_name": "Events",
+  "files": [
+    {
+      "input": "../higgs_tautau_2012/mc/DYJetsToLL.root",
+      "output": "modified/DYJetsToLL_modified.root"
+    }
+  ],
+  "efficiencies": [
+    {
+      "level": "lepton",
+      "flavor": "muon",
+      "branches": [
+        "Muon_looseId",
+        "Muon_mediumId",
+        "Muon_tightId",
+        "Muon_pfRelIso03_all",
+        "Muon_pfRelIso04_all",
+        "Muon_pfIsoId"
+      ],
+      "variables": ["pt", "eta", "phi"]
+    },
+    {
+      "level": "lepton",
+      "flavor": "electron",
+      "branches": [
+        "Electron_mvaFall17V2Iso_WPL",
+        "Electron_mvaFall17V2Iso_WP90",
+        "Electron_mvaFall17V2Iso_WP80",
+        "Electron_cutBased",
+        "Electron_pfRelIso03_all"
+      ],
+      "variables": ["pt", "eta", "phi"]
+    },
+    {
+      "level": "event",
+      "flavor": "muon",
+      "branches": [
+        "HLT_IsoMu24",
+        "HLT_IsoMu27"
+      ],
+      "variables": ["pt", "eta", "phi"]
+    },
+    {
+      "level": "event",
+      "flavor": "electron",
+      "branches": [
+        "HLT_Ele27_WPTight_Gsf",
+        "HLT_Ele32_WPTight_Gsf"
+      ],
+      "variables": ["pt", "eta", "phi"]
+    }
+  ],
+  "distributions": {
+    "lepton": [
+      {
+        "flavor": "muon",
+        "variables": ["pt", "energy", "relative_pt_shift", "smear_response"]
+      },
+      {
+        "flavor": "electron",
+        "variables": ["pt", "energy", "relative_pt_shift", "smear_response"]
+      }
+    ],
+    "dilepton": [
+      {
+        "flavor": "muon",
+        "variables": ["mass", "pt", "eta", "phi"]
+      },
+      {
+        "flavor": "electron",
+        "variables": ["mass", "pt", "eta", "phi"]
+      }
+    ]
+  },
+  "binning": {
+    "eff_pt": [0, 10, 20, 30, 40, 50, 100, 200],
+    "eff_eta": [-3.0, -2.5, -2.0, -1.5, -1.0, -0.5, 0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0],
+    "eff_phi": [-3.2, -2.4, -1.6, -0.8, 0.0, 0.8, 1.6, 2.4, 3.2],
+    "lepton_pt": [0, 10, 20, 30, 40, 50, 100, 200, 300],
+    "lepton_energy": [0, 10, 20, 30, 40, 50, 80, 120, 200, 300, 500],
+    "relative_shift": [-0.05, -0.04, -0.03, -0.02, -0.01, 0.0, 0.01, 0.02, 0.03, 0.04, 0.05],
+    "smear_response": [-0.05, -0.04, -0.03, -0.02, -0.01, 0.0, 0.01, 0.02, 0.03, 0.04, 0.05],
+    "dilepton_mass": [50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100, 105, 110, 115, 120, 125, 130],
+    "dilepton_pt": [0, 20, 40, 60, 80, 100, 150, 200, 300],
+    "dilepton_eta": [-5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5],
+    "dilepton_phi": [-3.2, -2.4, -1.6, -0.8, 0.0, 0.8, 1.6, 2.4, 3.2]
+  }
+}

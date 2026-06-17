@@ -59,13 +59,13 @@
     "electron": {
       "barrel": {
         "abs_eta_min": 0.0,
-        "abs_eta_max": 1.4442,
+        "abs_eta_max": 1.5,
         "constant": 0.0030,
         "pt_slope_log": 0.0,
         "charge_asymmetry": 0.0
       },
       "endcap": {
-        "abs_eta_min": 1.566,
+        "abs_eta_min": 1.5,
         "abs_eta_max": 2.5,
         "constant": -0.0050,
         "pt_slope_log": 0.0,
@@ -90,11 +90,11 @@
     "electron": {
       "barrel": {
         "abs_eta_min": 0.0,
-        "abs_eta_max": 1.4442,
+        "abs_eta_max": 1.5,
         "sigma": 0.0050
       },
       "endcap": {
-        "abs_eta_min": 1.566,
+        "abs_eta_min": 1.5,
         "abs_eta_max": 2.5,
         "sigma": 0.0100
       }
@@ -103,12 +103,61 @@
   "efficiency": {
     "enabled": true,
     "binning": {
-      "pt": [5, 10, 20, 30, 40, 50, 80, 120, 200],
-      "abs_eta": [0.0, 0.8, 1.2, 1.4442, 1.566, 2.0, 2.5]
+      "pt": [0, 10, 20, 30, 40, 50, 100, 200],
+      "abs_eta": [0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0]
     },
     "muon_branches": {
+      "Muon_looseId": {
+        "type": "bool",
+        "distortion": {
+          "global_factor": 0.99,
+          "pt_slope_log": -0.002,
+          "eta_factors": [1.00, 0.995, 0.990, 0.980, 0.970, 0.960]
+        }
+      },
+      "Muon_mediumId": {
+        "type": "bool",
+        "distortion": {
+          "global_factor": 0.99,
+          "pt_slope_log": -0.002,
+          "eta_factors": [1.00, 0.995, 0.990, 0.980, 0.970, 0.960]
+        }
+      },
       "Muon_tightId": {
         "type": "bool",
+        "distortion": {
+          "global_factor": 0.99,
+          "pt_slope_log": -0.002,
+          "eta_factors": [1.00, 0.995, 0.990, 0.980, 0.970, 0.960]
+        }
+      },
+      "Muon_pfRelIso03_all": {
+        "type": "float_max",
+        "max": 0.15,
+        "pass_value": 0.05,
+        "fail_value": 0.30,
+        "distortion": {
+          "global_factor": 0.99,
+          "pt_slope_log": -0.002,
+          "eta_factors": [1.00, 0.995, 0.990, 0.980, 0.970, 0.960]
+        }
+      },
+      "Muon_pfRelIso04_all": {
+        "type": "float_max",
+        "max": 0.15,
+        "pass_value": 0.05,
+        "fail_value": 0.30,
+        "distortion": {
+          "global_factor": 0.99,
+          "pt_slope_log": -0.002,
+          "eta_factors": [1.00, 0.995, 0.990, 0.980, 0.970, 0.960]
+        }
+      },
+      "Muon_pfIsoId": {
+        "type": "int_wp",
+        "pass_threshold": 4,
+        "pass_value": 4,
+        "fail_value": 0,
         "distortion": {
           "global_factor": 0.99,
           "pt_slope_log": -0.002,
@@ -117,6 +166,30 @@
       }
     },
     "electron_branches": {
+      "Electron_mvaFall17V2Iso_WPL": {
+        "type": "bool",
+        "distortion": {
+          "global_factor": 0.98,
+          "pt_slope_log": -0.003,
+          "eta_factors": [1.00, 0.995, 0.990, 0.980, 0.970, 0.960]
+        }
+      },
+      "Electron_mvaFall17V2Iso_WP90": {
+        "type": "bool",
+        "distortion": {
+          "global_factor": 0.98,
+          "pt_slope_log": -0.003,
+          "eta_factors": [1.00, 0.995, 0.990, 0.980, 0.970, 0.960]
+        }
+      },
+      "Electron_mvaFall17V2Iso_WP80": {
+        "type": "bool",
+        "distortion": {
+          "global_factor": 0.98,
+          "pt_slope_log": -0.003,
+          "eta_factors": [1.00, 0.995, 0.990, 0.980, 0.970, 0.960]
+        }
+      },
       "Electron_cutBased": {
         "type": "int_wp",
         "pass_threshold": 3,
@@ -126,6 +199,55 @@
           "global_factor": 0.98,
           "pt_slope_log": -0.003,
           "eta_factors": [1.00, 0.995, 0.990, 0.980, 0.970, 0.960]
+        }
+      },
+      "Electron_pfRelIso03_all": {
+        "type": "float_max",
+        "max": 0.15,
+        "pass_value": 0.05,
+        "fail_value": 0.30,
+        "distortion": {
+          "global_factor": 0.98,
+          "pt_slope_log": -0.003,
+          "eta_factors": [1.00, 0.995, 0.990, 0.980, 0.970, 0.960]
+        }
+      }
+    },
+    "event_branches": {
+      "HLT_IsoMu24": {
+        "type": "bool",
+        "reference_flavor": "muon",
+        "distortion": {
+          "global_factor": 0.995,
+          "pt_slope_log": -0.001,
+          "eta_factors": [1.00, 0.998, 0.996, 0.994, 0.992, 0.990]
+        }
+      },
+      "HLT_IsoMu27": {
+        "type": "bool",
+        "reference_flavor": "muon",
+        "distortion": {
+          "global_factor": 0.995,
+          "pt_slope_log": -0.001,
+          "eta_factors": [1.00, 0.998, 0.996, 0.994, 0.992, 0.990]
+        }
+      },
+      "HLT_Ele27_WPTight_Gsf": {
+        "type": "bool",
+        "reference_flavor": "electron",
+        "distortion": {
+          "global_factor": 0.995,
+          "pt_slope_log": -0.001,
+          "eta_factors": [1.00, 0.998, 0.996, 0.994, 0.992, 0.990]
+        }
+      },
+      "HLT_Ele32_WPTight_Gsf": {
+        "type": "bool",
+        "reference_flavor": "electron",
+        "distortion": {
+          "global_factor": 0.995,
+          "pt_slope_log": -0.001,
+          "eta_factors": [1.00, 0.998, 0.996, 0.994, 0.992, 0.990]
         }
       }
     }
