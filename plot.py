@@ -52,6 +52,11 @@ Z_MASS = 91.1876
 UINT64 = np.uint64
 MASK64 = (1 << 64) - 1
 TNP_FIT_COUNTER = itertools.count()
+TNP_MIN_FIT_ALL = 1
+TNP_SINGLE_CB_MIN_ALL = 60
+TNP_SINGLE_CB_MIN_PASS = 10
+TNP_DOUBLE_CB_MIN_ALL = 200
+TNP_DOUBLE_CB_MIN_PASS = 30
 
 
 def load_config(path: Path) -> dict:
@@ -1115,14 +1120,16 @@ def add_tnp_mass_candidates(
             store[key]["all"][ibin].append(masses[bin_mask])
 
 
-def make_roodataset(name: str, mass_var, masses: np.ndarray):
-    data = ROOT.RooDataSet(name, name, ROOT.RooArgSet(mass_var))
-    args = ROOT.RooArgSet(mass_var)
-    for value in np.asarray(masses, dtype=float):
-        if not np.isfinite(value) or value < 60.0 or value > 120.0:
-            continue
-        mass_var.setVal(float(value))
-        data.add(args)
+def make_combined_roodataset(name: str, mass_var, sample, pass_masses: np.ndarray, all_masses: np.ndarray):
+    data = ROOT.RooDataSet(name, name, ROOT.RooArgSet(mass_var, sample))
+    args = ROOT.RooArgSet(mass_var, sample)
+    for label, masses in (("pass", pass_masses), ("all", all_masses)):
+        sample.setLabel(label)
+        for value in np.asarray(masses, dtype=float):
+            if not np.isfinite(value) or value < 60.0 or value > 120.0:
+                continue
+            mass_var.setVal(float(value))
+            data.add(args)
     return data
 
 
@@ -1132,64 +1139,149 @@ def acceptable_fit(result) -> bool:
     return int(result.status()) == 0 and int(result.covQual()) >= 2
 
 
-def fit_tnp_signal_efficiency(pass_masses: np.ndarray, all_masses: np.ndarray) -> Tuple[float, float]:
-    pass_masses = np.asarray(pass_masses, dtype=float)
-    all_masses = np.asarray(all_masses, dtype=float)
-    pass_masses = pass_masses[np.isfinite(pass_masses) & (pass_masses >= 60.0) & (pass_masses <= 120.0)]
-    all_masses = all_masses[np.isfinite(all_masses) & (all_masses >= 60.0) & (all_masses <= 120.0)]
-    n_pass = len(pass_masses)
-    n_all = len(all_masses)
-    if n_all < 20 or n_pass > n_all:
-        return np.nan, np.nan
+def format_bin_edge(value: float) -> str:
+    return sanitize(f"{float(value):g}")
 
-    uid = str(next(TNP_FIT_COUNTER))
-    mass = ROOT.RooRealVar(f"mll_{uid}", "m_{ll}", 60.0, 120.0)
-    mass.setRange("fit", 60.0, 120.0)
-    sample = ROOT.RooCategory(f"sample_{uid}", "sample")
-    sample.defineType("pass")
-    sample.defineType("all")
 
-    pass_data = make_roodataset(f"pass_data_{uid}", mass, pass_masses)
-    all_data = make_roodataset(f"all_data_{uid}", mass, all_masses)
-    comb_data = ROOT.RooDataSet(
-        f"comb_data_{uid}",
-        f"comb_data_{uid}",
-        ROOT.RooArgSet(mass, sample),
-        ROOT.RooFit.Index(sample),
-        ROOT.RooFit.Import("pass", pass_data),
-        ROOT.RooFit.Import("all", all_data),
+def tnp_fit_plot_path(fit_dir: Path, key: Tuple, ibin: int, edges: Optional[np.ndarray], tier: str) -> Path:
+    flavor, branch, sample, _, var = key
+    bin_label = f"bin{ibin:03d}"
+    if edges is not None and ibin + 1 < len(edges):
+        bin_label += f"_{format_bin_edge(edges[ibin])}_to_{format_bin_edge(edges[ibin + 1])}"
+    filename = f"fit_{sample}_{flavor}_{sanitize(branch)}_{var}_{bin_label}_{tier}.pdf"
+    return fit_dir / filename
+
+
+def tnp_fit_plot_title(key: Tuple, ibin: int, edges: Optional[np.ndarray], tier: str, n_pass: int, n_all: int) -> str:
+    flavor, branch, sample, _, var = key
+    parts = [sample, flavor, branch, var, f"bin {ibin}", tier, f"pass/all {n_pass}/{n_all}"]
+    if edges is not None and ibin + 1 < len(edges):
+        parts.insert(5, f"{edges[ibin]:g} <= {var} < {edges[ibin + 1]:g}")
+    return " | ".join(parts)
+
+
+def save_tnp_fit_plot(plot_path: Path, title: str, tier: str, uid: str, mass, sample, comb_data, sim_pdf) -> None:
+    plot_path.parent.mkdir(parents=True, exist_ok=True)
+    frame = mass.frame(ROOT.RooFit.Title(title))
+    sample_name = sample.GetName()
+    sample_set = ROOT.RooArgSet(sample)
+    comb_data.plotOn(
+        frame,
+        ROOT.RooFit.Cut(f"{sample_name}=={sample_name}::all"),
+        ROOT.RooFit.MarkerColor(ROOT.kRed + 1),
+        ROOT.RooFit.LineColor(ROOT.kRed + 1),
+        ROOT.RooFit.Name(f"data_all_{uid}"),
+    )
+    sim_pdf.plotOn(
+        frame,
+        ROOT.RooFit.Slice(sample, "all"),
+        ROOT.RooFit.ProjWData(sample_set, comb_data),
+        ROOT.RooFit.LineColor(ROOT.kRed + 1),
+        ROOT.RooFit.Name(f"model_all_{uid}"),
+    )
+    comb_data.plotOn(
+        frame,
+        ROOT.RooFit.Cut(f"{sample_name}=={sample_name}::pass"),
+        ROOT.RooFit.MarkerColor(ROOT.kBlue + 1),
+        ROOT.RooFit.LineColor(ROOT.kBlue + 1),
+        ROOT.RooFit.Name(f"data_pass_{uid}"),
+    )
+    sim_pdf.plotOn(
+        frame,
+        ROOT.RooFit.Slice(sample, "pass"),
+        ROOT.RooFit.ProjWData(sample_set, comb_data),
+        ROOT.RooFit.LineColor(ROOT.kBlue + 1),
+        ROOT.RooFit.Name(f"model_pass_{uid}"),
     )
 
+    canvas = ROOT.TCanvas(f"canvas_{uid}", f"canvas_{uid}", 900, 700)
+    frame.GetXaxis().SetTitle("m_{ll} [GeV]")
+    frame.GetYaxis().SetTitle("Candidates")
+    frame.Draw()
+    legend = ROOT.TLegend(0.62, 0.70, 0.88, 0.88)
+    legend.SetBorderSize(0)
+    legend.SetFillStyle(0)
+    for object_name, label, option in (
+        (f"data_all_{uid}", "all data", "pe"),
+        (f"model_all_{uid}", f"all {tier}", "l"),
+        (f"data_pass_{uid}", "pass data", "pe"),
+        (f"model_pass_{uid}", f"pass {tier}", "l"),
+    ):
+        obj = frame.findObject(object_name)
+        if obj:
+            legend.AddEntry(obj, label, option)
+    legend.Draw()
+    canvas.SaveAs(str(plot_path))
+
+
+def tnp_fit_model_tier(n_pass: int, n_all: int) -> str:
+    if n_all >= TNP_DOUBLE_CB_MIN_ALL and n_pass >= TNP_DOUBLE_CB_MIN_PASS:
+        return "double_cb"
+    if n_all >= TNP_SINGLE_CB_MIN_ALL and n_pass >= TNP_SINGLE_CB_MIN_PASS:
+        return "single_cb"
+    return "gaussian"
+
+
+def tnp_fit_tiers(start_tier: str) -> Sequence[str]:
+    tiers = ("double_cb", "single_cb", "gaussian")
+    return tiers[tiers.index(start_tier):]
+
+
+def fit_tnp_signal_efficiency_with_model(
+    tier: str,
+    uid: str,
+    mass,
+    sample,
+    comb_data,
+    n_pass: int,
+    n_all: int,
+    plot_path: Optional[Path] = None,
+    plot_title: Optional[str] = None,
+) -> Tuple[float, float]:
     mean = ROOT.RooRealVar(f"mean_{uid}", "mean", Z_MASS, 88.0, 94.0)
-    sigma1 = ROOT.RooRealVar(f"sigma1_{uid}", "sigma1", 1.5, 0.4, 5.0)
-    sigma2 = ROOT.RooRealVar(f"sigma2_{uid}", "sigma2", 2.8, 0.8, 8.0)
-    alpha_l = ROOT.RooRealVar(f"alpha_l_{uid}", "alpha_l", 1.5, 0.3, 5.0)
-    alpha_r = ROOT.RooRealVar(f"alpha_r_{uid}", "alpha_r", -1.8, -5.0, -0.3)
-    n_l = ROOT.RooRealVar(f"n_l_{uid}", "n_l", 3.0, 1.01, 20.0)
-    n_r = ROOT.RooRealVar(f"n_r_{uid}", "n_r", 3.0, 1.01, 20.0)
-    frac = ROOT.RooRealVar(f"frac_{uid}", "frac", 0.65, 0.0, 1.0)
-    cb_l_pass = ROOT.RooCBShape(f"cb_l_pass_{uid}", "cb_l_pass", mass, mean, sigma1, alpha_l, n_l)
-    cb_r_pass = ROOT.RooCBShape(f"cb_r_pass_{uid}", "cb_r_pass", mass, mean, sigma2, alpha_r, n_r)
-    signal_pass = ROOT.RooAddPdf(
-        f"signal_pass_{uid}",
-        "signal_pass",
-        ROOT.RooArgList(cb_l_pass, cb_r_pass),
-        ROOT.RooArgList(frac),
-    )
-    cb_l_all = ROOT.RooCBShape(f"cb_l_all_{uid}", "cb_l_all", mass, mean, sigma1, alpha_l, n_l)
-    cb_r_all = ROOT.RooCBShape(f"cb_r_all_{uid}", "cb_r_all", mass, mean, sigma2, alpha_r, n_r)
-    signal_all = ROOT.RooAddPdf(
-        f"signal_all_{uid}",
-        "signal_all",
-        ROOT.RooArgList(cb_l_all, cb_r_all),
-        ROOT.RooArgList(frac),
-    )
-
     slope_pass = ROOT.RooRealVar(f"slope_pass_{uid}", "slope_pass", -0.03, -1.0, 0.2)
     slope_all = ROOT.RooRealVar(f"slope_all_{uid}", "slope_all", -0.03, -1.0, 0.2)
+
+    if tier == "double_cb":
+        sigma1 = ROOT.RooRealVar(f"sigma1_{uid}", "sigma1", 1.5, 0.4, 5.0)
+        sigma2 = ROOT.RooRealVar(f"sigma2_{uid}", "sigma2", 2.8, 0.8, 8.0)
+        alpha_l = ROOT.RooRealVar(f"alpha_l_{uid}", "alpha_l", 1.5, 0.3, 5.0)
+        alpha_r = ROOT.RooRealVar(f"alpha_r_{uid}", "alpha_r", -1.8, -5.0, -0.3)
+        n_l = ROOT.RooRealVar(f"n_l_{uid}", "n_l", 1.0)
+        n_r = ROOT.RooRealVar(f"n_r_{uid}", "n_r", 1.0)
+        n_l.setConstant(True)
+        n_r.setConstant(True)
+        frac = ROOT.RooRealVar(f"frac_{uid}", "frac", 0.65, 0.0, 1.0)
+        cb_l_pass = ROOT.RooCBShape(f"cb_l_pass_{uid}", "cb_l_pass", mass, mean, sigma1, alpha_l, n_l)
+        cb_r_pass = ROOT.RooCBShape(f"cb_r_pass_{uid}", "cb_r_pass", mass, mean, sigma2, alpha_r, n_r)
+        signal_pass = ROOT.RooAddPdf(
+            f"signal_pass_{uid}",
+            "signal_pass",
+            ROOT.RooArgList(cb_l_pass, cb_r_pass),
+            ROOT.RooArgList(frac),
+        )
+        cb_l_all = ROOT.RooCBShape(f"cb_l_all_{uid}", "cb_l_all", mass, mean, sigma1, alpha_l, n_l)
+        cb_r_all = ROOT.RooCBShape(f"cb_r_all_{uid}", "cb_r_all", mass, mean, sigma2, alpha_r, n_r)
+        signal_all = ROOT.RooAddPdf(
+            f"signal_all_{uid}",
+            "signal_all",
+            ROOT.RooArgList(cb_l_all, cb_r_all),
+            ROOT.RooArgList(frac),
+        )
+    elif tier == "single_cb":
+        sigma = ROOT.RooRealVar(f"sigma_{uid}", "sigma", 2.0, 0.4, 8.0)
+        alpha = ROOT.RooRealVar(f"alpha_{uid}", "alpha", 1.5, 0.3, 5.0)
+        n = ROOT.RooRealVar(f"n_{uid}", "n", 1.0)
+        n.setConstant(True)
+        signal_pass = ROOT.RooCBShape(f"signal_pass_{uid}", "signal_pass", mass, mean, sigma, alpha, n)
+        signal_all = ROOT.RooCBShape(f"signal_all_{uid}", "signal_all", mass, mean, sigma, alpha, n)
+    else:
+        sigma = ROOT.RooRealVar(f"sigma_{uid}", "sigma", 2.0, 0.4, 8.0)
+        signal_pass = ROOT.RooGaussian(f"signal_pass_{uid}", "signal_pass", mass, mean, sigma)
+        signal_all = ROOT.RooGaussian(f"signal_all_{uid}", "signal_all", mass, mean, sigma)
+
     bkg_pass = ROOT.RooExponential(f"bkg_pass_{uid}", "bkg_pass", mass, slope_pass)
     bkg_all = ROOT.RooExponential(f"bkg_all_{uid}", "bkg_all", mass, slope_all)
-
     eff = ROOT.RooRealVar(f"tnp_eff_{uid}", "tnp_eff", min(max(n_pass / max(n_all, 1), 0.01), 0.99), 0.0, 1.0)
     nsig_all = ROOT.RooRealVar(f"nsig_all_{uid}", "nsig_all", max(1.0, 0.8 * n_all), 0.0, 1.5 * n_all + 20.0)
     nsig_pass = ROOT.RooFormulaVar(
@@ -1216,25 +1308,19 @@ def fit_tnp_signal_efficiency(pass_masses: np.ndarray, all_masses: np.ndarray) -
     sim_pdf.addPdf(model_pass, "pass")
     sim_pdf.addPdf(model_all, "all")
 
-    fit_options = [
+    result = sim_pdf.fitTo(
+        comb_data,
         ROOT.RooFit.Save(True),
         ROOT.RooFit.Extended(True),
-        ROOT.RooFit.Range("fit"),
         ROOT.RooFit.Strategy(1),
         ROOT.RooFit.PrintLevel(-1),
         ROOT.RooFit.Warnings(False),
-    ]
-    result = sim_pdf.fitTo(comb_data, *fit_options)
-    if not acceptable_fit(result):
-        for param in (alpha_l, alpha_r, n_l, n_r):
-            param.setConstant(True)
-        result = sim_pdf.fitTo(comb_data, *fit_options)
-    if not acceptable_fit(result):
-        for param in (sigma1, sigma2, frac):
-            param.setConstant(True)
-        result = sim_pdf.fitTo(comb_data, *fit_options)
+    )
     if not acceptable_fit(result):
         return np.nan, np.nan
+
+    if plot_path is not None:
+        save_tnp_fit_plot(plot_path, plot_title or uid, tier, uid, mass, sample, comb_data, sim_pdf)
 
     value = float(eff.getVal())
     error = float(eff.getError())
@@ -1243,18 +1329,76 @@ def fit_tnp_signal_efficiency(pass_masses: np.ndarray, all_masses: np.ndarray) -
     return np.clip(value, 0.0, 1.0), max(error, 0.0)
 
 
+def fit_tnp_signal_efficiency(
+    pass_masses: np.ndarray,
+    all_masses: np.ndarray,
+    plot_dir: Optional[Path] = None,
+    plot_key: Optional[Tuple] = None,
+    ibin: Optional[int] = None,
+    edges: Optional[np.ndarray] = None,
+) -> Tuple[float, float]:
+    pass_masses = np.asarray(pass_masses, dtype=float)
+    all_masses = np.asarray(all_masses, dtype=float)
+    pass_masses = pass_masses[np.isfinite(pass_masses) & (pass_masses >= 60.0) & (pass_masses <= 120.0)]
+    all_masses = all_masses[np.isfinite(all_masses) & (all_masses >= 60.0) & (all_masses <= 120.0)]
+    n_pass = len(pass_masses)
+    n_all = len(all_masses)
+    if n_all < TNP_MIN_FIT_ALL or n_pass > n_all:
+        return np.nan, np.nan
+
+    base_uid = str(next(TNP_FIT_COUNTER))
+    mass = ROOT.RooRealVar(f"mll_{base_uid}", "m_{ll}", 60.0, 120.0)
+    sample = ROOT.RooCategory(f"sample_{base_uid}", "sample")
+    sample.defineType("pass")
+    sample.defineType("all")
+    comb_data = make_combined_roodataset(f"comb_data_{base_uid}", mass, sample, pass_masses, all_masses)
+
+    for tier in tnp_fit_tiers(tnp_fit_model_tier(n_pass, n_all)):
+        plot_path = None
+        plot_title = None
+        if plot_dir is not None and plot_key is not None and ibin is not None:
+            plot_path = tnp_fit_plot_path(plot_dir, plot_key, ibin, edges, tier)
+            plot_title = tnp_fit_plot_title(plot_key, ibin, edges, tier, n_pass, n_all)
+        value, error = fit_tnp_signal_efficiency_with_model(
+            tier,
+            f"{base_uid}_{tier}",
+            mass,
+            sample,
+            comb_data,
+            n_pass,
+            n_all,
+            plot_path,
+            plot_title,
+        )
+        if np.isfinite(value) and np.isfinite(error):
+            return value, error
+    return np.nan, np.nan
+
+
 def finalize_tnp_fits(
     eff_store: MutableMapping[Tuple, Dict[str, np.ndarray]],
     tnp_store: Mapping[Tuple, Dict[str, List[List[np.ndarray]]]],
+    fit_dir: Optional[Path] = None,
+    edges_by_var: Optional[Mapping[str, np.ndarray]] = None,
 ) -> None:
+    if fit_dir is not None:
+        fit_dir.mkdir(parents=True, exist_ok=True)
     for key, payload in tnp_store.items():
         n_bins = len(payload["pass"])
         eff = np.full(n_bins, np.nan, dtype=float)
         err = np.full(n_bins, np.nan, dtype=float)
+        var_edges = edges_by_var.get(key[-1]) if edges_by_var is not None else None
         for ibin in range(n_bins):
             pass_masses = np.concatenate(payload["pass"][ibin]) if payload["pass"][ibin] else np.array([], dtype=float)
             all_masses = np.concatenate(payload["all"][ibin]) if payload["all"][ibin] else np.array([], dtype=float)
-            eff[ibin], err[ibin] = fit_tnp_signal_efficiency(pass_masses, all_masses)
+            eff[ibin], err[ibin] = fit_tnp_signal_efficiency(
+                pass_masses,
+                all_masses,
+                fit_dir,
+                key,
+                ibin,
+                var_edges,
+            )
         eff_store[key] = {
             "eff": eff,
             "err": err,
@@ -1663,8 +1807,9 @@ def analyze(modify_cfg: Mapping, plot_cfg: Mapping, pairs: Sequence[Tuple[Path, 
                                     eff_edges[var],
                                 )
 
-    print("[INFO] Fitting TnP pass/all dilepton mass spectra with RooFit")
-    finalize_tnp_fits(eff_store, tnp_mass_store)
+    fit_dir = figdir / "fit"
+    print(f"[INFO] Fitting TnP pass/all dilepton mass spectra with RooFit and writing fit plots to {fit_dir}")
+    finalize_tnp_fits(eff_store, tnp_mass_store, fit_dir, eff_edges)
 
     print(f"[INFO] Writing plots to {figdir}")
     for flavor, variables in lepton_specs.items():
