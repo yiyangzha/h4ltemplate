@@ -1168,9 +1168,22 @@ def fit_tnp_signal_efficiency(pass_masses: np.ndarray, all_masses: np.ndarray) -
     n_l = ROOT.RooRealVar(f"n_l_{uid}", "n_l", 3.0, 1.01, 20.0)
     n_r = ROOT.RooRealVar(f"n_r_{uid}", "n_r", 3.0, 1.01, 20.0)
     frac = ROOT.RooRealVar(f"frac_{uid}", "frac", 0.65, 0.0, 1.0)
-    cb_l = ROOT.RooCBShape(f"cb_l_{uid}", "cb_l", mass, mean, sigma1, alpha_l, n_l)
-    cb_r = ROOT.RooCBShape(f"cb_r_{uid}", "cb_r", mass, mean, sigma2, alpha_r, n_r)
-    signal = ROOT.RooAddPdf(f"signal_{uid}", "signal", ROOT.RooArgList(cb_l, cb_r), ROOT.RooArgList(frac))
+    cb_l_pass = ROOT.RooCBShape(f"cb_l_pass_{uid}", "cb_l_pass", mass, mean, sigma1, alpha_l, n_l)
+    cb_r_pass = ROOT.RooCBShape(f"cb_r_pass_{uid}", "cb_r_pass", mass, mean, sigma2, alpha_r, n_r)
+    signal_pass = ROOT.RooAddPdf(
+        f"signal_pass_{uid}",
+        "signal_pass",
+        ROOT.RooArgList(cb_l_pass, cb_r_pass),
+        ROOT.RooArgList(frac),
+    )
+    cb_l_all = ROOT.RooCBShape(f"cb_l_all_{uid}", "cb_l_all", mass, mean, sigma1, alpha_l, n_l)
+    cb_r_all = ROOT.RooCBShape(f"cb_r_all_{uid}", "cb_r_all", mass, mean, sigma2, alpha_r, n_r)
+    signal_all = ROOT.RooAddPdf(
+        f"signal_all_{uid}",
+        "signal_all",
+        ROOT.RooArgList(cb_l_all, cb_r_all),
+        ROOT.RooArgList(frac),
+    )
 
     slope_pass = ROOT.RooRealVar(f"slope_pass_{uid}", "slope_pass", -0.03, -1.0, 0.2)
     slope_all = ROOT.RooRealVar(f"slope_all_{uid}", "slope_all", -0.03, -1.0, 0.2)
@@ -1190,13 +1203,13 @@ def fit_tnp_signal_efficiency(pass_masses: np.ndarray, all_masses: np.ndarray) -
     model_pass = ROOT.RooAddPdf(
         f"model_pass_{uid}",
         "model_pass",
-        ROOT.RooArgList(signal, bkg_pass),
+        ROOT.RooArgList(signal_pass, bkg_pass),
         ROOT.RooArgList(nsig_pass, nbkg_pass),
     )
     model_all = ROOT.RooAddPdf(
         f"model_all_{uid}",
         "model_all",
-        ROOT.RooArgList(signal, bkg_all),
+        ROOT.RooArgList(signal_all, bkg_all),
         ROOT.RooArgList(nsig_all, nbkg_all),
     )
     sim_pdf = ROOT.RooSimultaneous(f"sim_pdf_{uid}", "sim_pdf", sample)
