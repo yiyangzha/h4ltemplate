@@ -6,3 +6,4 @@ figures
 pixi*
 .gitattributes
 __pycache__
+nohup.out
