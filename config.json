@@ -5,7 +5,7 @@
     "tree_name": "Events"
   },
   "input": {
-    "path": "../higgs_tautau_2012/mc/DYJetsToLL.root",
+    "path": "../cms_h4l/raw/",
     "recursive": false
   },
   "output": {
