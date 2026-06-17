@@ -1,0 +1,133 @@
+{
+  "global": {
+    "seed": 314159,
+    "threads": 16,
+    "tree_name": "Events"
+  },
+  "input": {
+    "path": "/path/to/*.root",
+    "recursive": true
+  },
+  "output": {
+    "directory": "modified",
+    "suffix": "_modified",
+    "copy_metadata_trees": true,
+    "overwrite": false
+  },
+  "branches": {
+    "event_id": {
+      "run": "run",
+      "luminosityBlock": "luminosityBlock",
+      "event": "event"
+    },
+    "muon": {
+      "n": "nMuon",
+      "pt": "Muon_pt",
+      "eta": "Muon_eta",
+      "phi": "Muon_phi",
+      "mass": "Muon_mass",
+      "charge": "Muon_charge"
+    },
+    "electron": {
+      "n": "nElectron",
+      "pt": "Electron_pt",
+      "eta": "Electron_eta",
+      "phi": "Electron_phi",
+      "mass": "Electron_mass",
+      "charge": "Electron_charge"
+    }
+  },
+  "scale": {
+    "enabled": true,
+    "pt_reference": 45.0,
+    "muon": {
+      "barrel": {
+        "abs_eta_min": 0.0,
+        "abs_eta_max": 1.2,
+        "constant": 0.0010,
+        "pt_slope_log": 0.0,
+        "charge_asymmetry": 0.0
+      },
+      "endcap": {
+        "abs_eta_min": 1.2,
+        "abs_eta_max": 2.4,
+        "constant": -0.0020,
+        "pt_slope_log": 0.0,
+        "charge_asymmetry": 0.0
+      }
+    },
+    "electron": {
+      "barrel": {
+        "abs_eta_min": 0.0,
+        "abs_eta_max": 1.4442,
+        "constant": 0.0030,
+        "pt_slope_log": 0.0,
+        "charge_asymmetry": 0.0
+      },
+      "endcap": {
+        "abs_eta_min": 1.566,
+        "abs_eta_max": 2.5,
+        "constant": -0.0050,
+        "pt_slope_log": 0.0,
+        "charge_asymmetry": 0.0
+      }
+    }
+  },
+  "resolution": {
+    "enabled": true,
+    "muon": {
+      "barrel": {
+        "abs_eta_min": 0.0,
+        "abs_eta_max": 1.2,
+        "sigma": 0.0015
+      },
+      "endcap": {
+        "abs_eta_min": 1.2,
+        "abs_eta_max": 2.4,
+        "sigma": 0.0040
+      }
+    },
+    "electron": {
+      "barrel": {
+        "abs_eta_min": 0.0,
+        "abs_eta_max": 1.4442,
+        "sigma": 0.0050
+      },
+      "endcap": {
+        "abs_eta_min": 1.566,
+        "abs_eta_max": 2.5,
+        "sigma": 0.0100
+      }
+    }
+  },
+  "efficiency": {
+    "enabled": true,
+    "binning": {
+      "pt": [5, 10, 20, 30, 40, 50, 80, 120, 200],
+      "abs_eta": [0.0, 0.8, 1.2, 1.4442, 1.566, 2.0, 2.5]
+    },
+    "muon_branches": {
+      "Muon_tightId": {
+        "type": "bool",
+        "distortion": {
+          "global_factor": 0.99,
+          "pt_slope_log": -0.002,
+          "eta_factors": [1.00, 0.995, 0.990, 0.980, 0.970, 0.960]
+        }
+      }
+    },
+    "electron_branches": {
+      "Electron_cutBased": {
+        "type": "int_wp",
+        "pass_threshold": 3,
+        "pass_value": 3,
+        "fail_value": 0,
+        "distortion": {
+          "global_factor": 0.98,
+          "pt_slope_log": -0.003,
+          "eta_factors": [1.00, 0.995, 0.990, 0.980, 0.970, 0.960]
+        }
+      }
+    }
+  }
+}
