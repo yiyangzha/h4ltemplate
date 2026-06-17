@@ -5,8 +5,8 @@
     "tree_name": "Events"
   },
   "input": {
-    "path": "/path/to/*.root",
-    "recursive": true
+    "path": "../higgs_tautau_2012/mc/DYJetsToLL.root",
+    "recursive": false
   },
   "output": {
     "directory": "modified",
