@@ -57,6 +57,7 @@ TNP_SINGLE_CB_MIN_ALL = 60
 TNP_SINGLE_CB_MIN_PASS = 10
 TNP_DOUBLE_CB_MIN_ALL = 200
 TNP_DOUBLE_CB_MIN_PASS = 30
+MIN_EFF_BIN_TOTAL = 20
 
 
 def load_config(path: Path) -> dict:
@@ -684,6 +685,8 @@ def build_base_efficiency_maps(
                     continue
                 pt = arrays[br["pt"]]
                 eta = arrays[br["eta"]]
+                truth = mc_truth_mask(arrays, flavor, pt)
+                flat_truth = ak.to_numpy(ak.flatten(truth, axis=1)).astype(bool)
                 flat_pt, _ = flatten_jagged(pt)
                 flat_eta, _ = flatten_jagged(eta)
                 energy = None
@@ -697,22 +700,84 @@ def build_base_efficiency_maps(
                     if branch not in arrays:
                         continue
                     passed = ak.to_numpy(ak.flatten(pass_mask(arrays[branch], ecfg), axis=1)).astype(float)
-                    maps[(flavor, branch)]["total"] += np.bincount(flat_bin, minlength=n_eff_bins(cfg))
-                    maps[(flavor, branch)]["pass"] += np.bincount(flat_bin, weights=passed, minlength=n_eff_bins(cfg))
+                    maps[(flavor, branch)]["total"] += np.bincount(flat_bin[flat_truth], minlength=n_eff_bins(cfg))
+                    maps[(flavor, branch)]["pass"] += np.bincount(
+                        flat_bin[flat_truth], weights=passed[flat_truth], minlength=n_eff_bins(cfg)
+                    )
 
                 for branch, ecfg in selected_event_efficiency_branches(plot_cfg, cfg, flavor).items():
                     if branch not in arrays:
                         continue
-                    leading = leading_event_values(pt, eta, None)
+                    leading = leading_event_values(pt, eta, None, truth)
                     if len(leading["pt"]) == 0:
                         continue
                     event_pass = ak.to_numpy(pass_mask(arrays[branch], ecfg)).astype(float)
                     valid_events = ak.to_numpy(ak.num(pt, axis=1) > 0).astype(bool)
                     passed = event_pass[valid_events]
                     event_bin, _, _, _ = flat_eff_bin(cfg, leading["pt"], leading["eta"])
-                    maps[(flavor, branch)]["total"] += np.bincount(event_bin, minlength=n_eff_bins(cfg))
-                    maps[(flavor, branch)]["pass"] += np.bincount(event_bin, weights=passed, minlength=n_eff_bins(cfg))
+                    denom = leading["denom"].astype(bool)
+                    maps[(flavor, branch)]["total"] += np.bincount(event_bin[denom], minlength=n_eff_bins(cfg))
+                    maps[(flavor, branch)]["pass"] += np.bincount(
+                        event_bin[denom], weights=passed[denom], minlength=n_eff_bins(cfg)
+                    )
     return maps
+
+
+def map_efficiency_values(base_map: Mapping[str, np.ndarray], flat_bin: np.ndarray) -> np.ndarray:
+    passed = base_map["pass"][flat_bin]
+    total = base_map["total"][flat_bin]
+    global_total = float(np.sum(base_map["total"]))
+    global_pass = float(np.sum(base_map["pass"]))
+    global_eff = global_pass / global_total if global_total > 0 else 0.0
+    use_bin = (total >= MIN_EFF_BIN_TOTAL) | ((total > 0) & (global_total < MIN_EFF_BIN_TOTAL))
+    return np.where(use_bin, passed / np.maximum(total, 1.0), global_eff)
+
+
+def small_smooth_factor(value: float) -> float:
+    if not np.isfinite(value):
+        return 1.0
+    return float(np.clip(value, 0.95, 1.05))
+
+
+def smoothed_factor_array(factors: Sequence[float], indices: np.ndarray) -> np.ndarray:
+    if not factors:
+        return np.ones_like(indices, dtype=float)
+    raw = np.asarray([small_smooth_factor(float(x)) for x in factors], dtype=float)
+    smooth = np.ones_like(raw, dtype=float)
+    for i in range(len(raw)):
+        lo = max(0, i - 1)
+        hi = min(len(raw), i + 2)
+        weights = np.ones(hi - lo, dtype=float)
+        weights[i - lo] = 2.0
+        smooth[i] = float(np.sum(raw[lo:hi] * weights) / np.sum(weights))
+    valid = (indices >= 0) & (indices < len(smooth))
+    clipped = np.clip(indices, 0, len(smooth) - 1)
+    return np.where(valid, smooth[clipped], 1.0)
+
+
+def apply_constrained_distortion(
+    cfg: Mapping,
+    branch_cfg: Mapping,
+    base: np.ndarray,
+    flat_pt: np.ndarray,
+    eta_bin: np.ndarray,
+    abs_eta_bin: np.ndarray,
+) -> np.ndarray:
+    distortion = branch_cfg.get("distortion", {})
+    prob = base * small_smooth_factor(float(distortion.get("global_factor", 1.0)))
+    prob *= smoothed_factor_array(distortion.get("eta_factors", []), abs_eta_bin)
+    prob *= smoothed_factor_array(distortion.get("signed_eta_factors", []), eta_bin)
+    turnon_amp = float(distortion.get("pt_turnon_amplitude", 0.0))
+    if turnon_amp != 0.0:
+        width = max(float(distortion.get("pt_turnon_width", 8.0)), 1.0e-3)
+        shifted_width = max(width * float(np.clip(distortion.get("pt_turnon_width_scale", 1.0), 0.5, 2.0)), 1.0e-3)
+        center = float(distortion.get("pt_turnon_center", 25.0))
+        shift = float(np.clip(distortion.get("pt_turnon_shift", 0.0), -10.0, 10.0))
+        nominal = 1.0 / (1.0 + np.exp(-np.clip((flat_pt - center) / width, -40.0, 40.0)))
+        shifted = 1.0 / (1.0 + np.exp(-np.clip((flat_pt - center - shift) / shifted_width, -40.0, 40.0)))
+        prob *= 1.0 + float(np.clip(turnon_amp, -0.20, 0.20)) * (shifted - nominal)
+    prob = np.clip(np.where(np.isfinite(prob), prob, 0.0), 0.0, 1.0)
+    return prob
 
 
 def distorted_probability(
@@ -728,56 +793,9 @@ def distorted_probability(
     flat_energy = None
     if energy is not None:
         flat_energy, _ = flatten_jagged(energy)
-    flat_bin, pt_bin, eta_bin, abs_eta_bin = flat_eff_bin(cfg, flat_pt, flat_eta, flat_energy)
-    passed = base_map["pass"][flat_bin]
-    total = base_map["total"][flat_bin]
-    global_total = float(np.sum(base_map["total"]))
-    global_pass = float(np.sum(base_map["pass"]))
-    global_eff = global_pass / global_total if global_total > 0 else 0.0
-    base = np.where(total > 0, passed / np.maximum(total, 1.0), global_eff)
-
-    distortion = branch_cfg.get("distortion", {})
-    prob = base * float(distortion.get("global_factor", 1.0))
-    eta_factors = distortion.get("eta_factors", [])
-    if eta_factors:
-        eta_arr = np.asarray(eta_factors, dtype=float)
-        valid = abs_eta_bin < len(eta_arr)
-        prob = np.where(valid, prob * eta_arr[np.clip(abs_eta_bin, 0, len(eta_arr) - 1)], prob)
-    signed_eta_factors = distortion.get("signed_eta_factors", [])
-    if signed_eta_factors:
-        eta_arr = np.asarray(signed_eta_factors, dtype=float)
-        valid = eta_bin < len(eta_arr)
-        prob = np.where(valid, prob * eta_arr[np.clip(eta_bin, 0, len(eta_arr) - 1)], prob)
-    pt_factors = distortion.get("pt_factors", [])
-    if pt_factors:
-        pt_arr = np.asarray(pt_factors, dtype=float)
-        valid = pt_bin < len(pt_arr)
-        prob = np.where(valid, prob * pt_arr[np.clip(pt_bin, 0, len(pt_arr) - 1)], prob)
-    bin_factors = distortion.get("bin_factors", [])
-    if bin_factors:
-        for ieta, row in enumerate(bin_factors):
-            row_arr = np.asarray(row, dtype=float)
-            for ipt, factor in enumerate(row_arr):
-                prob = np.where((abs_eta_bin == ieta) & (pt_bin == ipt), prob * factor, prob)
-    eta_pt_factors = distortion.get("eta_pt_factors", [])
-    if eta_pt_factors:
-        for ieta, row in enumerate(eta_pt_factors):
-            row_arr = np.asarray(row, dtype=float)
-            for ipt, factor in enumerate(row_arr):
-                prob = np.where((eta_bin == ieta) & (pt_bin == ipt), prob * factor, prob)
-
-    pt_ref = float(distortion.get("pt_reference", cfg.get("scale", {}).get("pt_reference", 45.0)))
-    prob *= 1.0 + float(distortion.get("pt_slope_log", 0.0)) * np.log(np.maximum(flat_pt, 1.0e-9) / max(pt_ref, 1.0e-9))
-    turnon_amp = float(distortion.get("pt_turnon_amplitude", 0.0))
-    if turnon_amp != 0.0:
-        width = max(float(distortion.get("pt_turnon_width", 8.0)), 1.0e-3)
-        shifted_width = max(width * float(distortion.get("pt_turnon_width_scale", 1.0)), 1.0e-3)
-        center = float(distortion.get("pt_turnon_center", 25.0))
-        shift = float(distortion.get("pt_turnon_shift", 0.0))
-        nominal = 1.0 / (1.0 + np.exp(-np.clip((flat_pt - center) / width, -40.0, 40.0)))
-        shifted = 1.0 / (1.0 + np.exp(-np.clip((flat_pt - center - shift) / shifted_width, -40.0, 40.0)))
-        prob *= 1.0 + turnon_amp * (shifted - nominal)
-    prob = np.clip(np.where(np.isfinite(prob), prob, 0.0), 0.0, 1.0)
+    flat_bin, _, eta_bin, abs_eta_bin = flat_eff_bin(cfg, flat_pt, flat_eta, flat_energy)
+    base = map_efficiency_values(base_map, flat_bin)
+    prob = apply_constrained_distortion(cfg, branch_cfg, base, flat_pt, eta_bin, abs_eta_bin)
     return unflatten_like(prob, counts)
 
 
@@ -790,51 +808,9 @@ def distorted_probability_flat(
 ):
     pt = np.asarray(pt, dtype=float)
     eta = np.asarray(eta, dtype=float)
-    flat_bin, pt_bin, eta_bin, abs_eta_bin = flat_eff_bin(cfg, pt, eta)
-    passed = base_map["pass"][flat_bin]
-    total = base_map["total"][flat_bin]
-    global_total = float(np.sum(base_map["total"]))
-    global_pass = float(np.sum(base_map["pass"]))
-    global_eff = global_pass / global_total if global_total > 0 else 0.0
-    base = np.where(total > 0, passed / np.maximum(total, 1.0), global_eff)
-
-    distortion = branch_cfg.get("distortion", {})
-    prob = base * float(distortion.get("global_factor", 1.0))
-    eta_factors = distortion.get("eta_factors", [])
-    if eta_factors:
-        eta_arr = np.asarray(eta_factors, dtype=float)
-        valid = abs_eta_bin < len(eta_arr)
-        prob = np.where(valid, prob * eta_arr[np.clip(abs_eta_bin, 0, len(eta_arr) - 1)], prob)
-    signed_eta_factors = distortion.get("signed_eta_factors", [])
-    if signed_eta_factors:
-        eta_arr = np.asarray(signed_eta_factors, dtype=float)
-        valid = eta_bin < len(eta_arr)
-        prob = np.where(valid, prob * eta_arr[np.clip(eta_bin, 0, len(eta_arr) - 1)], prob)
-    pt_factors = distortion.get("pt_factors", [])
-    if pt_factors:
-        pt_arr = np.asarray(pt_factors, dtype=float)
-        valid = pt_bin < len(pt_arr)
-        prob = np.where(valid, prob * pt_arr[np.clip(pt_bin, 0, len(pt_arr) - 1)], prob)
-    for ieta, row in enumerate(distortion.get("bin_factors", [])):
-        row_arr = np.asarray(row, dtype=float)
-        for ipt, factor in enumerate(row_arr):
-            prob = np.where((abs_eta_bin == ieta) & (pt_bin == ipt), prob * factor, prob)
-    for ieta, row in enumerate(distortion.get("eta_pt_factors", [])):
-        row_arr = np.asarray(row, dtype=float)
-        for ipt, factor in enumerate(row_arr):
-            prob = np.where((eta_bin == ieta) & (pt_bin == ipt), prob * factor, prob)
-    pt_ref = float(distortion.get("pt_reference", cfg.get("scale", {}).get("pt_reference", 45.0)))
-    prob *= 1.0 + float(distortion.get("pt_slope_log", 0.0)) * np.log(np.maximum(pt, 1.0e-9) / max(pt_ref, 1.0e-9))
-    turnon_amp = float(distortion.get("pt_turnon_amplitude", 0.0))
-    if turnon_amp != 0.0:
-        width = max(float(distortion.get("pt_turnon_width", 8.0)), 1.0e-3)
-        shifted_width = max(width * float(distortion.get("pt_turnon_width_scale", 1.0)), 1.0e-3)
-        center = float(distortion.get("pt_turnon_center", 25.0))
-        shift = float(distortion.get("pt_turnon_shift", 0.0))
-        nominal = 1.0 / (1.0 + np.exp(-np.clip((pt - center) / width, -40.0, 40.0)))
-        shifted = 1.0 / (1.0 + np.exp(-np.clip((pt - center - shift) / shifted_width, -40.0, 40.0)))
-        prob *= 1.0 + turnon_amp * (shifted - nominal)
-    return np.clip(np.where(np.isfinite(prob), prob, 0.0), 0.0, 1.0)
+    flat_bin, _, eta_bin, abs_eta_bin = flat_eff_bin(cfg, pt, eta)
+    base = map_efficiency_values(base_map, flat_bin)
+    return apply_constrained_distortion(cfg, branch_cfg, base, pt, eta_bin, abs_eta_bin)
 
 
 def mc_truth_mask(arrays: Mapping[str, ak.Array], flavor: str, pt_like):
@@ -918,7 +894,11 @@ def add_expected_counts(
     values,
     probabilities,
     edges: np.ndarray,
+    denom_mask=None,
 ) -> None:
+    if denom_mask is not None:
+        values = values[denom_mask]
+        probabilities = probabilities[denom_mask]
     vals = ak.to_numpy(ak.flatten(values, axis=1))
     probs = ak.to_numpy(ak.flatten(probabilities, axis=1))
     if key not in store:
@@ -934,12 +914,15 @@ def add_expected_counts_flat(
     values: np.ndarray,
     probabilities: np.ndarray,
     edges: np.ndarray,
+    denom_mask: Optional[np.ndarray] = None,
 ) -> None:
     if key not in store:
         store[key] = {"num": np.zeros(len(edges) - 1), "den": np.zeros(len(edges) - 1)}
     values = np.asarray(values, dtype=float)
     probabilities = np.asarray(probabilities, dtype=float)
     finite = np.isfinite(values) & np.isfinite(probabilities)
+    if denom_mask is not None:
+        finite &= np.asarray(denom_mask, dtype=bool)
     store[key]["den"] += np.histogram(values[finite], bins=edges)[0]
     store[key]["num"] += np.histogram(values[finite], bins=edges, weights=probabilities[finite])[0]
 
@@ -1743,24 +1726,36 @@ def analyze(modify_cfg: Mapping, plot_cfg: Mapping, pairs: Sequence[Tuple[Path, 
                     add_tnp_mass_candidates(tnp_mass_store, (flavor, branch, "output", "tnp"), tnp_out, eff_edges, variables)
 
                     base_map = base_maps.get((flavor, branch))
+                    values_in_by_var = {"pt": pt_in, "eta": eta_in, "phi": phi_in}
                     if base_map is not None:
                         exp_probs = distorted_probability(modify_cfg, base_map, ecfg, pt_exp, eta_in)
                         values_by_var = {"pt": pt_exp, "eta": eta_in, "phi": phi_in}
                         for var in variables:
                             if var not in values_by_var or var not in eff_edges:
                                 continue
-                            add_expected_counts(
-                                expected_eff_store,
-                                (flavor, branch, "expected", var),
-                                values_by_var[var],
-                                exp_probs,
-                                eff_edges[var],
-                            )
+                            if var in ("pt", "eta"):
+                                add_expected_counts(
+                                    expected_eff_store,
+                                    (flavor, branch, "expected", var),
+                                    values_by_var[var],
+                                    exp_probs,
+                                    eff_edges[var],
+                                    truth_in,
+                                )
+                            elif var in values_in_by_var:
+                                add_efficiency_counts(
+                                    expected_eff_store,
+                                    (flavor, branch, "expected", var),
+                                    values_in_by_var[var],
+                                    truth_in,
+                                    pass_in,
+                                    eff_edges[var],
+                                )
 
                 if selected_event_eff:
                     leading_in = leading_event_values(pt_in, eta_in, phi_in, truth_in)
                     leading_out = leading_event_values(pt_out, eta_out, phi_out, truth_out)
-                    leading_exp = leading_event_values(pt_exp, eta_in, phi_in)
+                    leading_exp = leading_event_values(pt_exp, eta_in, phi_in, truth_in)
                     valid_in = ak.to_numpy(ak.num(pt_in, axis=1) > 0).astype(bool)
                     valid_out = ak.to_numpy(ak.num(pt_out, axis=1) > 0).astype(bool)
                     for branch, ecfg in selected_event_eff.items():
@@ -1796,16 +1791,28 @@ def analyze(modify_cfg: Mapping, plot_cfg: Mapping, pairs: Sequence[Tuple[Path, 
                         if base_map is not None and len(leading_exp["pt"]):
                             exp_probs = distorted_probability_flat(modify_cfg, base_map, ecfg, leading_exp["pt"], leading_exp["eta"])
                             values_by_var = {"pt": leading_exp["pt"], "eta": leading_exp["eta"], "phi": leading_exp["phi"]}
+                            input_values_by_var = {"pt": leading_in["pt"], "eta": leading_in["eta"], "phi": leading_in["phi"]}
                             for var in variables:
                                 if var not in values_by_var or var not in eff_edges:
                                     continue
-                                add_expected_counts_flat(
-                                    expected_eff_store,
-                                    (flavor, branch, "expected", var),
-                                    values_by_var[var],
-                                    exp_probs,
-                                    eff_edges[var],
-                                )
+                                if var in ("pt", "eta"):
+                                    add_expected_counts_flat(
+                                        expected_eff_store,
+                                        (flavor, branch, "expected", var),
+                                        values_by_var[var],
+                                        exp_probs,
+                                        eff_edges[var],
+                                        leading_exp["denom"],
+                                    )
+                                elif var in input_values_by_var:
+                                    add_efficiency_counts_flat(
+                                        expected_eff_store,
+                                        (flavor, branch, "expected", var),
+                                        input_values_by_var[var],
+                                        leading_in["denom"],
+                                        pass_in_event,
+                                        eff_edges[var],
+                                    )
 
     fit_dir = figdir / "fit"
     print(f"[INFO] Fitting TnP pass/all dilepton mass spectra with RooFit and writing fit plots to {fit_dir}")

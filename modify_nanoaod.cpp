@@ -10,6 +10,7 @@
 #include <TTree.h>
 
 #include <algorithm>
+#include <array>
 #include <atomic>
 #include <cmath>
 #include <cstdint>
@@ -42,6 +43,8 @@ namespace fs = std::filesystem;
 namespace {
 
 constexpr double kPi = 3.141592653589793238462643383279502884;
+constexpr std::size_t kTruthBranchCapacity = 20000;
+constexpr std::uint64_t kMinEfficiencyBinTotal = 20;
 std::mutex g_logMutex;
 
 void logLine(const std::string& level, const std::string& message) {
@@ -1070,7 +1073,10 @@ struct EffCounts {
   }
 
   double efficiency(int bin) const {
-    if (bin >= 0 && bin < static_cast<int>(total.size()) && total[bin] > 0) {
+    if (bin >= 0 && bin < static_cast<int>(total.size()) && total[bin] >= kMinEfficiencyBinTotal) {
+      return static_cast<double>(pass[bin]) / static_cast<double>(total[bin]);
+    }
+    if (bin >= 0 && bin < static_cast<int>(total.size()) && total[bin] > 0 && globalTotal < kMinEfficiencyBinTotal) {
       return static_cast<double>(pass[bin]) / static_cast<double>(total[bin]);
     }
     if (globalTotal > 0) return static_cast<double>(globalPass) / static_cast<double>(globalTotal);
@@ -1078,10 +1084,59 @@ struct EffCounts {
   }
 };
 
+struct JointEffCounts {
+  std::vector<std::array<std::uint64_t, 4>> state;
+  std::array<std::uint64_t, 4> globalState{0, 0, 0, 0};
+  std::uint64_t globalTotal = 0;
+
+  explicit JointEffCounts(int bins = 0) : state(bins) {
+    for (auto& binsState : state) binsState = {0, 0, 0, 0};
+  }
+
+  void add(int bin, int s) {
+    if (bin < 0 || bin >= static_cast<int>(state.size())) return;
+    s = std::clamp(s, 0, 3);
+    ++state[bin][s];
+    ++globalState[s];
+    ++globalTotal;
+  }
+
+  void merge(const JointEffCounts& other) {
+    if (state.size() < other.state.size()) {
+      const std::size_t oldSize = state.size();
+      state.resize(other.state.size());
+      for (std::size_t i = oldSize; i < state.size(); ++i) state[i] = {0, 0, 0, 0};
+    }
+    for (std::size_t i = 0; i < other.state.size(); ++i) {
+      for (std::size_t s = 0; s < 4; ++s) state[i][s] += other.state[i][s];
+    }
+    for (std::size_t s = 0; s < 4; ++s) globalState[s] += other.globalState[s];
+    globalTotal += other.globalTotal;
+  }
+
+  std::array<double, 4> fractions(int bin) const {
+    std::array<double, 4> out{0.0, 0.0, 0.0, 0.0};
+    std::uint64_t total = 0;
+    if (bin >= 0 && bin < static_cast<int>(state.size())) {
+      for (std::uint64_t n : state[bin]) total += n;
+      if (total >= kMinEfficiencyBinTotal || (total > 0 && globalTotal < kMinEfficiencyBinTotal)) {
+        for (std::size_t s = 0; s < 4; ++s) out[s] = static_cast<double>(state[bin][s]) / static_cast<double>(total);
+        return out;
+      }
+    }
+    if (globalTotal > 0) {
+      for (std::size_t s = 0; s < 4; ++s) out[s] = static_cast<double>(globalState[s]) / static_cast<double>(globalTotal);
+    }
+    return out;
+  }
+};
+
 struct Calibration {
   std::map<std::string, EffCounts> muon;
   std::map<std::string, EffCounts> electron;
   std::map<std::string, EffCounts> event;
+  JointEffCounts muonIdJoint;
+  JointEffCounts electronIdJoint;
 };
 
 Calibration makeEmptyCalibration(const Config& cfg) {
@@ -1090,6 +1145,8 @@ Calibration makeEmptyCalibration(const Config& cfg) {
   for (const auto& b : cfg.muonEffBranches) c.muon.emplace(b.name, EffCounts(bins));
   for (const auto& b : cfg.electronEffBranches) c.electron.emplace(b.name, EffCounts(bins));
   for (const auto& b : cfg.eventEffBranches) c.event.emplace(b.name, EffCounts(bins));
+  c.muonIdJoint = JointEffCounts(bins);
+  c.electronIdJoint = JointEffCounts(bins);
   return c;
 }
 
@@ -1097,6 +1154,8 @@ void mergeCalibration(Calibration& into, const Calibration& from) {
   for (const auto& kv : from.muon) into.muon[kv.first].merge(kv.second);
   for (const auto& kv : from.electron) into.electron[kv.first].merge(kv.second);
   for (const auto& kv : from.event) into.event[kv.first].merge(kv.second);
+  into.muonIdJoint.merge(from.muonIdJoint);
+  into.electronIdJoint.merge(from.electronIdJoint);
 }
 
 bool originalPasses(const EffBranchConfig& cfg, const BranchBuffer& branch, std::size_t i) {
@@ -1111,33 +1170,37 @@ double sigmoid(double x) {
   return 1.0 / (1.0 + std::exp(-x));
 }
 
+double smallSmoothFactor(double factor) {
+  if (!std::isfinite(factor)) return 1.0;
+  return std::clamp(factor, 0.95, 1.05);
+}
+
+double smoothedIndexedFactor(const std::vector<double>& factors, int index) {
+  if (index < 0 || index >= static_cast<int>(factors.size())) return 1.0;
+  double sum = 0.0;
+  double weight = 0.0;
+  for (int offset = -1; offset <= 1; ++offset) {
+    const int j = index + offset;
+    if (j < 0 || j >= static_cast<int>(factors.size())) continue;
+    const double w = offset == 0 ? 2.0 : 1.0;
+    sum += w * smallSmoothFactor(factors[j]);
+    weight += w;
+  }
+  return weight > 0.0 ? sum / weight : 1.0;
+}
+
 double distortedEfficiency(double base, const EffBranchConfig& cfg, const BinIndex& idx, double pt) {
-  double p = base * cfg.distortion.globalFactor;
-  if (idx.absEta >= 0 && idx.absEta < static_cast<int>(cfg.distortion.etaFactors.size())) {
-    p *= cfg.distortion.etaFactors[idx.absEta];
-  }
-  if (idx.eta >= 0 && idx.eta < static_cast<int>(cfg.distortion.signedEtaFactors.size())) {
-    p *= cfg.distortion.signedEtaFactors[idx.eta];
-  }
-  if (idx.pt >= 0 && idx.pt < static_cast<int>(cfg.distortion.ptFactors.size())) {
-    p *= cfg.distortion.ptFactors[idx.pt];
-  }
-  if (idx.absEta >= 0 && idx.absEta < static_cast<int>(cfg.distortion.binFactors.size())) {
-    const auto& row = cfg.distortion.binFactors[idx.absEta];
-    if (idx.pt >= 0 && idx.pt < static_cast<int>(row.size())) p *= row[idx.pt];
-  }
-  if (idx.eta >= 0 && idx.eta < static_cast<int>(cfg.distortion.etaPtFactors.size())) {
-    const auto& row = cfg.distortion.etaPtFactors[idx.eta];
-    if (idx.pt >= 0 && idx.pt < static_cast<int>(row.size())) p *= row[idx.pt];
-  }
-  const double ptRef = std::max(cfg.distortion.ptReference, 1.0e-9);
-  p *= 1.0 + cfg.distortion.ptSlopeLog * std::log(std::max(pt, 1.0e-9) / ptRef);
+  double p = base * smallSmoothFactor(cfg.distortion.globalFactor);
+  p *= smoothedIndexedFactor(cfg.distortion.etaFactors, idx.absEta);
+  p *= smoothedIndexedFactor(cfg.distortion.signedEtaFactors, idx.eta);
   if (cfg.distortion.ptTurnonAmplitude != 0.0) {
     const double width = std::max(cfg.distortion.ptTurnonWidth, 1.0e-3);
-    const double shiftedWidth = std::max(width * cfg.distortion.ptTurnonWidthScale, 1.0e-3);
+    const double shiftedWidth = std::max(width * std::clamp(cfg.distortion.ptTurnonWidthScale, 0.5, 2.0), 1.0e-3);
     const double nominal = sigmoid((pt - cfg.distortion.ptTurnonCenter) / width);
-    const double shifted = sigmoid((pt - cfg.distortion.ptTurnonCenter - cfg.distortion.ptTurnonShift) / shiftedWidth);
-    p *= 1.0 + cfg.distortion.ptTurnonAmplitude * (shifted - nominal);
+    const double shift = std::clamp(cfg.distortion.ptTurnonShift, -10.0, 10.0);
+    const double shifted = sigmoid((pt - cfg.distortion.ptTurnonCenter - shift) / shiftedWidth);
+    const double amplitude = std::clamp(cfg.distortion.ptTurnonAmplitude, -0.20, 0.20);
+    p *= 1.0 + amplitude * (shifted - nominal);
   }
   if (!std::isfinite(p)) p = 0.0;
   return std::clamp(p, 0.0, 1.0);
@@ -1221,6 +1284,162 @@ double resolutionSigma(const std::vector<RegionResolution>& regions, double eta,
   return 0.0;
 }
 
+std::string genPartIdxBranch(bool isMuon) {
+  return std::string(isMuon ? "Muon" : "Electron") + "_genPartIdx";
+}
+
+struct TruthRuntime {
+  BranchBuffer nGenPart;
+  BranchBuffer genPdgId;
+  BranchBuffer genStatusFlags;
+};
+
+TruthRuntime bindTruthRuntime(TTree* tree, const std::string& context) {
+  TruthRuntime rt;
+  rt.nGenPart.bind(tree, "nGenPart", 1, false, context);
+  rt.genPdgId.bind(tree, "GenPart_pdgId", kTruthBranchCapacity, false, context);
+  rt.genStatusFlags.bind(tree, "GenPart_statusFlags", kTruthBranchCapacity, false, context);
+  return rt;
+}
+
+bool bindFlavorTruthBranch(TTree* tree, BranchBuffer& genPartIdx, bool isMuon, std::size_t maxN, const std::string& context) {
+  return genPartIdx.bind(tree, genPartIdxBranch(isMuon), maxN + 1, false, context);
+}
+
+bool truthMatchedLepton(const BranchBuffer& genPartIdx, const TruthRuntime* truth, std::size_t index, int pdgId) {
+  if (!truth || !genPartIdx.bound() || !truth->genPdgId.bound()) return true;
+  if (index >= genPartIdx.size()) return false;
+  const std::int64_t genIndex = genPartIdx.getInt64(index);
+  const std::size_t nGen = truth->nGenPart.bound() ? static_cast<std::size_t>(truth->nGenPart.getUInt64(0)) : truth->genPdgId.size();
+  if (genIndex < 0 || static_cast<std::size_t>(genIndex) >= nGen || static_cast<std::size_t>(genIndex) >= truth->genPdgId.size()) return false;
+  if (std::abs(static_cast<int>(truth->genPdgId.getInt64(static_cast<std::size_t>(genIndex)))) != pdgId) return false;
+  if (truth->genStatusFlags.bound() && static_cast<std::size_t>(genIndex) < truth->genStatusFlags.size()) {
+    const std::int64_t flags = truth->genStatusFlags.getInt64(static_cast<std::size_t>(genIndex));
+    const bool prompt = (flags & 1) != 0 || (flags & (1 << 8)) != 0;
+    if (!prompt) return false;
+  }
+  return true;
+}
+
+double modifiedLeptonPt(const Config& cfg,
+                        bool isMuon,
+                        double oldPt,
+                        double eta,
+                        int charge,
+                        std::uint64_t run,
+                        std::uint64_t lumi,
+                        std::uint64_t eventId,
+                        Long64_t entry,
+                        std::size_t index) {
+  const std::vector<RegionScale>& scaleRegions = isMuon ? cfg.muonScale : cfg.electronScale;
+  const std::vector<RegionResolution>& resRegions = isMuon ? cfg.muonResolution : cfg.electronResolution;
+  static const std::uint64_t resolutionStreamHash = fnv1a64("resolution");
+  double newPt = oldPt;
+  if (cfg.scaleEnabled) {
+    newPt *= 1.0 + scaleShift(scaleRegions, eta, oldPt, charge, cfg.scalePtReference);
+  }
+  if (cfg.resolutionEnabled) {
+    const double sigma = resolutionSigma(resRegions, eta, oldPt, cfg.scalePtReference);
+    if (sigma > 0.0) {
+      const int flavorId = isMuon ? 13 : 11;
+      const std::uint64_t key = objectKey(cfg, run, lumi, eventId, entry, index, flavorId, resolutionStreamHash);
+      newPt *= 1.0 + normal01(key) * sigma;
+    }
+  }
+  if (!std::isfinite(newPt) || newPt < 0.0) newPt = 0.0;
+  return newPt;
+}
+
+bool minimalFlipPass(bool originalPass, double currentEff, double targetEff, double u) {
+  currentEff = std::clamp(currentEff, 0.0, 1.0);
+  targetEff = std::clamp(targetEff, 0.0, 1.0);
+  if (targetEff >= currentEff) {
+    if (originalPass) return true;
+    if (currentEff >= 1.0) return false;
+    const double promote = (targetEff - currentEff) / std::max(1.0 - currentEff, 1.0e-12);
+    return u < std::clamp(promote, 0.0, 1.0);
+  }
+  if (!originalPass) return false;
+  if (currentEff <= 0.0) return false;
+  const double keep = targetEff / std::max(currentEff, 1.0e-12);
+  return u < std::clamp(keep, 0.0, 1.0);
+}
+
+bool hasNameFragment(const std::string& name, const std::string& fragment) {
+  return name.find(fragment) != std::string::npos;
+}
+
+struct JointIdBranchIndices {
+  int loose = -1;
+  int medium = -1;
+  int tight = -1;
+
+  bool active() const { return loose >= 0 && medium >= 0 && tight >= 0; }
+};
+
+int jointIdState(bool loose, bool medium, bool tight) {
+  if (tight) return 3;
+  if (medium) return 2;
+  if (loose) return 1;
+  return 0;
+}
+
+std::array<double, 4> normalizedFractions(std::array<double, 4> values) {
+  double total = 0.0;
+  for (double& v : values) {
+    if (!std::isfinite(v) || v < 0.0) v = 0.0;
+    total += v;
+  }
+  if (total <= 0.0) return {1.0, 0.0, 0.0, 0.0};
+  for (double& v : values) v /= total;
+  return values;
+}
+
+std::array<double, 4> targetJointFractions(double loose, double medium, double tight) {
+  loose = std::clamp(loose, 0.0, 1.0);
+  medium = std::min(std::clamp(medium, 0.0, 1.0), loose);
+  tight = std::min(std::clamp(tight, 0.0, 1.0), medium);
+  return normalizedFractions({1.0 - loose, loose - medium, medium - tight, tight});
+}
+
+int remapJointState(int originalState,
+                    std::array<double, 4> current,
+                    std::array<double, 4> target,
+                    double u) {
+  current = normalizedFractions(current);
+  target = normalizedFractions(target);
+  originalState = std::clamp(originalState, 0, 3);
+
+  std::array<double, 4> keep{0.0, 0.0, 0.0, 0.0};
+  std::array<double, 4> deficit{0.0, 0.0, 0.0, 0.0};
+  double totalDeficit = 0.0;
+  for (std::size_t s = 0; s < 4; ++s) {
+    keep[s] = std::min(current[s], target[s]);
+    deficit[s] = std::max(0.0, target[s] - keep[s]);
+    totalDeficit += deficit[s];
+  }
+
+  if (current[originalState] <= 1.0e-12) {
+    double acc = 0.0;
+    for (int s = 0; s < 4; ++s) {
+      acc += target[s];
+      if (u < acc) return s;
+    }
+    return 3;
+  }
+
+  const double stayProb = std::clamp(keep[originalState] / current[originalState], 0.0, 1.0);
+  if (u < stayProb || totalDeficit <= 1.0e-12 || stayProb >= 1.0) return originalState;
+
+  const double movedU = (u - stayProb) / std::max(1.0 - stayProb, 1.0e-12);
+  double acc = 0.0;
+  for (int s = 0; s < 4; ++s) {
+    acc += deficit[s] / totalDeficit;
+    if (movedU < acc) return s;
+  }
+  return 3;
+}
+
 // ----------------------------- File handling ------------------------------
 
 bool containsGlobMeta(const std::string& path) {
@@ -1300,6 +1519,7 @@ struct PreScanResult {
   std::size_t maxMuon = 0;
   std::size_t maxElectron = 0;
   Calibration calibration;
+  Calibration currentCalibration;
 };
 
 std::pair<std::size_t, std::size_t> readMaxLeptonCounts(TTree* tree, const Config& cfg, const std::string& input) {
@@ -1326,8 +1546,26 @@ struct EffBranchRuntime {
   EffBranchConfig cfg;
   BranchBuffer branch;
   EffCounts* counts = nullptr;
+  EffCounts* currentCounts = nullptr;
   std::uint64_t streamHash = 0;
+  bool handledByJoint = false;
 };
+
+JointIdBranchIndices findJointIdBranches(std::vector<EffBranchRuntime>& branches) {
+  JointIdBranchIndices idx;
+  for (std::size_t i = 0; i < branches.size(); ++i) {
+    const std::string& name = branches[i].cfg.name;
+    if (hasNameFragment(name, "looseId")) idx.loose = static_cast<int>(i);
+    if (hasNameFragment(name, "mediumId")) idx.medium = static_cast<int>(i);
+    if (hasNameFragment(name, "tightId")) idx.tight = static_cast<int>(i);
+  }
+  if (idx.active()) {
+    branches[static_cast<std::size_t>(idx.loose)].handledByJoint = true;
+    branches[static_cast<std::size_t>(idx.medium)].handledByJoint = true;
+    branches[static_cast<std::size_t>(idx.tight)].handledByJoint = true;
+  }
+  return idx;
+}
 
 void writeEfficiencyValue(EffBranchRuntime& branch, std::size_t index, bool pass) {
   if (branch.cfg.type == EffType::Bool) {
@@ -1377,29 +1615,96 @@ bool leadingKinematics(const BranchBuffer& n,
   return true;
 }
 
+bool leadingCalibrationKinematics(const Config& cfg,
+                                  bool isMuon,
+                                  bool useModifiedKinematics,
+                                  const BranchBuffer& n,
+                                  const BranchBuffer& pt,
+                                  const BranchBuffer& eta,
+                                  const BranchBuffer& charge,
+                                  const BranchBuffer& genPartIdx,
+                                  const TruthRuntime& truth,
+                                  std::uint64_t run,
+                                  std::uint64_t lumi,
+                                  std::uint64_t eventId,
+                                  Long64_t entry,
+                                  double& leadingPt,
+                                  double& leadingEta,
+                                  std::size_t& leadingIndex,
+                                  bool& leadingTruth) {
+  if (!n.bound() || !pt.bound() || !eta.bound()) return false;
+  const std::size_t nObj = static_cast<std::size_t>(n.getUInt64(0));
+  const std::size_t limit = std::min({nObj, pt.availableForN(nObj), eta.availableForN(nObj)});
+  if (limit == 0) return false;
+  bool haveLead = false;
+  for (std::size_t i = 0; i < limit; ++i) {
+    const double oldPt = pt.getDouble(i);
+    const double etaValue = eta.getDouble(i);
+    const int chargeValue = charge.bound() && i < charge.availableForN(nObj) ? static_cast<int>(charge.getInt64(i)) : 0;
+    const double candidatePt = useModifiedKinematics
+        ? modifiedLeptonPt(cfg, isMuon, oldPt, etaValue, chargeValue, run, lumi, eventId, entry, i)
+        : oldPt;
+    if (!haveLead || candidatePt > leadingPt) {
+      haveLead = true;
+      leadingPt = candidatePt;
+      leadingEta = etaValue;
+      leadingIndex = i;
+    }
+  }
+  if (!haveLead) return false;
+  leadingTruth = truthMatchedLepton(genPartIdx, &truth, leadingIndex, isMuon ? 13 : 11);
+  return true;
+}
+
 void prescanFlavor(TTree* tree,
                    const Config& cfg,
                    const std::string& input,
                    bool isMuon,
                    std::size_t maxN,
-                   Calibration& outCal) {
+                   Calibration& outCal,
+                   bool useModifiedKinematics) {
   const LeptonBranches& br = isMuon ? cfg.muonBranches : cfg.electronBranches;
   const std::vector<EffBranchConfig>& effCfgs = isMuon ? cfg.muonEffBranches : cfg.electronEffBranches;
   std::map<std::string, EffCounts>& maps = isMuon ? outCal.muon : outCal.electron;
   if (!cfg.efficiencyEnabled || effCfgs.empty()) return;
 
-  const std::string context = input + (isMuon ? " [muon prescan]" : " [electron prescan]");
+  const std::string context = input + (isMuon ? " [muon prescan]" : " [electron prescan]")
+      + (useModifiedKinematics ? " [modified-bin]" : " [input-bin]");
   tree->ResetBranchAddresses();
   tree->SetBranchStatus("*", 0);
   enableBranchIfPresent(tree, br.n);
   enableBranchIfPresent(tree, br.pt);
   enableBranchIfPresent(tree, br.eta);
+  if (useModifiedKinematics) {
+    enableBranchIfPresent(tree, br.charge);
+    enableBranchIfPresent(tree, cfg.eventId.run);
+    enableBranchIfPresent(tree, cfg.eventId.luminosityBlock);
+    enableBranchIfPresent(tree, cfg.eventId.event);
+  }
   for (const auto& e : effCfgs) enableBranchIfPresent(tree, e.name);
+  enableBranchIfPresent(tree, genPartIdxBranch(isMuon));
+  enableBranchIfPresent(tree, "nGenPart");
+  enableBranchIfPresent(tree, "GenPart_pdgId");
+  enableBranchIfPresent(tree, "GenPart_statusFlags");
 
   BranchBuffer n, pt, eta;
   if (!n.bind(tree, br.n, 1, true, context)) return;
   if (!pt.bind(tree, br.pt, maxN + 1, true, context)) return;
   if (!eta.bind(tree, br.eta, maxN + 1, true, context)) return;
+  BranchBuffer charge;
+  if (useModifiedKinematics && !br.charge.empty()) charge.bind(tree, br.charge, maxN + 1, false, context);
+  BranchBuffer run, lumi, event;
+  if (useModifiedKinematics) {
+    run.bind(tree, cfg.eventId.run, 1, false, context);
+    lumi.bind(tree, cfg.eventId.luminosityBlock, 1, false, context);
+    event.bind(tree, cfg.eventId.event, 1, false, context);
+  }
+  TruthRuntime truth = bindTruthRuntime(tree, context);
+  BranchBuffer genPartIdx;
+  const bool haveTruth = bindFlavorTruthBranch(tree, genPartIdx, isMuon, maxN, context) && truth.genPdgId.bound();
+  if (!haveTruth) {
+    logLine("WARN", context + ": missing usable MC truth branches; using all reconstructed leptons as efficiency denominator");
+  }
   BranchBuffer energy;
   bool useEnergy = false;
   if (!cfg.binning.energy.empty()) {
@@ -1421,18 +1726,42 @@ void prescanFlavor(TTree* tree,
     if (rt.branch.bind(tree, e.name, maxN + 1, true, context)) effBranches.push_back(std::move(rt));
   }
   if (effBranches.empty()) return;
+  const JointIdBranchIndices joint = findJointIdBranches(effBranches);
+  JointEffCounts& jointCounts = isMuon ? outCal.muonIdJoint : outCal.electronIdJoint;
 
   const Long64_t entries = tree->GetEntries();
   for (Long64_t entry = 0; entry < entries; ++entry) {
     tree->GetEntry(entry);
+    const std::uint64_t runValue = useModifiedKinematics && run.bound() ? run.getUInt64(0) : 0;
+    const std::uint64_t lumiValue = useModifiedKinematics && lumi.bound() ? lumi.getUInt64(0) : 0;
+    const std::uint64_t eventValue = useModifiedKinematics && event.bound() ? event.getUInt64(0) : 0;
     const std::size_t nObj = static_cast<std::size_t>(n.getUInt64(0));
     const std::size_t limit = std::min({nObj, pt.availableForN(nObj), eta.availableForN(nObj)});
     for (std::size_t i = 0; i < limit; ++i) {
-      const double energyValue = useEnergy && i < energy.availableForN(nObj) ? energy.getDouble(i) : std::numeric_limits<double>::quiet_NaN();
-      const BinIndex idx = makeBinIndex(cfg.binning, pt.getDouble(i), eta.getDouble(i), energyValue);
+      if (!truthMatchedLepton(genPartIdx, &truth, i, isMuon ? 13 : 11)) continue;
+      const double oldPt = pt.getDouble(i);
+      const double etaValue = eta.getDouble(i);
+      const double oldEnergy = useEnergy && i < energy.availableForN(nObj) ? energy.getDouble(i) : std::numeric_limits<double>::quiet_NaN();
+      const int chargeValue = charge.bound() && i < charge.availableForN(nObj) ? static_cast<int>(charge.getInt64(i)) : 0;
+      const double newPt = useModifiedKinematics
+          ? modifiedLeptonPt(cfg, isMuon, oldPt, etaValue, chargeValue, runValue, lumiValue, eventValue, entry, i)
+          : oldPt;
+      const double energyValue = useModifiedKinematics && std::isfinite(oldEnergy) && oldPt > 0.0
+          ? oldEnergy * (newPt / oldPt)
+          : oldEnergy;
+      const BinIndex idx = makeBinIndex(cfg.binning, newPt, etaValue, energyValue);
       for (auto& e : effBranches) {
         if (i >= e.branch.availableForN(nObj)) continue;
         e.counts->add(idx.flat, originalPasses(e.cfg, e.branch, i));
+      }
+      if (joint.active()) {
+        const bool loose = originalPasses(effBranches[static_cast<std::size_t>(joint.loose)].cfg,
+                                          effBranches[static_cast<std::size_t>(joint.loose)].branch, i);
+        const bool medium = originalPasses(effBranches[static_cast<std::size_t>(joint.medium)].cfg,
+                                           effBranches[static_cast<std::size_t>(joint.medium)].branch, i);
+        const bool tight = originalPasses(effBranches[static_cast<std::size_t>(joint.tight)].cfg,
+                                          effBranches[static_cast<std::size_t>(joint.tight)].branch, i);
+        jointCounts.add(idx.flat, jointIdState(loose, medium, tight));
       }
     }
   }
@@ -1443,26 +1772,55 @@ void prescanEventEfficiencies(TTree* tree,
                               const std::string& input,
                               std::size_t maxMuon,
                               std::size_t maxElectron,
-                              Calibration& outCal) {
+                              Calibration& outCal,
+                              bool useModifiedKinematics) {
   if (!cfg.efficiencyEnabled || cfg.eventEffBranches.empty()) return;
-  const std::string context = input + " [event prescan]";
+  const std::string context = input + " [event prescan]"
+      + (useModifiedKinematics ? " [modified-bin]" : " [input-bin]");
   tree->ResetBranchAddresses();
   tree->SetBranchStatus("*", 0);
   enableBranchIfPresent(tree, cfg.muonBranches.n);
   enableBranchIfPresent(tree, cfg.muonBranches.pt);
   enableBranchIfPresent(tree, cfg.muonBranches.eta);
+  enableBranchIfPresent(tree, cfg.muonBranches.charge);
   enableBranchIfPresent(tree, cfg.electronBranches.n);
   enableBranchIfPresent(tree, cfg.electronBranches.pt);
   enableBranchIfPresent(tree, cfg.electronBranches.eta);
+  enableBranchIfPresent(tree, cfg.electronBranches.charge);
+  enableBranchIfPresent(tree, genPartIdxBranch(true));
+  enableBranchIfPresent(tree, genPartIdxBranch(false));
+  enableBranchIfPresent(tree, "nGenPart");
+  enableBranchIfPresent(tree, "GenPart_pdgId");
+  enableBranchIfPresent(tree, "GenPart_statusFlags");
+  if (useModifiedKinematics) {
+    enableBranchIfPresent(tree, cfg.eventId.run);
+    enableBranchIfPresent(tree, cfg.eventId.luminosityBlock);
+    enableBranchIfPresent(tree, cfg.eventId.event);
+  }
   for (const auto& e : cfg.eventEffBranches) enableBranchIfPresent(tree, e.name);
 
-  BranchBuffer nMuon, muPt, muEta, nElectron, elePt, eleEta;
+  BranchBuffer nMuon, muPt, muEta, muCharge, muGenPartIdx;
+  BranchBuffer nElectron, elePt, eleEta, eleCharge, eleGenPartIdx;
   nMuon.bind(tree, cfg.muonBranches.n, 1, false, context);
   muPt.bind(tree, cfg.muonBranches.pt, maxMuon + 1, false, context);
   muEta.bind(tree, cfg.muonBranches.eta, maxMuon + 1, false, context);
+  muCharge.bind(tree, cfg.muonBranches.charge, maxMuon + 1, false, context);
+  bindFlavorTruthBranch(tree, muGenPartIdx, true, maxMuon, context);
   nElectron.bind(tree, cfg.electronBranches.n, 1, false, context);
   elePt.bind(tree, cfg.electronBranches.pt, maxElectron + 1, false, context);
   eleEta.bind(tree, cfg.electronBranches.eta, maxElectron + 1, false, context);
+  eleCharge.bind(tree, cfg.electronBranches.charge, maxElectron + 1, false, context);
+  bindFlavorTruthBranch(tree, eleGenPartIdx, false, maxElectron, context);
+  TruthRuntime truth = bindTruthRuntime(tree, context);
+  if (!truth.genPdgId.bound()) {
+    logLine("WARN", context + ": missing usable MC truth branches; using all leading reconstructed leptons as event-efficiency denominator");
+  }
+  BranchBuffer run, lumi, event;
+  if (useModifiedKinematics) {
+    run.bind(tree, cfg.eventId.run, 1, false, context);
+    lumi.bind(tree, cfg.eventId.luminosityBlock, 1, false, context);
+    event.bind(tree, cfg.eventId.event, 1, false, context);
+  }
 
   std::vector<EffBranchRuntime> eventBranches;
   for (const auto& e : cfg.eventEffBranches) {
@@ -1478,15 +1836,24 @@ void prescanEventEfficiencies(TTree* tree,
   const Long64_t entries = tree->GetEntries();
   for (Long64_t entry = 0; entry < entries; ++entry) {
     tree->GetEntry(entry);
+    const std::uint64_t runValue = useModifiedKinematics && run.bound() ? run.getUInt64(0) : 0;
+    const std::uint64_t lumiValue = useModifiedKinematics && lumi.bound() ? lumi.getUInt64(0) : 0;
+    const std::uint64_t eventValue = useModifiedKinematics && event.bound() ? event.getUInt64(0) : 0;
     for (auto& e : eventBranches) {
       const std::string ref = eventReferenceFlavor(e.cfg);
       double leadPt = 0.0;
       double leadEta = 0.0;
       std::size_t leadIndex = 0;
+      bool leadTruth = true;
       const bool haveLead = ref == "electron"
-          ? leadingKinematics(nElectron, elePt, eleEta, leadPt, leadEta, leadIndex)
-          : leadingKinematics(nMuon, muPt, muEta, leadPt, leadEta, leadIndex);
+          ? leadingCalibrationKinematics(cfg, false, useModifiedKinematics, nElectron, elePt, eleEta, eleCharge,
+                                         eleGenPartIdx, truth, runValue, lumiValue, eventValue, entry,
+                                         leadPt, leadEta, leadIndex, leadTruth)
+          : leadingCalibrationKinematics(cfg, true, useModifiedKinematics, nMuon, muPt, muEta, muCharge,
+                                         muGenPartIdx, truth, runValue, lumiValue, eventValue, entry,
+                                         leadPt, leadEta, leadIndex, leadTruth);
       if (!haveLead) continue;
+      if (!leadTruth) continue;
       const BinIndex idx = makeBinIndex(cfg.binning, leadPt, leadEta);
       e.counts->add(idx.flat, originalPasses(e.cfg, e.branch, 0));
     }
@@ -1497,6 +1864,7 @@ PreScanResult prescanFile(const Config& cfg, const std::string& input) {
   PreScanResult result;
   result.input = input;
   result.calibration = makeEmptyCalibration(cfg);
+  result.currentCalibration = makeEmptyCalibration(cfg);
 
   std::unique_ptr<TFile> file(TFile::Open(input.c_str(), "READ"));
   if (!file || file->IsZombie()) fail("Cannot open input file " + quote(input));
@@ -1505,9 +1873,12 @@ PreScanResult prescanFile(const Config& cfg, const std::string& input) {
   tree->SetCacheSize(64LL * 1024LL * 1024LL);
 
   std::tie(result.maxMuon, result.maxElectron) = readMaxLeptonCounts(tree, cfg, input);
-  prescanFlavor(tree, cfg, input, true, result.maxMuon, result.calibration);
-  prescanFlavor(tree, cfg, input, false, result.maxElectron, result.calibration);
-  prescanEventEfficiencies(tree, cfg, input, result.maxMuon, result.maxElectron, result.calibration);
+  prescanFlavor(tree, cfg, input, true, result.maxMuon, result.calibration, false);
+  prescanFlavor(tree, cfg, input, false, result.maxElectron, result.calibration, false);
+  prescanEventEfficiencies(tree, cfg, input, result.maxMuon, result.maxElectron, result.calibration, false);
+  prescanFlavor(tree, cfg, input, true, result.maxMuon, result.currentCalibration, true);
+  prescanFlavor(tree, cfg, input, false, result.maxElectron, result.currentCalibration, true);
+  prescanEventEfficiencies(tree, cfg, input, result.maxMuon, result.maxElectron, result.currentCalibration, true);
   tree->ResetBranchAddresses();
   tree->SetBranchStatus("*", 1);
   return result;
@@ -1526,11 +1897,14 @@ struct FlavorRuntime {
   bool useEnergy = false;
   bool warnedSizeMismatch = false;
   std::vector<EffBranchRuntime> effBranches;
+  JointIdBranchIndices jointId;
+  JointEffCounts* currentJoint = nullptr;
 };
 
 FlavorRuntime bindFlavorForModification(TTree* tree,
                                         const Config& cfg,
                                         const Calibration& cal,
+                                        const Calibration& currentCal,
                                         const std::string& input,
                                         bool isMuon,
                                         std::size_t maxN) {
@@ -1539,6 +1913,7 @@ FlavorRuntime bindFlavorForModification(TTree* tree,
   const LeptonBranches& br = isMuon ? cfg.muonBranches : cfg.electronBranches;
   const std::vector<EffBranchConfig>& effCfgs = isMuon ? cfg.muonEffBranches : cfg.electronEffBranches;
   const std::map<std::string, EffCounts>& maps = isMuon ? cal.muon : cal.electron;
+  const std::map<std::string, EffCounts>& currentMaps = isMuon ? currentCal.muon : currentCal.electron;
   const std::string context = input + (isMuon ? " [muon modify]" : " [electron modify]");
 
   if (!rt.n.bind(tree, br.n, 1, true, context)) return rt;
@@ -1567,9 +1942,19 @@ FlavorRuntime bindFlavorForModification(TTree* tree,
       EffBranchRuntime brt;
       brt.cfg = e;
       brt.counts = const_cast<EffCounts*>(&it->second);
+      auto currentIt = currentMaps.find(e.name);
+      if (currentIt == currentMaps.end() || currentIt->second.globalTotal == 0) {
+        logLine("WARN", context + ": no current-bin entries for efficiency branch " + quote(e.name) + "; branch will not be modified");
+        continue;
+      }
+      brt.currentCounts = const_cast<EffCounts*>(&currentIt->second);
       brt.streamHash = fnv1a64("efficiency:" + e.name);
       if (brt.branch.bind(tree, e.name, maxN + 1, true, context)) rt.effBranches.push_back(std::move(brt));
     }
+    rt.jointId = findJointIdBranches(rt.effBranches);
+    JointEffCounts& joint = isMuon ? const_cast<JointEffCounts&>(currentCal.muonIdJoint)
+                                   : const_cast<JointEffCounts&>(currentCal.electronIdJoint);
+    if (rt.jointId.active() && joint.globalTotal > 0) rt.currentJoint = &joint;
   }
 
   rt.active = true;
@@ -1588,6 +1973,7 @@ struct EventRuntime {
 EventRuntime bindEventEfficienciesForModification(TTree* tree,
                                                   const Config& cfg,
                                                   const Calibration& cal,
+                                                  const Calibration& currentCal,
                                                   const std::string& input) {
   EventRuntime rt;
   if (!cfg.efficiencyEnabled || cfg.eventEffBranches.empty()) return rt;
@@ -1598,10 +1984,16 @@ EventRuntime bindEventEfficienciesForModification(TTree* tree,
       logLine("WARN", context + ": no calibration entries for event efficiency branch " + quote(e.name) + "; branch will not be modified");
       continue;
     }
+    auto currentIt = currentCal.event.find(e.name);
+    if (currentIt == currentCal.event.end() || currentIt->second.globalTotal == 0) {
+      logLine("WARN", context + ": no current-bin entries for event efficiency branch " + quote(e.name) + "; branch will not be modified");
+      continue;
+    }
     EventEffRuntime brt;
     brt.eff.cfg = e;
     brt.referenceFlavor = eventReferenceFlavor(e);
     brt.eff.counts = const_cast<EffCounts*>(&it->second);
+    brt.eff.currentCounts = const_cast<EffCounts*>(&currentIt->second);
     brt.eff.streamHash = fnv1a64("efficiency:" + e.name);
     if (brt.eff.branch.bind(tree, e.name, 1, true, context)) rt.branches.push_back(std::move(brt));
   }
@@ -1617,9 +2009,7 @@ void processFlavor(FlavorRuntime& rt,
   if (!rt.active) return;
   const bool isMuon = rt.isMuon;
   const int flavorId = isMuon ? 13 : 11;
-  const std::vector<RegionScale>& scaleRegions = isMuon ? cfg.muonScale : cfg.electronScale;
-  const std::vector<RegionResolution>& resRegions = isMuon ? cfg.muonResolution : cfg.electronResolution;
-  static const std::uint64_t resolutionStreamHash = fnv1a64("resolution");
+  static const std::uint64_t jointIdStreamHash = fnv1a64("efficiency:joint-id");
   const std::size_t nObj = static_cast<std::size_t>(rt.n.getUInt64(0));
   const std::size_t limit = std::min({nObj, rt.pt.availableForN(nObj), rt.eta.availableForN(nObj)});
   if (limit < nObj && !rt.warnedSizeMismatch) {
@@ -1633,29 +2023,49 @@ void processFlavor(FlavorRuntime& rt,
     const double oldEnergy = rt.useEnergy && i < rt.energy.availableForN(nObj) ? rt.energy.getDouble(i) : std::numeric_limits<double>::quiet_NaN();
     const int charge = rt.charge.bound() && i < rt.charge.availableForN(nObj) ? static_cast<int>(rt.charge.getInt64(i)) : 0;
 
-    double newPt = oldPt;
-    if (cfg.scaleEnabled) {
-      newPt *= 1.0 + scaleShift(scaleRegions, eta, oldPt, charge, cfg.scalePtReference);
-    }
-    if (cfg.resolutionEnabled) {
-      const double sigma = resolutionSigma(resRegions, eta, oldPt, cfg.scalePtReference);
-      if (sigma > 0.0) {
-        const std::uint64_t key = objectKey(cfg, run, lumi, eventId, entry, i, flavorId, resolutionStreamHash);
-        newPt *= 1.0 + normal01(key) * sigma;
-      }
-    }
-    if (!std::isfinite(newPt) || newPt < 0.0) newPt = 0.0;
+    const double newPt = modifiedLeptonPt(cfg, isMuon, oldPt, eta, charge, run, lumi, eventId, entry, i);
     rt.pt.setDouble(i, newPt);
 
     if (cfg.efficiencyEnabled) {
       const double scaledEnergy = std::isfinite(oldEnergy) && oldPt > 0.0 ? oldEnergy * (newPt / oldPt) : std::numeric_limits<double>::quiet_NaN();
       const BinIndex idx = makeBinIndex(cfg.binning, newPt, eta, scaledEnergy);
+
+      if (rt.jointId.active() && rt.currentJoint) {
+        EffBranchRuntime& loose = rt.effBranches[static_cast<std::size_t>(rt.jointId.loose)];
+        EffBranchRuntime& medium = rt.effBranches[static_cast<std::size_t>(rt.jointId.medium)];
+        EffBranchRuntime& tight = rt.effBranches[static_cast<std::size_t>(rt.jointId.tight)];
+        const std::size_t looseN = loose.branch.availableForN(nObj);
+        const std::size_t mediumN = medium.branch.availableForN(nObj);
+        const std::size_t tightN = tight.branch.availableForN(nObj);
+        if (i < looseN && i < mediumN && i < tightN) {
+          const bool oldLoose = originalPasses(loose.cfg, loose.branch, i);
+          const bool oldMedium = originalPasses(medium.cfg, medium.branch, i);
+          const bool oldTight = originalPasses(tight.cfg, tight.branch, i);
+          const int oldState = jointIdState(oldLoose, oldMedium, oldTight);
+
+          const double looseTarget = distortedEfficiency(loose.counts->efficiency(idx.flat), loose.cfg, idx, newPt);
+          const double mediumTarget = distortedEfficiency(medium.counts->efficiency(idx.flat), medium.cfg, idx, newPt);
+          const double tightTarget = distortedEfficiency(tight.counts->efficiency(idx.flat), tight.cfg, idx, newPt);
+          const std::array<double, 4> currentFractions = rt.currentJoint->fractions(idx.flat);
+          const std::array<double, 4> targetFractions = targetJointFractions(looseTarget, mediumTarget, tightTarget);
+
+          const std::uint64_t key = objectKey(cfg, run, lumi, eventId, entry, i, flavorId, jointIdStreamHash);
+          const int newState = remapJointState(oldState, currentFractions, targetFractions, uniform01(key));
+          writeEfficiencyValue(loose, i, newState >= 1);
+          writeEfficiencyValue(medium, i, newState >= 2);
+          writeEfficiencyValue(tight, i, newState >= 3);
+        }
+      }
+
       for (auto& e : rt.effBranches) {
+        if (e.handledByJoint) continue;
         if (i >= e.branch.availableForN(nObj)) continue;
         const double base = e.counts->efficiency(idx.flat);
         const double p = distortedEfficiency(base, e.cfg, idx, newPt);
+        const double current = e.currentCounts ? e.currentCounts->efficiency(idx.flat) : base;
+        const bool oldPass = originalPasses(e.cfg, e.branch, i);
         const std::uint64_t key = objectKey(cfg, run, lumi, eventId, entry, i, flavorId, e.streamHash);
-        const bool pass = uniform01(key) < p;
+        const bool pass = minimalFlipPass(oldPass, current, p, uniform01(key));
         writeEfficiencyValue(e, i, pass);
       }
     }
@@ -1681,9 +2091,11 @@ void processEventEfficiencies(EventRuntime& eventRt,
     const BinIndex idx = makeBinIndex(cfg.binning, leadPt, leadEta);
     const double base = e.eff.counts->efficiency(idx.flat);
     const double p = distortedEfficiency(base, e.eff.cfg, idx, leadPt);
+    const double current = e.eff.currentCounts ? e.eff.currentCounts->efficiency(idx.flat) : base;
+    const bool oldPass = originalPasses(e.eff.cfg, e.eff.branch, 0);
     const int flavorId = e.referenceFlavor == "electron" ? 11 : 13;
     const std::uint64_t key = objectKey(cfg, run, lumi, eventId, entry, leadIndex, flavorId, e.eff.streamHash);
-    writeEfficiencyValue(e.eff, 0, uniform01(key) < p);
+    writeEfficiencyValue(e.eff, 0, minimalFlipPass(oldPass, current, p, uniform01(key)));
   }
 }
 
@@ -1728,6 +2140,7 @@ void copyOtherObjects(TDirectory* inDir,
 
 void modifyFile(const Config& cfg,
                 const Calibration& calibration,
+                const Calibration& currentCalibration,
                 const PreScanResult& scan,
                 const std::string& outputPath) {
   if (fs::exists(outputPath) && !cfg.overwrite) {
@@ -1747,9 +2160,9 @@ void modifyFile(const Config& cfg,
   lumi.bind(inTree, cfg.eventId.luminosityBlock, 1, false, scan.input + " [event id]");
   event.bind(inTree, cfg.eventId.event, 1, false, scan.input + " [event id]");
 
-  FlavorRuntime muon = bindFlavorForModification(inTree, cfg, calibration, scan.input, true, scan.maxMuon);
-  FlavorRuntime electron = bindFlavorForModification(inTree, cfg, calibration, scan.input, false, scan.maxElectron);
-  EventRuntime eventEff = bindEventEfficienciesForModification(inTree, cfg, calibration, scan.input);
+  FlavorRuntime muon = bindFlavorForModification(inTree, cfg, calibration, currentCalibration, scan.input, true, scan.maxMuon);
+  FlavorRuntime electron = bindFlavorForModification(inTree, cfg, calibration, currentCalibration, scan.input, false, scan.maxElectron);
+  EventRuntime eventEff = bindEventEfficienciesForModification(inTree, cfg, calibration, currentCalibration, scan.input);
 
   const char* mode = cfg.overwrite ? "RECREATE" : "CREATE";
   std::unique_ptr<TFile> outFile(TFile::Open(outputPath.c_str(), mode));
@@ -1908,23 +2321,36 @@ int main(int argc, char** argv) {
     });
 
     Calibration calibration = makeEmptyCalibration(cfg);
-    for (const PreScanResult& scan : scans) mergeCalibration(calibration, scan.calibration);
+    Calibration currentCalibration = makeEmptyCalibration(cfg);
+    for (const PreScanResult& scan : scans) {
+      mergeCalibration(calibration, scan.calibration);
+      mergeCalibration(currentCalibration, scan.currentCalibration);
+    }
     if (cfg.efficiencyEnabled) {
-      logLine("INFO", "Merged efficiency calibration will be used for every output file");
+      logLine("INFO", "Merged target and current-bin efficiency calibrations will be used for every output file");
       for (const auto& kv : calibration.muon) {
-        logLine("INFO", "Muon efficiency calibration " + quote(kv.first) + ": total=" + std::to_string(kv.second.globalTotal));
+        auto it = currentCalibration.muon.find(kv.first);
+        const std::uint64_t currentTotal = it == currentCalibration.muon.end() ? 0 : it->second.globalTotal;
+        logLine("INFO", "Muon efficiency calibration " + quote(kv.first) + ": target_total=" + std::to_string(kv.second.globalTotal)
+                + " current_total=" + std::to_string(currentTotal));
       }
       for (const auto& kv : calibration.electron) {
-        logLine("INFO", "Electron efficiency calibration " + quote(kv.first) + ": total=" + std::to_string(kv.second.globalTotal));
+        auto it = currentCalibration.electron.find(kv.first);
+        const std::uint64_t currentTotal = it == currentCalibration.electron.end() ? 0 : it->second.globalTotal;
+        logLine("INFO", "Electron efficiency calibration " + quote(kv.first) + ": target_total=" + std::to_string(kv.second.globalTotal)
+                + " current_total=" + std::to_string(currentTotal));
       }
       for (const auto& kv : calibration.event) {
-        logLine("INFO", "Event efficiency calibration " + quote(kv.first) + ": total=" + std::to_string(kv.second.globalTotal));
+        auto it = currentCalibration.event.find(kv.first);
+        const std::uint64_t currentTotal = it == currentCalibration.event.end() ? 0 : it->second.globalTotal;
+        logLine("INFO", "Event efficiency calibration " + quote(kv.first) + ": target_total=" + std::to_string(kv.second.globalTotal)
+                + " current_total=" + std::to_string(currentTotal));
       }
     }
 
     logLine("INFO", "Stage B: writing one modified ROOT file per input file using the merged calibration");
     parallelFor(scans.size(), cfg.threads, [&](std::size_t i) {
-      modifyFile(cfg, calibration, scans[i], outputs[i]);
+      modifyFile(cfg, calibration, currentCalibration, scans[i], outputs[i]);
     });
     logLine("INFO", "Done");
     return 0;
