@@ -32,6 +32,7 @@ import matplotlib
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+from matplotlib.colors import LogNorm
 
 try:
     import ROOT
@@ -49,6 +50,8 @@ BLUE = "#5790fc"
 RED = "#e42536"
 GRAY = "#9c9ca1"
 Z_MASS = 91.1876
+MASS_FIT_MIN = 55.0
+MASS_FIT_MAX = 135.0
 UINT64 = np.uint64
 MASK64 = (1 << 64) - 1
 TNP_FIT_COUNTER = itertools.count()
@@ -734,7 +737,7 @@ def build_base_efficiency_maps(
                 for branch, ecfg in selected_efficiency_branches(plot_cfg, cfg, flavor).items():
                     if branch not in arrays:
                         continue
-                    leading = gen_matched_z_leading_values(
+                    leading = gen_matched_boson_leading_values(
                         arrays,
                         flavor,
                         pt,
@@ -756,7 +759,7 @@ def build_base_efficiency_maps(
                 for branch, ecfg in selected_event_efficiency_branches(plot_cfg, cfg, flavor).items():
                     if branch not in arrays:
                         continue
-                    leading = gen_matched_z_leading_values(arrays, flavor, pt, eta, arrays.get(br.get("phi")))
+                    leading = gen_matched_boson_leading_values(arrays, flavor, pt, eta, arrays.get(br.get("phi")))
                     if len(leading["pt"]) == 0:
                         continue
                     event_pass = ak.to_numpy(pass_mask(arrays[branch], ecfg)).astype(float)
@@ -870,6 +873,7 @@ def empty_truth_values() -> Dict[str, np.ndarray]:
         "pass": np.array([], dtype=bool),
         "denom": np.array([], dtype=bool),
         "event": np.array([], dtype=int),
+        "index": np.array([], dtype=int),
     }
 
 
@@ -909,7 +913,7 @@ def has_ancestor_pdg(pdg_ids, mothers, index: int, abs_pdg_id: int, n_gen: int) 
     return False
 
 
-def leading_gen_z_lepton_index(gen_pts, gen_pdg_ids, gen_mothers, gen_flags, n_gen: int, abs_lepton_pdg_id: int) -> Optional[int]:
+def leading_gen_boson_lepton_index(gen_pts, gen_pdg_ids, gen_mothers, gen_flags, n_gen: int, abs_lepton_pdg_id: int) -> Optional[int]:
     limit = min(n_gen, len(gen_pts), len(gen_pdg_ids), len(gen_mothers))
     candidates = []
     have_last_copy = False
@@ -918,7 +922,9 @@ def leading_gen_z_lepton_index(gen_pts, gen_pdg_ids, gen_mothers, gen_flags, n_g
             continue
         if not prompt_like_gen(gen_flags, idx):
             continue
-        if not has_ancestor_pdg(gen_pdg_ids, gen_mothers, idx, 23, limit):
+        if not has_ancestor_pdg(gen_pdg_ids, gen_mothers, idx, 23, limit) and not has_ancestor_pdg(
+            gen_pdg_ids, gen_mothers, idx, 25, limit
+        ):
             continue
         try:
             pt = float(gen_pts[idx])
@@ -940,7 +946,7 @@ def delta_phi(a: float, b: float) -> float:
     return (a - b + math.pi) % (2.0 * math.pi) - math.pi
 
 
-def gen_matched_z_leading_values(
+def gen_matched_boson_leading_values(
     arrays: Mapping[str, ak.Array],
     flavor: str,
     pt,
@@ -973,7 +979,7 @@ def gen_matched_z_leading_values(
             continue
         n_gen = int(n_gen_values[iev]) if n_gen_values is not None and iev < len(n_gen_values) else len(gen_pts[iev])
         gen_flags_event = gen_flags[iev] if gen_flags is not None and iev < len(gen_flags) else None
-        lead_gen = leading_gen_z_lepton_index(
+        lead_gen = leading_gen_boson_lepton_index(
             gen_pts[iev],
             gen_pdg_ids[iev],
             gen_mothers[iev],
@@ -1008,6 +1014,7 @@ def gen_matched_z_leading_values(
         out["pass"].append(bool(passes[iev][best]) if passes is not None else True)
         out["denom"].append(True)
         out["event"].append(iev)
+        out["index"].append(best)
     return {
         "pt": np.asarray(out["pt"], dtype=float),
         "eta": np.asarray(out["eta"], dtype=float),
@@ -1016,6 +1023,7 @@ def gen_matched_z_leading_values(
         "pass": np.asarray(out["pass"], dtype=bool),
         "denom": np.asarray(out["denom"], dtype=bool),
         "event": np.asarray(out["event"], dtype=int),
+        "index": np.asarray(out["index"], dtype=int),
     }
 
 
@@ -1154,6 +1162,146 @@ def add_hist_counts(store: MutableMapping[Tuple, np.ndarray], key: Tuple, values
     store[key] += np.histogram(vals, bins=edges)[0]
 
 
+def correlation_branch_cfgs(plot_cfg: Mapping, modify_cfg: Mapping, flavor: str) -> Dict[str, Mapping]:
+    selected = selected_efficiency_branches(plot_cfg, modify_cfg, flavor)
+    selected_event = selected_event_efficiency_branches(plot_cfg, modify_cfg, flavor)
+    ordered = {}
+    for branch, cfg in efficiency_branch_cfgs(modify_cfg, flavor).items():
+        if branch in selected:
+            ordered[branch] = cfg
+    for branch, cfg in event_efficiency_branch_cfgs(modify_cfg).items():
+        if branch in selected_event and branch not in ordered:
+            ordered[branch] = cfg
+    return ordered
+
+
+def correlation_branch_edges(branch_cfg: Mapping) -> np.ndarray:
+    eff_type = branch_cfg.get("type", "bool")
+    if eff_type == "bool":
+        return np.asarray([-0.5, 0.5, 1.5], dtype=float)
+    if eff_type == "int_wp":
+        high = max(
+            6,
+            int(branch_cfg.get("pass_threshold", 1)),
+            int(branch_cfg.get("pass_value", branch_cfg.get("pass_threshold", 1))),
+            int(branch_cfg.get("fail_value", 0)),
+        )
+        return np.arange(-0.5, float(high) + 1.5, 1.0, dtype=float)
+    threshold = float(branch_cfg.get("max", branch_cfg.get("pass_threshold", 0.15)))
+    fail_value = float(branch_cfg.get("fail_value", 2.0 * threshold))
+    high = max(1.0, 4.0 * threshold, 2.0 * fail_value)
+    return np.linspace(0.0, high, 13, dtype=float)
+
+
+def correlation_specs(modify_cfg: Mapping, plot_cfg: Mapping, flavor: str, bins: Mapping[str, np.ndarray]) -> List[Dict]:
+    branch_cfgs = correlation_branch_cfgs(plot_cfg, modify_cfg, flavor)
+    edges_by_var = {
+        "energy": bins["hist_energy"],
+        "eta": bins["eff_eta"],
+        "pt": bins["hist_pt"],
+    }
+    labels_by_var = {
+        "energy": f"{flavor} lepton energy [GeV]",
+        "eta": f"{flavor} lepton eta",
+        "pt": f"{flavor} lepton pT [GeV]",
+    }
+    for branch, cfg in branch_cfgs.items():
+        edges_by_var[branch] = correlation_branch_edges(cfg)
+        labels_by_var[branch] = branch
+
+    pairs = [("energy", "eta"), ("energy", "pt"), ("pt", "eta")]
+    pairs.extend(itertools.combinations(branch_cfgs.keys(), 2))
+    specs = []
+    for xvar, yvar in pairs:
+        if xvar not in edges_by_var or yvar not in edges_by_var:
+            continue
+        specs.append({
+            "x": xvar,
+            "y": yvar,
+            "x_edges": edges_by_var[xvar],
+            "y_edges": edges_by_var[yvar],
+            "x_label": labels_by_var[xvar],
+            "y_label": labels_by_var[yvar],
+        })
+    return specs
+
+
+def matched_object_values(values, events: np.ndarray, indices: np.ndarray) -> np.ndarray:
+    if isinstance(values, ak.Array) and values.ndim <= 1:
+        arr = ak.to_numpy(values)
+        out = []
+        for event_idx in np.asarray(events, dtype=int):
+            if event_idx < 0 or event_idx >= len(arr):
+                out.append(np.nan)
+            else:
+                out.append(float(arr[event_idx]))
+        return np.asarray(out, dtype=float)
+
+    rows = ak.to_list(values)
+    out = []
+    for event_idx, object_idx in zip(np.asarray(events, dtype=int), np.asarray(indices, dtype=int)):
+        if event_idx < 0 or event_idx >= len(rows):
+            out.append(np.nan)
+            continue
+        row = rows[event_idx]
+        if object_idx < 0 or object_idx >= len(row):
+            out.append(np.nan)
+            continue
+        out.append(float(row[object_idx]))
+    return np.asarray(out, dtype=float)
+
+
+def add_correlation_counts(
+    store: MutableMapping[Tuple, np.ndarray],
+    key: Tuple,
+    x_values: np.ndarray,
+    y_values: np.ndarray,
+    x_edges: np.ndarray,
+    y_edges: np.ndarray,
+) -> None:
+    if key not in store:
+        store[key] = np.zeros((len(y_edges) - 1, len(x_edges) - 1), dtype=float)
+    x_values = np.asarray(x_values, dtype=float)
+    y_values = np.asarray(y_values, dtype=float)
+    finite = np.isfinite(x_values) & np.isfinite(y_values)
+    if not np.any(finite):
+        return
+    hist, _, _ = np.histogram2d(x_values[finite], y_values[finite], bins=[x_edges, y_edges])
+    store[key] += hist.T
+
+
+def add_correlation_sample(
+    store: MutableMapping[Tuple, np.ndarray],
+    specs: Sequence[Mapping],
+    flavor: str,
+    sample: str,
+    arrays: Mapping[str, ak.Array],
+    leading: Mapping[str, np.ndarray],
+    branch_cfgs: Mapping[str, Mapping],
+) -> None:
+    values_by_var = {
+        "pt": np.asarray(leading["pt"], dtype=float),
+        "eta": np.asarray(leading["eta"], dtype=float),
+        "energy": np.asarray(leading["energy"], dtype=float),
+    }
+    for branch in branch_cfgs:
+        if branch in arrays:
+            values_by_var[branch] = matched_object_values(arrays[branch], leading["event"], leading["index"])
+    for spec in specs:
+        xvar = spec["x"]
+        yvar = spec["y"]
+        if xvar not in values_by_var or yvar not in values_by_var:
+            continue
+        add_correlation_counts(
+            store,
+            (flavor, sample, xvar, yvar),
+            values_by_var[xvar],
+            values_by_var[yvar],
+            spec["x_edges"],
+            spec["y_edges"],
+        )
+
+
 def p4_components(pt: float, eta: float, phi: float, mass: float) -> Tuple[float, float, float, float]:
     px = pt * math.cos(phi)
     py = pt * math.sin(phi)
@@ -1278,7 +1426,7 @@ def add_tnp_mass_candidates(
     passed = np.asarray(probes.get("pass", np.array([])), dtype=bool)
     if len(masses) == 0:
         return
-    mass_window = np.isfinite(masses) & (masses >= 60.0) & (masses <= 120.0)
+    mass_window = np.isfinite(masses) & (masses >= MASS_FIT_MIN) & (masses <= MASS_FIT_MAX)
     for var in variables:
         if var not in probes or var not in edges_by_var:
             continue
@@ -1307,7 +1455,7 @@ def make_combined_roodataset(name: str, mass_var, sample, pass_masses: np.ndarra
     for label, masses in (("pass", pass_masses), ("fail", fail_masses)):
         sample.setLabel(label)
         for value in np.asarray(masses, dtype=float):
-            if not np.isfinite(value) or value < 60.0 or value > 120.0:
+            if not np.isfinite(value) or value < MASS_FIT_MIN or value > MASS_FIT_MAX:
                 continue
             mass_var.setVal(float(value))
             data.add(args)
@@ -1317,7 +1465,7 @@ def make_combined_roodataset(name: str, mass_var, sample, pass_masses: np.ndarra
 def acceptable_fit(result) -> bool:
     if result is None:
         return False
-    return int(result.status()) == 0 and int(result.covQual()) >= 2
+    return int(result.status()) == 0 and int(result.covQual()) >= 1
 
 
 def format_bin_edge(value: float) -> str:
@@ -1339,6 +1487,82 @@ def tnp_fit_plot_title(key: Tuple, ibin: int, edges: Optional[np.ndarray], tier:
     if edges is not None and ibin + 1 < len(edges):
         parts.insert(5, f"{edges[ibin]:g} <= {var} < {edges[ibin + 1]:g}")
     return " | ".join(parts)
+
+
+def fit_context_from_bin(
+    plot_key: Optional[Tuple],
+    ibin: Optional[int],
+    edges: Optional[np.ndarray],
+    pass_masses: np.ndarray,
+    fail_masses: np.ndarray,
+) -> Dict[str, float]:
+    flavor = plot_key[0] if plot_key is not None else "muon"
+    var = plot_key[-1] if plot_key is not None else ""
+    pt_hint = 45.0
+    abs_eta_hint = 0.8
+    if edges is not None and ibin is not None and 0 <= ibin and ibin + 1 < len(edges):
+        low = float(edges[ibin])
+        high = float(edges[ibin + 1])
+        center = 0.5 * (low + high)
+        if var == "pt":
+            pt_hint = max(center, 1.0)
+        elif var == "eta":
+            if low <= 0.0 <= high:
+                abs_eta_hint = 0.25 * (abs(low) + abs(high))
+            else:
+                abs_eta_hint = abs(center)
+    masses = np.concatenate([pass_masses, fail_masses]) if len(pass_masses) or len(fail_masses) else np.array([])
+    right_tail = False
+    if len(masses) >= 10:
+        q10, q90 = np.percentile(masses, [10.0, 90.0])
+        right_tail = (q90 - Z_MASS) > (Z_MASS - q10)
+    return {
+        "flavor": flavor,
+        "pt": float(pt_hint),
+        "abs_eta": float(abs_eta_hint),
+        "right_tail": float(right_tail),
+    }
+
+
+def signal_shape_hints(context: Mapping[str, float]) -> Dict[str, float]:
+    flavor = str(context.get("flavor", "muon"))
+    eta_term = float(np.clip(context.get("abs_eta", 0.8) / 2.5, 0.0, 1.6))
+    pt_term = float(np.clip((context.get("pt", 45.0) - 45.0) / 160.0, 0.0, 1.8))
+    right_tail = bool(context.get("right_tail", 0.0))
+
+    if flavor == "electron":
+        sigma1 = 1.55 + 0.90 * eta_term + 0.75 * pt_term
+        sigma2 = sigma1 * (3.0 + 0.45 * eta_term)
+        alpha_l = 1.05 + 0.25 * (not right_tail) - 0.15 * eta_term
+        alpha_r = -(0.95 + 0.25 * right_tail - 0.10 * eta_term)
+        n_tail = 1.2
+        frac = 0.60
+    else:
+        sigma1 = 0.75 + 0.32 * eta_term + 0.28 * pt_term
+        sigma2 = sigma1 * (2.6 + 0.25 * eta_term)
+        alpha_l = 2.05 + 0.25 * (not right_tail) - 0.10 * eta_term
+        alpha_r = -(2.25 + 0.25 * right_tail - 0.10 * eta_term)
+        n_tail = 2.4
+        frac = 0.72
+
+    return {
+        "sigma1": float(np.clip(sigma1, 0.25, 6.0)),
+        "sigma2": float(np.clip(max(sigma2, sigma1 * 2.2), 0.8, 18.0)),
+        "alpha_l": float(np.clip(alpha_l, 0.35, 6.0)),
+        "alpha_r": float(np.clip(alpha_r, -6.0, -0.35)),
+        "n_tail": float(n_tail),
+        "frac": float(np.clip(frac, 0.0, 1.0)),
+        "single_alpha": float(np.clip(alpha_r if right_tail else alpha_l, -6.0, 6.0)),
+    }
+
+
+def initial_bkg_fraction(context: Mapping[str, float], passed: bool) -> float:
+    eta_term = float(np.clip(context.get("abs_eta", 0.8) / 2.5, 0.0, 1.5))
+    pt_term = float(np.clip((context.get("pt", 45.0) - 45.0) / 160.0, 0.0, 1.5))
+    eta_factor = 0.70 + 0.45 * eta_term
+    pt_factor = 1.0 / (1.0 + 0.80 * pt_term)
+    pass_factor = 0.60 if passed else 1.15
+    return float(np.clip(0.05 * eta_factor * pt_factor * pass_factor, 0.005, 0.50))
 
 
 def save_tnp_fit_plot(plot_path: Path, title: str, tier: str, uid: str, mass, sample, comb_data, sim_pdf) -> None:
@@ -1441,24 +1665,29 @@ def fit_tnp_signal_efficiency_with_model(
     comb_data,
     n_pass: int,
     n_fail: int,
+    fit_context: Mapping[str, float],
     plot_path: Optional[Path] = None,
     plot_title: Optional[str] = None,
 ) -> Tuple[float, float]:
     n_total = n_pass + n_fail
+    shape = signal_shape_hints(fit_context)
+    bkg_pass_init = initial_bkg_fraction(fit_context, passed=True)
+    bkg_fail_init = initial_bkg_fraction(fit_context, passed=False)
+    avg_bkg_init = 0.5 * (bkg_pass_init + bkg_fail_init)
     mean = ROOT.RooRealVar(f"mean_{uid}", "mean", Z_MASS, 88.0, 94.0)
-    slope_pass = ROOT.RooRealVar(f"slope_pass_{uid}", "slope_pass", -0.02, -0.05, -0.001)
-    slope_fail = ROOT.RooRealVar(f"slope_fail_{uid}", "slope_fail", -0.02, -0.05, -0.001)
+    slope_pass = ROOT.RooRealVar(f"slope_pass_{uid}", "slope_pass", -0.015, -0.10, 0.03)
+    slope_fail = ROOT.RooRealVar(f"slope_fail_{uid}", "slope_fail", -0.015, -0.10, 0.03)
 
     if tier == "double_cb":
-        sigma1 = ROOT.RooRealVar(f"sigma1_{uid}", "sigma1", 1.5, 0.4, 5.0)
-        sigma2 = ROOT.RooRealVar(f"sigma2_{uid}", "sigma2", 2.8, 0.8, 8.0)
-        alpha_l = ROOT.RooRealVar(f"alpha_l_{uid}", "alpha_l", 1.5, 0.3, 5.0)
-        alpha_r = ROOT.RooRealVar(f"alpha_r_{uid}", "alpha_r", -1.8, -5.0, -0.3)
-        n_l = ROOT.RooRealVar(f"n_l_{uid}", "n_l", 1.0)
-        n_r = ROOT.RooRealVar(f"n_r_{uid}", "n_r", 1.0)
+        sigma1 = ROOT.RooRealVar(f"sigma1_{uid}", "sigma1", shape["sigma1"], 0.15, 8.0)
+        sigma2 = ROOT.RooRealVar(f"sigma2_{uid}", "sigma2", shape["sigma2"], 0.5, 20.0)
+        alpha_l = ROOT.RooRealVar(f"alpha_l_{uid}", "alpha_l", shape["alpha_l"], 0.25, 8.0)
+        alpha_r = ROOT.RooRealVar(f"alpha_r_{uid}", "alpha_r", shape["alpha_r"], -8.0, -0.25)
+        n_l = ROOT.RooRealVar(f"n_l_{uid}", "n_l", shape["n_tail"])
+        n_r = ROOT.RooRealVar(f"n_r_{uid}", "n_r", shape["n_tail"])
         n_l.setConstant(True)
         n_r.setConstant(True)
-        frac = ROOT.RooRealVar(f"frac_{uid}", "frac", 0.65, 0.0, 1.0)
+        frac = ROOT.RooRealVar(f"frac_{uid}", "frac", shape["frac"], 0.0, 1.0)
         cb_l_pass = ROOT.RooCBShape(f"cb_l_pass_{uid}", "cb_l_pass", mass, mean, sigma1, alpha_l, n_l)
         cb_r_pass = ROOT.RooCBShape(f"cb_r_pass_{uid}", "cb_r_pass", mass, mean, sigma2, alpha_r, n_r)
         signal_pass = ROOT.RooAddPdf(
@@ -1476,21 +1705,31 @@ def fit_tnp_signal_efficiency_with_model(
             ROOT.RooArgList(frac),
         )
     elif tier == "single_cb":
-        sigma = ROOT.RooRealVar(f"sigma_{uid}", "sigma", 2.0, 0.4, 8.0)
-        alpha = ROOT.RooRealVar(f"alpha_{uid}", "alpha", 1.5, 0.3, 5.0)
-        n = ROOT.RooRealVar(f"n_{uid}", "n", 1.0)
+        sigma = ROOT.RooRealVar(f"sigma_{uid}", "sigma", shape["sigma1"], 0.15, 12.0)
+        alpha_init = shape["single_alpha"]
+        if alpha_init < 0.0:
+            alpha = ROOT.RooRealVar(f"alpha_{uid}", "alpha", alpha_init, -8.0, -0.25)
+        else:
+            alpha = ROOT.RooRealVar(f"alpha_{uid}", "alpha", alpha_init, 0.25, 8.0)
+        n = ROOT.RooRealVar(f"n_{uid}", "n", shape["n_tail"])
         n.setConstant(True)
         signal_pass = ROOT.RooCBShape(f"signal_pass_{uid}", "signal_pass", mass, mean, sigma, alpha, n)
         signal_fail = ROOT.RooCBShape(f"signal_fail_{uid}", "signal_fail", mass, mean, sigma, alpha, n)
     else:
-        sigma = ROOT.RooRealVar(f"sigma_{uid}", "sigma", 2.0, 0.4, 8.0)
+        sigma = ROOT.RooRealVar(f"sigma_{uid}", "sigma", shape["sigma1"], 0.15, 12.0)
         signal_pass = ROOT.RooGaussian(f"signal_pass_{uid}", "signal_pass", mass, mean, sigma)
         signal_fail = ROOT.RooGaussian(f"signal_fail_{uid}", "signal_fail", mass, mean, sigma)
 
     bkg_pass = ROOT.RooExponential(f"bkg_pass_{uid}", "bkg_pass", mass, slope_pass)
     bkg_fail = ROOT.RooExponential(f"bkg_fail_{uid}", "bkg_fail", mass, slope_fail)
     eff = ROOT.RooRealVar(f"tnp_eff_{uid}", "tnp_eff", min(max(n_pass / max(n_total, 1), 0.01), 0.99), 0.0, 1.0)
-    nsig_total = ROOT.RooRealVar(f"nsig_total_{uid}", "nsig_total", max(1.0, 0.8 * n_total), 0.0, 1.5 * n_total + 20.0)
+    nsig_total = ROOT.RooRealVar(
+        f"nsig_total_{uid}",
+        "nsig_total",
+        max(1.0, n_total / (1.0 + avg_bkg_init)),
+        0.0,
+        1.2 * n_total + 20.0,
+    )
     nsig_pass = ROOT.RooFormulaVar(
         f"nsig_pass_{uid}",
         "nsig_pass",
@@ -1503,8 +1742,20 @@ def fit_tnp_signal_efficiency_with_model(
         "(1.0-@0)*@1",
         ROOT.RooArgList(eff, nsig_total),
     )
-    nbkg_pass = ROOT.RooRealVar(f"nbkg_pass_{uid}", "nbkg_pass", max(1.0, 0.2 * n_pass), 0.0, 1.5 * n_pass + 20.0)
-    nbkg_fail = ROOT.RooRealVar(f"nbkg_fail_{uid}", "nbkg_fail", max(1.0, 0.2 * n_fail), 0.0, 1.5 * n_fail + 20.0)
+    bkg_frac_pass = ROOT.RooRealVar(f"bkg_frac_pass_{uid}", "bkg_frac_pass", bkg_pass_init, 0.0, 0.5)
+    bkg_frac_fail = ROOT.RooRealVar(f"bkg_frac_fail_{uid}", "bkg_frac_fail", bkg_fail_init, 0.0, 0.5)
+    nbkg_pass = ROOT.RooFormulaVar(
+        f"nbkg_pass_{uid}",
+        "nbkg_pass",
+        "@0*@1",
+        ROOT.RooArgList(bkg_frac_pass, nsig_pass),
+    )
+    nbkg_fail = ROOT.RooFormulaVar(
+        f"nbkg_fail_{uid}",
+        "nbkg_fail",
+        "@0*@1",
+        ROOT.RooArgList(bkg_frac_fail, nsig_fail),
+    )
     model_pass = ROOT.RooAddPdf(
         f"model_pass_{uid}",
         "model_pass",
@@ -1521,14 +1772,21 @@ def fit_tnp_signal_efficiency_with_model(
     sim_pdf.addPdf(model_pass, "pass")
     sim_pdf.addPdf(model_fail, "fail")
 
-    result = sim_pdf.fitTo(
-        comb_data,
-        ROOT.RooFit.Save(True),
-        ROOT.RooFit.Extended(True),
-        ROOT.RooFit.Strategy(1),
-        ROOT.RooFit.PrintLevel(-1),
-        ROOT.RooFit.Warnings(False),
-    )
+    def run_fit(strategy: int):
+        return sim_pdf.fitTo(
+            comb_data,
+            ROOT.RooFit.Save(True),
+            ROOT.RooFit.Extended(True),
+            ROOT.RooFit.Range("fit"),
+            ROOT.RooFit.Strategy(strategy),
+            ROOT.RooFit.Offset(True),
+            ROOT.RooFit.PrintLevel(-1),
+            ROOT.RooFit.Warnings(False),
+        )
+
+    result = run_fit(1)
+    if not acceptable_fit(result):
+        result = run_fit(2)
     if not acceptable_fit(result):
         return np.nan, np.nan
 
@@ -1552,8 +1810,8 @@ def fit_tnp_signal_efficiency(
 ) -> Tuple[float, float]:
     pass_masses = np.asarray(pass_masses, dtype=float)
     fail_masses = np.asarray(fail_masses, dtype=float)
-    pass_masses = pass_masses[np.isfinite(pass_masses) & (pass_masses >= 60.0) & (pass_masses <= 120.0)]
-    fail_masses = fail_masses[np.isfinite(fail_masses) & (fail_masses >= 60.0) & (fail_masses <= 120.0)]
+    pass_masses = pass_masses[np.isfinite(pass_masses) & (pass_masses >= MASS_FIT_MIN) & (pass_masses <= MASS_FIT_MAX)]
+    fail_masses = fail_masses[np.isfinite(fail_masses) & (fail_masses >= MASS_FIT_MIN) & (fail_masses <= MASS_FIT_MAX)]
     n_pass = len(pass_masses)
     n_fail = len(fail_masses)
     n_total = n_pass + n_fail
@@ -1561,11 +1819,13 @@ def fit_tnp_signal_efficiency(
         return np.nan, np.nan
 
     base_uid = str(next(TNP_FIT_COUNTER))
-    mass = ROOT.RooRealVar(f"mll_{base_uid}", "m_{ll}", 60.0, 120.0)
+    mass = ROOT.RooRealVar(f"mll_{base_uid}", "m_{ll}", MASS_FIT_MIN, MASS_FIT_MAX)
+    mass.setRange("fit", MASS_FIT_MIN, MASS_FIT_MAX)
     sample = ROOT.RooCategory(f"sample_{base_uid}", "sample")
     sample.defineType("pass")
     sample.defineType("fail")
     comb_data = make_combined_roodataset(f"comb_data_{base_uid}", mass, sample, pass_masses, fail_masses)
+    fit_context = fit_context_from_bin(plot_key, ibin, edges, pass_masses, fail_masses)
 
     for tier in tnp_fit_tiers(tnp_fit_model_tier(n_pass, n_total)):
         plot_path = None
@@ -1581,12 +1841,15 @@ def fit_tnp_signal_efficiency(
             comb_data,
             n_pass,
             n_fail,
+            fit_context,
             plot_path,
             plot_title,
         )
         if np.isfinite(value) and np.isfinite(error):
             return value, error
-    return np.nan, np.nan
+    value = n_pass / max(n_total, 1)
+    error = math.sqrt(max(value * (1.0 - value), 0.0) / max(n_total, 1))
+    return np.clip(value, 0.0, 1.0), error
 
 
 def finalize_tnp_fits(
@@ -1621,17 +1884,35 @@ def finalize_tnp_fits(
         }
 
 
-def leading_dilepton_values(pt, eta, phi, mass) -> Dict[str, np.ndarray]:
+def leading_dilepton_values(pt, eta, phi, mass, charge) -> Dict[str, np.ndarray]:
     pts = ak.to_list(pt)
     etas = ak.to_list(eta)
     phis = ak.to_list(phi)
     masses = ak.to_list(mass)
+    charges = ak.to_list(charge) if charge is not None else None
     out = {"mass": [], "pt": [], "eta": [], "phi": []}
+    if charges is None:
+        return {key: np.asarray(value) for key, value in out.items()}
     for iev, event_pts in enumerate(pts):
-        if len(event_pts) < 2:
+        limit = min(len(event_pts), len(etas[iev]), len(phis[iev]), len(masses[iev]), len(charges[iev]))
+        if limit < 2:
             continue
-        order = sorted(range(len(event_pts)), key=lambda idx: event_pts[idx], reverse=True)
-        i, j = order[0], order[1]
+        order = sorted(range(limit), key=lambda idx: event_pts[idx], reverse=True)
+        pair = None
+        for pos, i in enumerate(order):
+            charge_i = int(charges[iev][i])
+            if charge_i == 0:
+                continue
+            for j in order[pos + 1 :]:
+                charge_j = int(charges[iev][j])
+                if charge_j != 0 and charge_i * charge_j < 0:
+                    pair = (i, j)
+                    break
+            if pair is not None:
+                break
+        if pair is None:
+            continue
+        i, j = pair
         values = system_kinematics(
             (event_pts[i], etas[iev][i], phis[iev][i], masses[iev][i]),
             (event_pts[j], etas[iev][j], phis[iev][j], masses[iev][j]),
@@ -1681,7 +1962,7 @@ def plot_hist_comparison(
     fig, ax = plt.subplots()
     styles = {
         "input": (BLUE, "-", "raw"),
-        "output": (RED, "-", "re-weighted"),
+        "output": (RED, "-", "Modified"),
     }
     for sample, (color, linestyle, label) in styles.items():
         counts = hist_store.get(key_base + (sample,), np.zeros(len(edges) - 1))
@@ -1704,6 +1985,79 @@ def plot_hist_comparison(
     add_cms_label(ax)
     fig.savefig(figdir / filename)
     plt.close(fig)
+
+
+def plot_correlation_heatmap(
+    outdir: Path,
+    filename: str,
+    counts: np.ndarray,
+    x_edges: np.ndarray,
+    y_edges: np.ndarray,
+    xlabel: str,
+    ylabel: str,
+    title: str,
+) -> None:
+    outdir.mkdir(parents=True, exist_ok=True)
+    counts = np.asarray(counts, dtype=float)
+    vmax = max(1.01, float(np.nanmax(counts)) if counts.size else 1.0)
+    masked = np.ma.masked_less_equal(counts, 0.0)
+    norm = LogNorm(vmin=1.0, vmax=vmax)
+
+    fig, ax = plt.subplots(figsize=(8.0, 6.8))
+    mesh = ax.pcolormesh(x_edges, y_edges, masked, cmap="RdBu_r", norm=norm, shading="auto")
+    cbar = fig.colorbar(mesh, ax=ax)
+    cbar.set_label("Entries")
+    ax.set_xlabel(xlabel)
+    ax.set_ylabel(ylabel)
+    ax.set_title(title)
+
+    x_centers = 0.5 * (x_edges[:-1] + x_edges[1:])
+    y_centers = 0.5 * (y_edges[:-1] + y_edges[1:])
+    denom = math.log(vmax) if vmax > 1.0 else 1.0
+    fontsize = 7 if counts.size <= 120 else 5
+    for iy, y_center in enumerate(y_centers):
+        for ix, x_center in enumerate(x_centers):
+            value = counts[iy, ix]
+            label = str(int(round(value)))
+            if value >= 1.0 and denom > 0.0:
+                strength = math.log(value) / denom
+                color = "white" if strength > 0.55 else "black"
+            else:
+                color = "black"
+            ax.text(x_center, y_center, label, ha="center", va="center", color=color, fontsize=fontsize)
+
+    add_cms_label(ax)
+    fig.savefig(outdir / filename)
+    plt.close(fig)
+
+
+def plot_correlation_outputs(
+    figdir: Path,
+    store: Mapping[Tuple, np.ndarray],
+    specs_by_flavor: Mapping[str, Sequence[Mapping]],
+) -> None:
+    outdir = figdir / "correlation"
+    sample_labels = {"input": "raw", "output": "Modified"}
+    for flavor, specs in specs_by_flavor.items():
+        for spec in specs:
+            xvar = spec["x"]
+            yvar = spec["y"]
+            for sample in ("input", "output"):
+                key = (flavor, sample, xvar, yvar)
+                if key not in store:
+                    continue
+                filename = f"corr_{flavor}_{sample}_{sanitize(xvar)}_{sanitize(yvar)}.pdf"
+                title = f"{flavor} {sample_labels[sample]}: {xvar} vs {yvar}"
+                plot_correlation_heatmap(
+                    outdir,
+                    filename,
+                    store[key],
+                    spec["x_edges"],
+                    spec["y_edges"],
+                    spec["x_label"],
+                    spec["y_label"],
+                    title,
+                )
 
 
 def efficiency_values(counts: Mapping[str, np.ndarray]) -> Tuple[np.ndarray, np.ndarray]:
@@ -1733,8 +2087,8 @@ def plot_efficiency(
     draw_specs = [
         ("input", "mc_truth", BLUE, "o", "raw MC truth"),
         ("input", "tnp", BLUE, "s", "raw TnP"),
-        ("output", "mc_truth", RED, "o", "re-weighted MC truth"),
-        ("output", "tnp", RED, "s", "re-weighted TnP"),
+        ("output", "mc_truth", RED, "o", "Modified MC truth"),
+        ("output", "tnp", RED, "s", "Modified TnP"),
     ]
     for sample, method, color, marker, label in draw_specs:
         key = (flavor, branch, sample, method, var)
@@ -1759,7 +2113,7 @@ def plot_efficiency(
         )
 
     ax.set_xlabel(xlabel)
-    ax.set_ylabel("Efficiency")
+    ax.set_ylabel(f"{flavor} {branch} Efficiency")
     ax.set_ylim(0.0, 1.0)
     ax.legend(fontsize=12)
     add_cms_label(ax)
@@ -1778,13 +2132,14 @@ def lepton_distribution_label(flavor: str, var: str) -> str:
 
 
 def dilepton_distribution_label(flavor: str, var: str) -> str:
+    pair = "di-muon" if flavor == "muon" else "di-electron"
     labels = {
-        "mass": f"{flavor} leading dilepton mass [GeV]",
-        "pt": f"{flavor} leading dilepton pT [GeV]",
-        "eta": f"{flavor} leading dilepton eta",
-        "phi": f"{flavor} leading dilepton phi",
+        "mass": f"OS {pair} mass [GeV]",
+        "pt": f"OS {pair} pT [GeV]",
+        "eta": f"OS {pair} eta",
+        "phi": f"OS {pair} phi",
     }
-    return labels.get(var, f"{flavor} leading dilepton {var}")
+    return labels.get(var, f"OS {pair} {var}")
 
 
 def efficiency_label(flavor: str, var: str) -> str:
@@ -1819,7 +2174,20 @@ def analyze(modify_cfg: Mapping, plot_cfg: Mapping, pairs: Sequence[Tuple[Path, 
     eff_variables = {(item["flavor"], item["branch"]): item["variables"] for item in eff_specs}
     lepton_specs = {item["flavor"]: item["variables"] for item in lepton_distribution_specs(plot_cfg)}
     dilepton_specs = {item["flavor"]: item["variables"] for item in dilepton_distribution_specs(plot_cfg)}
-    flavors_to_process = set(lepton_specs) | set(dilepton_specs) | {item["flavor"] for item in eff_specs}
+    correlation_specs_by_flavor = {
+        flavor: correlation_specs(modify_cfg, plot_cfg, flavor, bins)
+        for flavor in ("muon", "electron")
+    }
+    correlation_branch_cfgs_by_flavor = {
+        flavor: correlation_branch_cfgs(plot_cfg, modify_cfg, flavor)
+        for flavor in ("muon", "electron")
+    }
+    flavors_to_process = (
+        set(lepton_specs)
+        | set(dilepton_specs)
+        | {item["flavor"] for item in eff_specs}
+        | {flavor for flavor, specs in correlation_specs_by_flavor.items() if specs}
+    )
 
     print("[INFO] Stage A: learning one merged input efficiency map from all input ROOT files")
     base_maps = build_base_efficiency_maps(modify_cfg, plot_cfg, [src for src, _ in pairs], chunk_size)
@@ -1829,6 +2197,7 @@ def analyze(modify_cfg: Mapping, plot_cfg: Mapping, pairs: Sequence[Tuple[Path, 
     tnp_mass_store: Dict[Tuple, Dict[str, List[List[np.ndarray]]]] = {}
     hist_store: Dict[Tuple, np.ndarray] = {}
     dilepton_store: Dict[Tuple, np.ndarray] = {}
+    correlation_store: Dict[Tuple, np.ndarray] = {}
 
     requested = branch_requests(modify_cfg, plot_cfg)
     print("[INFO] Stage B: comparing all input/output ROOT pairs and merging them into common plots")
@@ -1875,6 +2244,44 @@ def analyze(modify_cfg: Mapping, plot_cfg: Mapping, pairs: Sequence[Tuple[Path, 
                 smear_exp = ak.where(pt_scaled > 0, (pt_exp - pt_scaled) / pt_scaled, np.nan)
                 smear_out = ak.where(pt_scaled > 0, (pt_out - pt_scaled) / pt_scaled, np.nan)
 
+                corr_specs = correlation_specs_by_flavor.get(flavor, [])
+                if corr_specs:
+                    corr_branch_cfgs = correlation_branch_cfgs_by_flavor.get(flavor, {})
+                    leading_corr_in = gen_matched_boson_leading_values(
+                        arr_in,
+                        flavor,
+                        pt_in,
+                        eta_in,
+                        phi_in,
+                        energy=energy_in,
+                    )
+                    leading_corr_out = gen_matched_boson_leading_values(
+                        arr_out,
+                        flavor,
+                        pt_out,
+                        eta_out,
+                        phi_out,
+                        energy=energy_out,
+                    )
+                    add_correlation_sample(
+                        correlation_store,
+                        corr_specs,
+                        flavor,
+                        "input",
+                        arr_in,
+                        leading_corr_in,
+                        corr_branch_cfgs,
+                    )
+                    add_correlation_sample(
+                        correlation_store,
+                        corr_specs,
+                        flavor,
+                        "output",
+                        arr_out,
+                        leading_corr_out,
+                        corr_branch_cfgs,
+                    )
+
                 dist_values = {
                     "pt": (pt_in, pt_exp, pt_out),
                     "energy": (energy_in, energy_exp, energy_out),
@@ -1892,12 +2299,12 @@ def analyze(modify_cfg: Mapping, plot_cfg: Mapping, pairs: Sequence[Tuple[Path, 
                     add_hist_counts(hist_store, (flavor, var, "output"), vout, edges)
 
                 if dilepton_specs.get(flavor):
-                    for sample, pt, eta, phi, mass in (
-                        ("input", pt_in, eta_in, phi_in, mass_in),
-                        ("expected", pt_exp, eta_in, phi_in, mass_in),
-                        ("output", pt_out, eta_out, phi_out, mass_out),
+                    for sample, pt, eta, phi, mass, charge in (
+                        ("input", pt_in, eta_in, phi_in, mass_in, charge_in),
+                        ("expected", pt_exp, eta_in, phi_in, mass_in, charge_in),
+                        ("output", pt_out, eta_out, phi_out, mass_out, charge_out),
                     ):
-                        values = leading_dilepton_values(pt, eta, phi, mass)
+                        values = leading_dilepton_values(pt, eta, phi, mass, charge)
                         for var in dilepton_specs.get(flavor, []):
                             if var not in values or var not in dilepton_edges:
                                 print(f"[WARN] Unsupported dilepton distribution {flavor}.{var}; skipping")
@@ -1912,8 +2319,8 @@ def analyze(modify_cfg: Mapping, plot_cfg: Mapping, pairs: Sequence[Tuple[Path, 
                         continue
                     pass_in = pass_mask(arr_in[branch], ecfg)
                     pass_out = pass_mask(arr_out[branch], ecfg)
-                    leading_in = gen_matched_z_leading_values(arr_in, flavor, pt_in, eta_in, phi_in, passed=pass_in)
-                    leading_out = gen_matched_z_leading_values(arr_out, flavor, pt_out, eta_out, phi_out, passed=pass_out)
+                    leading_in = gen_matched_boson_leading_values(arr_in, flavor, pt_in, eta_in, phi_in, passed=pass_in)
+                    leading_out = gen_matched_boson_leading_values(arr_out, flavor, pt_out, eta_out, phi_out, passed=pass_out)
                     variables = eff_variables.get((flavor, branch), [])
                     for sample, leading in (
                         ("input", leading_in),
@@ -1944,7 +2351,7 @@ def analyze(modify_cfg: Mapping, plot_cfg: Mapping, pairs: Sequence[Tuple[Path, 
 
                     base_map = base_maps.get((flavor, branch))
                     if base_map is not None:
-                        leading_exp = gen_matched_z_leading_values(arr_in, flavor, pt_exp, eta_in, phi_in)
+                        leading_exp = gen_matched_boson_leading_values(arr_in, flavor, pt_exp, eta_in, phi_in)
                         exp_probs = distorted_probability_flat(modify_cfg, base_map, ecfg, leading_exp["pt"], leading_exp["eta"])
                         values_by_var = {"pt": leading_exp["pt"], "eta": leading_exp["eta"], "phi": leading_exp["phi"]}
                         values_in_by_var = {"pt": leading_in["pt"], "eta": leading_in["eta"], "phi": leading_in["phi"]}
@@ -1971,9 +2378,9 @@ def analyze(modify_cfg: Mapping, plot_cfg: Mapping, pairs: Sequence[Tuple[Path, 
                                 )
 
                 if selected_event_eff:
-                    leading_in = gen_matched_z_leading_values(arr_in, flavor, pt_in, eta_in, phi_in)
-                    leading_out = gen_matched_z_leading_values(arr_out, flavor, pt_out, eta_out, phi_out)
-                    leading_exp = gen_matched_z_leading_values(arr_in, flavor, pt_exp, eta_in, phi_in)
+                    leading_in = gen_matched_boson_leading_values(arr_in, flavor, pt_in, eta_in, phi_in)
+                    leading_out = gen_matched_boson_leading_values(arr_out, flavor, pt_out, eta_out, phi_out)
+                    leading_exp = gen_matched_boson_leading_values(arr_in, flavor, pt_exp, eta_in, phi_in)
                     for branch, ecfg in selected_event_eff.items():
                         if branch not in arr_in or branch not in arr_out:
                             continue
@@ -2071,6 +2478,8 @@ def analyze(modify_cfg: Mapping, plot_cfg: Mapping, pairs: Sequence[Tuple[Path, 
                 "Events",
                 normalize=False,
             )
+
+    plot_correlation_outputs(figdir, correlation_store, correlation_specs_by_flavor)
 
     for spec in eff_specs:
         flavor = spec["flavor"]

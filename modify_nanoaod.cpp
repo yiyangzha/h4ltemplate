@@ -1324,7 +1324,7 @@ std::size_t truthNGen(const TruthRuntime& truth) {
   return std::min(fromBranch, truth.genPdgId.size());
 }
 
-bool truthHasZLeptonBranches(const TruthRuntime& truth) {
+bool truthHasBosonLeptonBranches(const TruthRuntime& truth) {
   return truth.genPdgId.bound() && truth.genMother.bound() && truth.genPt.bound()
       && truth.genEta.bound() && truth.genPhi.bound();
 }
@@ -1355,12 +1355,12 @@ bool hasAncestorPdg(const TruthRuntime& truth, std::size_t index, int absPdgId, 
   return false;
 }
 
-bool findLeadingGenZLepton(const TruthRuntime& truth,
-                           int absLeptonPdgId,
-                           double& genPt,
-                           double& genEta,
-                           double& genPhi) {
-  if (!truthHasZLeptonBranches(truth)) return false;
+bool findLeadingGenBosonLepton(const TruthRuntime& truth,
+                               int absLeptonPdgId,
+                               double& genPt,
+                               double& genEta,
+                               double& genPhi) {
+  if (!truthHasBosonLeptonBranches(truth)) return false;
   const std::size_t nGen = truthNGen(truth);
   const std::size_t limit = std::min({nGen, truth.genPt.size(), truth.genEta.size(), truth.genPhi.size(), truth.genMother.size()});
   std::vector<std::size_t> candidates;
@@ -1368,7 +1368,7 @@ bool findLeadingGenZLepton(const TruthRuntime& truth,
   for (std::size_t i = 0; i < limit; ++i) {
     if (std::abs(static_cast<int>(truth.genPdgId.getInt64(i))) != absLeptonPdgId) continue;
     if (!genPromptLike(truth, i)) continue;
-    if (!hasAncestorPdg(truth, i, 23, nGen)) continue;
+    if (!hasAncestorPdg(truth, i, 23, nGen) && !hasAncestorPdg(truth, i, 25, nGen)) continue;
     candidates.push_back(i);
     if (genStatusFlag(truth, i, 13)) haveLastCopy = true;
   }
@@ -1404,17 +1404,17 @@ double deltaR2(double eta1, double phi1, double eta2, double phi2) {
   return deta * deta + dphi * dphi;
 }
 
-bool matchLeadingGenZLeptonToReco(const TruthRuntime& truth,
-                                  int absLeptonPdgId,
-                                  const BranchBuffer& n,
-                                  const BranchBuffer& recoEta,
-                                  const BranchBuffer& recoPhi,
-                                  std::size_t& recoIndex) {
+bool matchLeadingGenBosonLeptonToReco(const TruthRuntime& truth,
+                                      int absLeptonPdgId,
+                                      const BranchBuffer& n,
+                                      const BranchBuffer& recoEta,
+                                      const BranchBuffer& recoPhi,
+                                      std::size_t& recoIndex) {
   if (!n.bound() || !recoEta.bound() || !recoPhi.bound()) return false;
   double genPt = 0.0;
   double genEta = 0.0;
   double genPhi = 0.0;
-  if (!findLeadingGenZLepton(truth, absLeptonPdgId, genPt, genEta, genPhi)) return false;
+  if (!findLeadingGenBosonLepton(truth, absLeptonPdgId, genPt, genEta, genPhi)) return false;
   (void)genPt;
 
   const std::size_t nObj = static_cast<std::size_t>(n.getUInt64(0));
@@ -1703,30 +1703,6 @@ std::string eventReferenceFlavor(const EffBranchConfig& cfg) {
   return "muon";
 }
 
-bool leadingKinematics(const BranchBuffer& n,
-                       const BranchBuffer& pt,
-                       const BranchBuffer& eta,
-                       double& leadingPt,
-                       double& leadingEta,
-                       std::size_t& leadingIndex) {
-  if (!n.bound() || !pt.bound() || !eta.bound()) return false;
-  const std::size_t nObj = static_cast<std::size_t>(n.getUInt64(0));
-  const std::size_t limit = std::min({nObj, pt.availableForN(nObj), eta.availableForN(nObj)});
-  if (limit == 0) return false;
-  leadingIndex = 0;
-  leadingPt = pt.getDouble(0);
-  leadingEta = eta.getDouble(0);
-  for (std::size_t i = 1; i < limit; ++i) {
-    const double candidatePt = pt.getDouble(i);
-    if (candidatePt > leadingPt) {
-      leadingPt = candidatePt;
-      leadingEta = eta.getDouble(i);
-      leadingIndex = i;
-    }
-  }
-  return true;
-}
-
 bool leadingCalibrationKinematics(const Config& cfg,
                                   bool isMuon,
                                   bool useModifiedKinematics,
@@ -1748,7 +1724,7 @@ bool leadingCalibrationKinematics(const Config& cfg,
   const std::size_t nObj = static_cast<std::size_t>(n.getUInt64(0));
   const std::size_t limit = std::min({nObj, pt.availableForN(nObj), eta.availableForN(nObj), phi.availableForN(nObj)});
   std::size_t matchedIndex = 0;
-  if (!matchLeadingGenZLeptonToReco(truth, isMuon ? 13 : 11, n, eta, phi, matchedIndex)) return false;
+  if (!matchLeadingGenBosonLeptonToReco(truth, isMuon ? 13 : 11, n, eta, phi, matchedIndex)) return false;
   if (matchedIndex >= limit) return false;
   const double oldPt = pt.getDouble(matchedIndex);
   const double etaValue = eta.getDouble(matchedIndex);
@@ -1804,8 +1780,8 @@ void prescanFlavor(TTree* tree,
   BranchBuffer charge;
   if (!br.charge.empty()) charge.bind(tree, br.charge, maxN + 1, false, context);
   TruthRuntime truth = bindTruthRuntime(tree, context);
-  if (!truthHasZLeptonBranches(truth)) {
-    logLine("WARN", context + ": missing GenPart truth branches for Z-lepton matching; skipping MC-truth efficiency denominator");
+  if (!truthHasBosonLeptonBranches(truth)) {
+    logLine("WARN", context + ": missing GenPart truth branches for Z/H-lepton matching; skipping MC-truth efficiency denominator");
     return;
   }
   BranchBuffer run, lumi, event;
@@ -1846,7 +1822,7 @@ void prescanFlavor(TTree* tree,
     const std::uint64_t eventValue = useModifiedKinematics && event.bound() ? event.getUInt64(0) : 0;
     const std::size_t nObj = static_cast<std::size_t>(n.getUInt64(0));
     std::size_t i = 0;
-    if (!matchLeadingGenZLeptonToReco(truth, isMuon ? 13 : 11, n, eta, phi, i)) continue;
+    if (!matchLeadingGenBosonLeptonToReco(truth, isMuon ? 13 : 11, n, eta, phi, i)) continue;
     if (i >= std::min({nObj, pt.availableForN(nObj), eta.availableForN(nObj), phi.availableForN(nObj)})) continue;
     const double oldPt = pt.getDouble(i);
     const double etaValue = eta.getDouble(i);
@@ -1924,8 +1900,8 @@ void prescanEventEfficiencies(TTree* tree,
   elePhi.bind(tree, cfg.electronBranches.phi, maxElectron + 1, false, context);
   eleCharge.bind(tree, cfg.electronBranches.charge, maxElectron + 1, false, context);
   TruthRuntime truth = bindTruthRuntime(tree, context);
-  if (!truthHasZLeptonBranches(truth)) {
-    logLine("WARN", context + ": missing GenPart truth branches for Z-lepton matching; skipping event-efficiency denominator");
+  if (!truthHasBosonLeptonBranches(truth)) {
+    logLine("WARN", context + ": missing GenPart truth branches for Z/H-lepton matching; skipping event-efficiency denominator");
     return;
   }
   BranchBuffer run, lumi, event;
@@ -2005,6 +1981,7 @@ struct FlavorRuntime {
   BranchBuffer n;
   BranchBuffer pt;
   BranchBuffer eta;
+  BranchBuffer phi;
   BranchBuffer charge;
   BranchBuffer energy;
   bool useEnergy = false;
@@ -2035,14 +2012,13 @@ FlavorRuntime bindFlavorForModification(TTree* tree,
     logLine("WARN", context + ": pT branch " + quote(br.pt) + " is " + valueTypeName(rt.pt.valueType()) + ", expected Float_t/Double_t");
   }
   if (!rt.eta.bind(tree, br.eta, maxN + 1, true, context)) return rt;
+  rt.phi.bind(tree, br.phi, maxN + 1, false, context);
   if (!br.charge.empty()) rt.charge.bind(tree, br.charge, maxN + 1, false, context);
-  if (!cfg.binning.energy.empty()) {
-    if (!br.energy.empty()) {
-      rt.useEnergy = rt.energy.bind(tree, br.energy, maxN + 1, true, context);
-    }
-    if (!rt.useEnergy) {
-      logLine("WARN", context + ": energy binning configured without a usable energy branch; using pt*cosh(eta) proxy");
-    }
+  if (!br.energy.empty()) {
+    rt.useEnergy = rt.energy.bind(tree, br.energy, maxN + 1, false, context);
+  }
+  if (!cfg.binning.energy.empty() && !rt.useEnergy) {
+    logLine("WARN", context + ": energy binning configured without a usable energy branch; using pt*cosh(eta) proxy");
   }
 
   if (cfg.efficiencyEnabled) {
@@ -2138,10 +2114,14 @@ void processFlavor(FlavorRuntime& rt,
 
     const double newPt = modifiedLeptonPt(cfg, isMuon, oldPt, eta, charge, run, lumi, eventId, entry, i);
     rt.pt.setDouble(i, newPt);
+    double newEnergy = std::numeric_limits<double>::quiet_NaN();
+    if (rt.useEnergy && i < rt.energy.availableForN(nObj) && std::isfinite(oldEnergy) && oldPt > 0.0) {
+      newEnergy = oldEnergy * (newPt / oldPt);
+      rt.energy.setDouble(i, newEnergy);
+    }
 
     if (cfg.efficiencyEnabled) {
-      const double scaledEnergy = std::isfinite(oldEnergy) && oldPt > 0.0 ? oldEnergy * (newPt / oldPt) : std::numeric_limits<double>::quiet_NaN();
-      const BinIndex idx = makeBinIndex(cfg.binning, newPt, eta, scaledEnergy);
+      const BinIndex idx = makeBinIndex(cfg.binning, newPt, eta, newEnergy);
 
       if (rt.jointId.active() && rt.currentJoint) {
         EffBranchRuntime& loose = rt.effBranches[static_cast<std::size_t>(rt.jointId.loose)];
@@ -2188,6 +2168,7 @@ void processFlavor(FlavorRuntime& rt,
 void processEventEfficiencies(EventRuntime& eventRt,
                               const FlavorRuntime& muon,
                               const FlavorRuntime& electron,
+                              const TruthRuntime& truth,
                               const Config& cfg,
                               std::uint64_t run,
                               std::uint64_t lumi,
@@ -2197,16 +2178,20 @@ void processEventEfficiencies(EventRuntime& eventRt,
   for (auto& e : eventRt.branches) {
     const FlavorRuntime& ref = e.referenceFlavor == "electron" ? electron : muon;
     if (!ref.active) continue;
-    double leadPt = 0.0;
-    double leadEta = 0.0;
+    if (!ref.n.bound() || !ref.pt.bound() || !ref.eta.bound() || !ref.phi.bound()) continue;
     std::size_t leadIndex = 0;
-    if (!leadingKinematics(ref.n, ref.pt, ref.eta, leadPt, leadEta, leadIndex)) continue;
+    const int flavorId = e.referenceFlavor == "electron" ? 11 : 13;
+    if (!matchLeadingGenBosonLeptonToReco(truth, flavorId, ref.n, ref.eta, ref.phi, leadIndex)) continue;
+    const std::size_t nObj = static_cast<std::size_t>(ref.n.getUInt64(0));
+    const std::size_t limit = std::min({nObj, ref.pt.availableForN(nObj), ref.eta.availableForN(nObj)});
+    if (leadIndex >= limit) continue;
+    const double leadPt = ref.pt.getDouble(leadIndex);
+    const double leadEta = ref.eta.getDouble(leadIndex);
     const BinIndex idx = makeBinIndex(cfg.binning, leadPt, leadEta);
     const double base = e.eff.counts->efficiency(idx.flat);
     const double p = distortedEfficiency(base, e.eff.cfg, idx, leadPt);
     const double current = e.eff.currentCounts ? e.eff.currentCounts->efficiency(idx.flat) : base;
     const bool oldPass = originalPasses(e.eff.cfg, e.eff.branch, 0);
-    const int flavorId = e.referenceFlavor == "electron" ? 11 : 13;
     const std::uint64_t key = objectKey(cfg, run, lumi, eventId, entry, leadIndex, flavorId, e.eff.streamHash);
     writeEfficiencyValue(e.eff, 0, minimalFlipPass(oldPass, current, p, uniform01(key)));
   }
@@ -2276,6 +2261,7 @@ void modifyFile(const Config& cfg,
   FlavorRuntime muon = bindFlavorForModification(inTree, cfg, calibration, currentCalibration, scan.input, true, scan.maxMuon);
   FlavorRuntime electron = bindFlavorForModification(inTree, cfg, calibration, currentCalibration, scan.input, false, scan.maxElectron);
   EventRuntime eventEff = bindEventEfficienciesForModification(inTree, cfg, calibration, currentCalibration, scan.input);
+  TruthRuntime truth = bindTruthRuntime(inTree, scan.input + " [truth modify]");
 
   const char* mode = cfg.overwrite ? "RECREATE" : "CREATE";
   std::unique_ptr<TFile> outFile(TFile::Open(outputPath.c_str(), mode));
@@ -2303,7 +2289,7 @@ void modifyFile(const Config& cfg,
     const std::uint64_t eventValue = event.bound() ? event.getUInt64(0) : 0;
     processFlavor(muon, cfg, runValue, lumiValue, eventValue, entry);
     processFlavor(electron, cfg, runValue, lumiValue, eventValue, entry);
-    processEventEfficiencies(eventEff, muon, electron, cfg, runValue, lumiValue, eventValue, entry);
+    processEventEfficiencies(eventEff, muon, electron, truth, cfg, runValue, lumiValue, eventValue, entry);
     outTree->Fill();
     reportProgress(entry + 1);
   }
