@@ -1531,12 +1531,15 @@ def signal_shape_hints(context: Mapping[str, float]) -> Dict[str, float]:
     right_tail = bool(context.get("right_tail", 0.0))
 
     if flavor == "electron":
-        sigma1 = 1.55 + 0.90 * eta_term + 0.75 * pt_term
-        sigma2 = sigma1 * (3.0 + 0.45 * eta_term)
-        alpha_l = 1.05 + 0.25 * (not right_tail) - 0.15 * eta_term
-        alpha_r = -(0.95 + 0.25 * right_tail - 0.10 * eta_term)
-        n_tail = 1.2
-        frac = 0.60
+        sigma1 = 1.05 + 0.55 * eta_term + 0.45 * pt_term
+        sigma2 = sigma1 * (5.2 + 0.80 * eta_term + 0.35 * pt_term)
+        alpha_l = 0.75 + 0.15 * (not right_tail) - 0.08 * eta_term
+        alpha_r = -(0.70 + 0.20 * right_tail - 0.05 * eta_term)
+        n_tail = 0.85
+        frac = 0.68
+        sigma1_bounds = (0.08, 10.0)
+        sigma2_bounds = (1.0, 40.0)
+        alpha_bound = 0.20
     else:
         sigma1 = 0.75 + 0.32 * eta_term + 0.28 * pt_term
         sigma2 = sigma1 * (2.6 + 0.25 * eta_term)
@@ -1544,15 +1547,20 @@ def signal_shape_hints(context: Mapping[str, float]) -> Dict[str, float]:
         alpha_r = -(2.25 + 0.25 * right_tail - 0.10 * eta_term)
         n_tail = 2.4
         frac = 0.72
+        sigma1_bounds = (0.25, 6.0)
+        sigma2_bounds = (0.8, 18.0)
+        alpha_bound = 0.35
 
+    sigma1 = float(np.clip(sigma1, *sigma1_bounds))
+    sigma2 = float(np.clip(max(sigma2, sigma1 * 2.2), *sigma2_bounds))
     return {
-        "sigma1": float(np.clip(sigma1, 0.25, 6.0)),
-        "sigma2": float(np.clip(max(sigma2, sigma1 * 2.2), 0.8, 18.0)),
-        "alpha_l": float(np.clip(alpha_l, 0.35, 6.0)),
-        "alpha_r": float(np.clip(alpha_r, -6.0, -0.35)),
+        "sigma1": sigma1,
+        "sigma2": sigma2,
+        "alpha_l": float(np.clip(alpha_l, alpha_bound, 8.0)),
+        "alpha_r": float(np.clip(alpha_r, -8.0, -alpha_bound)),
         "n_tail": float(n_tail),
         "frac": float(np.clip(frac, 0.0, 1.0)),
-        "single_alpha": float(np.clip(alpha_r if right_tail else alpha_l, -6.0, 6.0)),
+        "single_alpha": float(np.clip(alpha_r if right_tail else alpha_l, -8.0, 8.0)),
     }
 
 
@@ -1679,31 +1687,44 @@ def fit_tnp_signal_efficiency_with_model(
     slope_fail = ROOT.RooRealVar(f"slope_fail_{uid}", "slope_fail", -0.015, -0.10, 0.03)
 
     if tier == "double_cb":
-        sigma1 = ROOT.RooRealVar(f"sigma1_{uid}", "sigma1", shape["sigma1"], 0.15, 8.0)
-        sigma2 = ROOT.RooRealVar(f"sigma2_{uid}", "sigma2", shape["sigma2"], 0.5, 20.0)
-        alpha_l = ROOT.RooRealVar(f"alpha_l_{uid}", "alpha_l", shape["alpha_l"], 0.25, 8.0)
-        alpha_r = ROOT.RooRealVar(f"alpha_r_{uid}", "alpha_r", shape["alpha_r"], -8.0, -0.25)
+        is_electron = str(fit_context.get("flavor", "muon")) == "electron"
+        sigma_small_min, sigma_small_max = (0.05, 10.0) if is_electron else (0.15, 8.0)
+        sigma_gap_min, sigma_gap_max = (0.20, 35.0) if is_electron else (0.10, 20.0)
+        alpha_bound = 0.15 if is_electron else 0.25
+        sigma_small_init = float(np.clip(shape["sigma1"], sigma_small_min, sigma_small_max))
+        sigma_gap_init = float(np.clip(shape["sigma2"] - sigma_small_init, sigma_gap_min, sigma_gap_max))
+        # Keep the two CB widths ordered instead of letting the fit swap them.
+        sigma_small = ROOT.RooRealVar(
+            f"sigma_small_{uid}",
+            "sigma_small",
+            sigma_small_init,
+            sigma_small_min,
+            sigma_small_max,
+        )
+        sigma_gap = ROOT.RooRealVar(
+            f"sigma_gap_{uid}",
+            "sigma_gap",
+            sigma_gap_init,
+            sigma_gap_min,
+            sigma_gap_max,
+        )
+        sigma_large = ROOT.RooFormulaVar(
+            f"sigma_large_{uid}",
+            "sigma_large",
+            "@0+@1",
+            ROOT.RooArgList(sigma_small, sigma_gap),
+        )
+        alpha_l = ROOT.RooRealVar(f"alpha_l_{uid}", "alpha_l", shape["alpha_l"], alpha_bound, 10.0)
+        alpha_r = ROOT.RooRealVar(f"alpha_r_{uid}", "alpha_r", shape["alpha_r"], -10.0, -alpha_bound)
         n_l = ROOT.RooRealVar(f"n_l_{uid}", "n_l", shape["n_tail"])
         n_r = ROOT.RooRealVar(f"n_r_{uid}", "n_r", shape["n_tail"])
         n_l.setConstant(True)
         n_r.setConstant(True)
         frac = ROOT.RooRealVar(f"frac_{uid}", "frac", shape["frac"], 0.0, 1.0)
-        cb_l_pass = ROOT.RooCBShape(f"cb_l_pass_{uid}", "cb_l_pass", mass, mean, sigma1, alpha_l, n_l)
-        cb_r_pass = ROOT.RooCBShape(f"cb_r_pass_{uid}", "cb_r_pass", mass, mean, sigma2, alpha_r, n_r)
-        signal_pass = ROOT.RooAddPdf(
-            f"signal_pass_{uid}",
-            "signal_pass",
-            ROOT.RooArgList(cb_l_pass, cb_r_pass),
-            ROOT.RooArgList(frac),
-        )
-        cb_l_fail = ROOT.RooCBShape(f"cb_l_fail_{uid}", "cb_l_fail", mass, mean, sigma1, alpha_l, n_l)
-        cb_r_fail = ROOT.RooCBShape(f"cb_r_fail_{uid}", "cb_r_fail", mass, mean, sigma2, alpha_r, n_r)
-        signal_fail = ROOT.RooAddPdf(
-            f"signal_fail_{uid}",
-            "signal_fail",
-            ROOT.RooArgList(cb_l_fail, cb_r_fail),
-            ROOT.RooArgList(frac),
-        )
+        cb_small_pass = ROOT.RooCBShape(f"cb_small_pass_{uid}", "cb_small_pass", mass, mean, sigma_small, alpha_l, n_l)
+        cb_large_pass = ROOT.RooCBShape(f"cb_large_pass_{uid}", "cb_large_pass", mass, mean, sigma_large, alpha_r, n_r)
+        cb_small_fail = ROOT.RooCBShape(f"cb_small_fail_{uid}", "cb_small_fail", mass, mean, sigma_small, alpha_l, n_l)
+        cb_large_fail = ROOT.RooCBShape(f"cb_large_fail_{uid}", "cb_large_fail", mass, mean, sigma_large, alpha_r, n_r)
     elif tier == "single_cb":
         sigma = ROOT.RooRealVar(f"sigma_{uid}", "sigma", shape["sigma1"], 0.15, 12.0)
         alpha_init = shape["single_alpha"]
@@ -1756,28 +1777,75 @@ def fit_tnp_signal_efficiency_with_model(
         "@0*@1",
         ROOT.RooArgList(bkg_frac_fail, nsig_fail),
     )
-    model_pass = ROOT.RooAddPdf(
-        f"model_pass_{uid}",
-        "model_pass",
-        ROOT.RooArgList(signal_pass, bkg_pass),
-        ROOT.RooArgList(nsig_pass, nbkg_pass),
-    )
-    model_fail = ROOT.RooAddPdf(
-        f"model_fail_{uid}",
-        "model_fail",
-        ROOT.RooArgList(signal_fail, bkg_fail),
-        ROOT.RooArgList(nsig_fail, nbkg_fail),
-    )
+    if tier == "double_cb":
+        nsig_small_pass = ROOT.RooFormulaVar(
+            f"nsig_small_pass_{uid}",
+            "nsig_small_pass",
+            "@0*@1",
+            ROOT.RooArgList(frac, nsig_pass),
+        )
+        nsig_large_pass = ROOT.RooFormulaVar(
+            f"nsig_large_pass_{uid}",
+            "nsig_large_pass",
+            "(1.0-@0)*@1",
+            ROOT.RooArgList(frac, nsig_pass),
+        )
+        nsig_small_fail = ROOT.RooFormulaVar(
+            f"nsig_small_fail_{uid}",
+            "nsig_small_fail",
+            "@0*@1",
+            ROOT.RooArgList(frac, nsig_fail),
+        )
+        nsig_large_fail = ROOT.RooFormulaVar(
+            f"nsig_large_fail_{uid}",
+            "nsig_large_fail",
+            "(1.0-@0)*@1",
+            ROOT.RooArgList(frac, nsig_fail),
+        )
+        model_pass_pdfs = ROOT.RooArgList(cb_small_pass, cb_large_pass)
+        model_pass_pdfs.add(bkg_pass)
+        model_pass_yields = ROOT.RooArgList(nsig_small_pass, nsig_large_pass)
+        model_pass_yields.add(nbkg_pass)
+        model_fail_pdfs = ROOT.RooArgList(cb_small_fail, cb_large_fail)
+        model_fail_pdfs.add(bkg_fail)
+        model_fail_yields = ROOT.RooArgList(nsig_small_fail, nsig_large_fail)
+        model_fail_yields.add(nbkg_fail)
+        model_pass = ROOT.RooAddPdf(
+            f"model_pass_{uid}",
+            "model_pass",
+            model_pass_pdfs,
+            model_pass_yields,
+        )
+        model_fail = ROOT.RooAddPdf(
+            f"model_fail_{uid}",
+            "model_fail",
+            model_fail_pdfs,
+            model_fail_yields,
+        )
+    else:
+        model_pass = ROOT.RooAddPdf(
+            f"model_pass_{uid}",
+            "model_pass",
+            ROOT.RooArgList(signal_pass, bkg_pass),
+            ROOT.RooArgList(nsig_pass, nbkg_pass),
+        )
+        model_fail = ROOT.RooAddPdf(
+            f"model_fail_{uid}",
+            "model_fail",
+            ROOT.RooArgList(signal_fail, bkg_fail),
+            ROOT.RooArgList(nsig_fail, nbkg_fail),
+        )
     sim_pdf = ROOT.RooSimultaneous(f"sim_pdf_{uid}", "sim_pdf", sample)
     sim_pdf.addPdf(model_pass, "pass")
     sim_pdf.addPdf(model_fail, "fail")
 
     def run_fit(strategy: int):
+        # The mass variable already defines the fit bounds; a named full-range fit
+        # creates duplicate RooFit coefficient-normalization integrals here.
         return sim_pdf.fitTo(
             comb_data,
             ROOT.RooFit.Save(True),
             ROOT.RooFit.Extended(True),
-            ROOT.RooFit.Range("fit"),
             ROOT.RooFit.Strategy(strategy),
             ROOT.RooFit.Offset(True),
             ROOT.RooFit.PrintLevel(-1),
@@ -1820,7 +1888,6 @@ def fit_tnp_signal_efficiency(
 
     base_uid = str(next(TNP_FIT_COUNTER))
     mass = ROOT.RooRealVar(f"mll_{base_uid}", "m_{ll}", MASS_FIT_MIN, MASS_FIT_MAX)
-    mass.setRange("fit", MASS_FIT_MIN, MASS_FIT_MAX)
     sample = ROOT.RooCategory(f"sample_{base_uid}", "sample")
     sample.defineType("pass")
     sample.defineType("fail")
