@@ -45,3 +45,4 @@
   - `/cvmfs/sft.cern.ch/lcg/views/LCG_108/x86_64-el9-gcc14-opt/setup.sh`.
 - Production rerun is blocked in this environment because `/cvmfs/cms.cern.ch/cmsset_default.sh` is missing. I did not compile or run `modify_nanoaod` in pixi or any other environment.
 - Because `modified/*.root` is stale and could not be regenerated, I did not run the final all-sample `plot.py` production step against those files.
+- Checked AN PDF compilation tools. Neither `pdflatex` nor `latexmk` is available in this environment, so `notes/an.tex` could not be compiled to PDF here.
