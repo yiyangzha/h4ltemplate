@@ -2531,7 +2531,7 @@ def fit_tnp_signal_efficiency(
                 fit_max,
                 plot_path,
                 plot_title,
-                True,
+                False,
             )
     return np.nan, np.nan
 
