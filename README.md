@@ -1,7 +1,3 @@
-# modify_nanoaod
-
-Compiled ROOT/C++17 tool for modifying NanoAOD lepton pT and configured ID/Iso/Trig branches in place.
-
 ## 1. How to Run
 
 Build:
@@ -17,22 +13,12 @@ c++ -O3 -DNDEBUG -Wall -Wextra -Wpedantic $(root-config --cflags) \
   -o modify_nanoaod modify_nanoaod.cpp $(root-config --libs)
 ```
 
-If CVMFS is available, set up the CMS/LCG toolchain first:
+With CVMFS/LCG ROOT:
 
 ```bash
 source /cvmfs/cms.cern.ch/cmsset_default.sh
 source /cvmfs/sft.cern.ch/lcg/views/LCG_108/x86_64-el9-gcc14-opt/setup.sh
-```
-
-If CVMFS is not available but the local pixi environment has ROOT, use:
-
-```bash
-pixi run make
-```
-
-Run:
-
-```bash
+make
 ./modify_nanoaod --config config.json
 ```
 
@@ -45,13 +31,11 @@ Useful options:
 
 `--dry-run` checks input discovery and output names without writing files. `--threads` overrides `global.threads` from the config.
 
-Run the plotting step in the pixi environment:
+Run the plotting step in the pixi environment, not in the CVMFS shell:
 
 ```bash
 pixi run python plot.py --config-plot config_plot.json
 ```
-
-The plotting code writes TnP fit status and pass/fail `chi2/ndf` values onto fit PDFs. Fits with bad status, covariance quality, or `chi2/ndf` above the configured threshold fall back to counting efficiencies.
 
 ## 2. Modification invariants
 

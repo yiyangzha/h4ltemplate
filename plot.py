@@ -221,24 +221,6 @@ def selected_event_efficiency_branches(plot_cfg: Mapping, modify_cfg: Mapping, f
     return {branch: all_cfgs[branch] for branch in selected if branch in all_cfgs}
 
 
-def selected_tnp_fit_branches(plot_cfg: Mapping, modify_cfg: Mapping, flavor: str) -> set:
-    tnp_cfg = plot_cfg.get("tnp_fits", {})
-    configured = tnp_cfg.get("branches")
-    if configured is None:
-        return set(selected_efficiency_branches(plot_cfg, modify_cfg, flavor))
-    if isinstance(configured, Mapping):
-        return set(configured.get(flavor, []))
-    return set(configured)
-
-
-def selected_tnp_fit_variables(plot_cfg: Mapping, variables: Sequence[str]) -> List[str]:
-    configured = plot_cfg.get("tnp_fits", {}).get("variables")
-    if configured is None:
-        return list(variables)
-    allowed = set(configured)
-    return [var for var in variables if var in allowed]
-
-
 def tnp_tag_id_branch(flavor: str) -> str:
     return "Muon_mediumId" if flavor == "muon" else "Electron_cutBased"
 
@@ -2464,15 +2446,22 @@ def fit_tnp_signal_efficiency(
     n_pass = len(pass_masses)
     n_fail = len(fail_masses)
     n_total = n_pass + n_fail
-    if n_total < TNP_MIN_FIT_ALL or min(n_pass, n_fail) < TNP_MIN_FIT_EACH:
+
+    def fit_window_counting_efficiency(reason: str) -> Tuple[float, float]:
+        value = n_pass / max(n_total, 1)
+        error = math.sqrt(max(value * (1.0 - value), 0.0) / max(n_total, 1))
         if plot_key is not None and ibin is not None:
             print(
-                f"[WARN] TnP fit skipped for {plot_key} bin {ibin}; "
-                f"insufficient fit statistics n_pass={n_pass}, n_fail={n_fail}"
+                f"[WARN] TnP {reason} for {plot_key} bin {ibin}; "
+                f"using fit-window entry counting with n_pass={n_pass}, n_fail={n_fail}, "
+                f"eff={value:.4f}"
             )
-        return np.nan, np.nan
+        return np.clip(value, 0.0, 1.0), error
+
+    if n_total < TNP_MIN_FIT_ALL or min(n_pass, n_fail) < TNP_MIN_FIT_EACH:
+        return fit_window_counting_efficiency("fit skipped due to insufficient statistics")
     if n_pass == 0 or n_fail == 0:
-        return np.nan, np.nan
+        return fit_window_counting_efficiency("fit skipped because pass or fail side is empty")
 
     base_uid = str(next(TNP_FIT_COUNTER))
     mass = ROOT.RooRealVar(f"mll_{base_uid}", "m_{ll}", MASS_FIT_MIN, MASS_FIT_MAX)
@@ -2526,7 +2515,8 @@ def fit_tnp_signal_efficiency(
     if plot_key is not None and ibin is not None:
         print(
             f"[WARN] TnP fit rejected for {plot_key} bin {ibin}; "
-            f"best tier={best_tier}, {format_tnp_quality(best_quality or {})}; omitting TnP point"
+            f"best tier={best_tier}, {format_tnp_quality(best_quality or {})}; "
+            f"using fit-window entry counting"
         )
         if plot_dir is not None and best_tier is not None and best_window is not None:
             fit_min, fit_max = best_window
@@ -2551,7 +2541,7 @@ def fit_tnp_signal_efficiency(
                 plot_title,
                 False,
             )
-    return np.nan, np.nan
+    return fit_window_counting_efficiency("fit rejected")
 
 
 def finalize_tnp_fits(
@@ -3100,7 +3090,6 @@ def analyze(modify_cfg: Mapping, plot_cfg: Mapping, pairs: Sequence[Tuple[Path, 
 
                 selected_eff = selected_efficiency_branches(plot_cfg, modify_cfg, flavor)
                 selected_event_eff = selected_event_efficiency_branches(plot_cfg, modify_cfg, flavor)
-                selected_tnp_eff = selected_tnp_fit_branches(plot_cfg, modify_cfg, flavor)
                 tag_branch = tnp_tag_id_branch(flavor)
                 tag_cfg = tnp_tag_id_cfg(modify_cfg, flavor)
                 tag_pass_in = pass_mask(arr_in[tag_branch], tag_cfg) if tag_branch in arr_in else ak.zeros_like(pt_in, dtype=bool)
@@ -3134,12 +3123,10 @@ def analyze(modify_cfg: Mapping, plot_cfg: Mapping, pairs: Sequence[Tuple[Path, 
                                 eff_edges[var],
                             )
 
-                    if branch in selected_tnp_eff:
-                        tnp_variables = selected_tnp_fit_variables(plot_cfg, variables)
-                        tnp_in = tnp_probe_with_pass(tnp_base_in, pass_in)
-                        tnp_out = tnp_probe_with_pass(tnp_base_out, pass_out)
-                        add_tnp_mass_candidates(tnp_mass_store, (flavor, branch, "input", "tnp"), tnp_in, eff_edges, tnp_variables)
-                        add_tnp_mass_candidates(tnp_mass_store, (flavor, branch, "output", "tnp"), tnp_out, eff_edges, tnp_variables)
+                    tnp_in = tnp_probe_with_pass(tnp_base_in, pass_in)
+                    tnp_out = tnp_probe_with_pass(tnp_base_out, pass_out)
+                    add_tnp_mass_candidates(tnp_mass_store, (flavor, branch, "input", "tnp"), tnp_in, eff_edges, variables)
+                    add_tnp_mass_candidates(tnp_mass_store, (flavor, branch, "output", "tnp"), tnp_out, eff_edges, variables)
 
                     base_map = base_maps.get((flavor, branch))
                     if base_map is not None:
@@ -3195,12 +3182,10 @@ def analyze(modify_cfg: Mapping, plot_cfg: Mapping, pairs: Sequence[Tuple[Path, 
                                     eff_edges[var],
                                 )
 
-                        if branch in selected_tnp_eff:
-                            tnp_variables = selected_tnp_fit_variables(plot_cfg, variables)
-                            tnp_in = tnp_event_probe_with_pass(tnp_base_in, pass_mask(arr_in[branch], ecfg))
-                            tnp_out = tnp_event_probe_with_pass(tnp_base_out, pass_mask(arr_out[branch], ecfg))
-                            add_tnp_mass_candidates(tnp_mass_store, (flavor, branch, "input", "tnp"), tnp_in, eff_edges, tnp_variables)
-                            add_tnp_mass_candidates(tnp_mass_store, (flavor, branch, "output", "tnp"), tnp_out, eff_edges, tnp_variables)
+                        tnp_in = tnp_event_probe_with_pass(tnp_base_in, pass_mask(arr_in[branch], ecfg))
+                        tnp_out = tnp_event_probe_with_pass(tnp_base_out, pass_mask(arr_out[branch], ecfg))
+                        add_tnp_mass_candidates(tnp_mass_store, (flavor, branch, "input", "tnp"), tnp_in, eff_edges, variables)
+                        add_tnp_mass_candidates(tnp_mass_store, (flavor, branch, "output", "tnp"), tnp_out, eff_edges, variables)
 
                         base_map = base_maps.get((flavor, branch))
                         if base_map is not None and len(leading_exp["pt"]):
