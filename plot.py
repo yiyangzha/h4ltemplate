@@ -43,15 +43,18 @@ except ImportError as exc:
     ) from exc
 
 ROOT.gROOT.SetBatch(True)
-ROOT.RooMsgService.instance().setGlobalKillBelow(ROOT.RooFit.WARNING)
+ROOT.RooMsgService.instance().setGlobalKillBelow(ROOT.RooFit.FATAL)
 
 
 BLUE = "#5790fc"
 RED = "#e42536"
 GRAY = "#9c9ca1"
 Z_MASS = 91.1876
-MASS_FIT_MIN = 90.0
+MASS_FIT_MIN = 55.0
 MASS_FIT_MAX = 135.0
+MASS_FIT_ALT_MAX = 100.0
+MASS_PEAK_SEARCH_MIN = 75.0
+MASS_PEAK_SEARCH_MAX = 115.0
 UINT64 = np.uint64
 MASK64 = (1 << 64) - 1
 TNP_FIT_COUNTER = itertools.count()
@@ -62,7 +65,7 @@ TNP_SINGLE_CB_MIN_PASS = 20
 TNP_DOUBLE_CB_MIN_ALL = 600
 TNP_DOUBLE_CB_MIN_PASS = 80
 TNP_CHI2_BINS = 40
-TNP_MAX_CHI2_NDF = 5.0
+TNP_MAX_CHI2_NDF = 8.0
 MIN_EFF_BIN_TOTAL = 20
 TRUTH_MATCH_DR = 0.1
 GEN_TRUTH_BRANCHES = [
@@ -1452,13 +1455,21 @@ def add_tnp_mass_candidates(
             store[key]["fail"][ibin].append(masses[bin_mask & ~passed])
 
 
-def make_combined_roodataset(name: str, mass_var, sample, pass_masses: np.ndarray, fail_masses: np.ndarray):
+def make_combined_roodataset(
+    name: str,
+    mass_var,
+    sample,
+    pass_masses: np.ndarray,
+    fail_masses: np.ndarray,
+    fit_min: float,
+    fit_max: float,
+):
     data = ROOT.RooDataSet(name, name, ROOT.RooArgSet(mass_var, sample))
     args = ROOT.RooArgSet(mass_var, sample)
     for label, masses in (("pass", pass_masses), ("fail", fail_masses)):
         sample.setLabel(label)
         for value in np.asarray(masses, dtype=float):
-            if not np.isfinite(value) or value < MASS_FIT_MIN or value > MASS_FIT_MAX:
+            if not np.isfinite(value) or value < fit_min or value > fit_max:
                 continue
             mass_var.setVal(float(value))
             data.add(args)
@@ -1480,15 +1491,28 @@ def fit_result_nfloat(result) -> int:
         return 0
 
 
-def projection_chi2_ndf(mass, sample, comb_data, sim_pdf, label: str, uid: str, n_float: int) -> float:
-    frame = mass.frame(ROOT.RooFit.Bins(TNP_CHI2_BINS))
+def projection_chi2_ndf(
+    mass,
+    sample,
+    comb_data,
+    sim_pdf,
+    label: str,
+    uid: str,
+    n_float: int,
+    fit_min: float,
+    fit_max: float,
+) -> float:
+    frame = mass.frame(ROOT.RooFit.Range(fit_min, fit_max), ROOT.RooFit.Bins(TNP_CHI2_BINS))
     sample_name = sample.GetName()
+    mass_name = mass.GetName()
     data_name = f"chi2_data_{label}_{uid}"
     model_name = f"chi2_model_{label}_{uid}"
     sample_set = ROOT.RooArgSet(sample)
     comb_data.plotOn(
         frame,
-        ROOT.RooFit.Cut(f"{sample_name}=={sample_name}::{label}"),
+        ROOT.RooFit.Cut(
+            f"{sample_name}=={sample_name}::{label} && {mass_name}>={fit_min:.12g} && {mass_name}<={fit_max:.12g}"
+        ),
         ROOT.RooFit.Name(data_name),
     )
     sim_pdf.plotOn(
@@ -1505,19 +1529,23 @@ def projection_chi2_ndf(mass, sample, comb_data, sim_pdf, label: str, uid: str, 
 
 
 def tnp_fit_quality(result, mass, sample, comb_data, sim_pdf, uid: str) -> Dict[str, float]:
+    fit_min = float(mass.getMin("fit_window"))
+    fit_max = float(mass.getMax("fit_window"))
     n_float = fit_result_nfloat(result)
     quality = {
         "status": float(result.status()) if result is not None else np.inf,
         "covQual": float(result.covQual()) if result is not None else -1.0,
         "n_float": float(n_float),
+        "fit_min": fit_min,
+        "fit_max": fit_max,
         "chi2_pass": np.inf,
         "chi2_fail": np.inf,
         "chi2_max": np.inf,
     }
     if not converged_fit(result):
         return quality
-    chi2_pass = projection_chi2_ndf(mass, sample, comb_data, sim_pdf, "pass", uid, n_float)
-    chi2_fail = projection_chi2_ndf(mass, sample, comb_data, sim_pdf, "fail", uid, n_float)
+    chi2_pass = projection_chi2_ndf(mass, sample, comb_data, sim_pdf, "pass", uid, n_float, fit_min, fit_max)
+    chi2_fail = projection_chi2_ndf(mass, sample, comb_data, sim_pdf, "fail", uid, n_float, fit_min, fit_max)
     quality["chi2_pass"] = chi2_pass
     quality["chi2_fail"] = chi2_fail
     quality["chi2_max"] = max(chi2_pass, chi2_fail)
@@ -1537,6 +1565,7 @@ def format_tnp_quality(quality: Mapping[str, float]) -> str:
         return "fit quality unavailable"
     return (
         f"status={int(quality.get('status', -1))}, covQual={int(quality.get('covQual', -1))}, "
+        f"range=[{quality.get('fit_min', MASS_FIT_MIN):.0f},{quality.get('fit_max', MASS_FIT_MAX):.0f}], "
         f"chi2/ndf pass={quality.get('chi2_pass', np.inf):.2f}, "
         f"fail={quality.get('chi2_fail', np.inf):.2f}"
     )
@@ -1568,7 +1597,11 @@ def mass_peak_and_width(pass_masses: np.ndarray, fail_masses: np.ndarray) -> Tup
     masses = masses[np.isfinite(masses) & (masses >= MASS_FIT_MIN) & (masses <= MASS_FIT_MAX)]
     if len(masses) < 10:
         return Z_MASS, 2.0
-    hist, edges = np.histogram(masses, bins=np.linspace(MASS_FIT_MIN, MASS_FIT_MAX, 81))
+    peak_masses = masses[(masses >= MASS_PEAK_SEARCH_MIN) & (masses <= MASS_PEAK_SEARCH_MAX)]
+    if len(peak_masses) >= 10:
+        hist, edges = np.histogram(peak_masses, bins=np.linspace(MASS_PEAK_SEARCH_MIN, MASS_PEAK_SEARCH_MAX, 81))
+    else:
+        hist, edges = np.histogram(masses, bins=np.linspace(MASS_FIT_MIN, MASS_FIT_MAX, 81))
     if np.sum(hist) <= 0:
         return Z_MASS, 2.0
     imax = int(np.argmax(hist))
@@ -1584,6 +1617,57 @@ def mass_peak_and_width(pass_masses: np.ndarray, fail_masses: np.ndarray) -> Tup
     else:
         width = np.std(masses)
     return float(np.clip(peak, MASS_FIT_MIN + 3.0, MASS_FIT_MAX - 3.0)), float(np.clip(width, 0.8, 12.0))
+
+
+def has_high_mass_background_shape(pass_masses: np.ndarray, fail_masses: np.ndarray) -> bool:
+    masses = np.concatenate([pass_masses, fail_masses]) if len(pass_masses) or len(fail_masses) else np.array([])
+    masses = masses[np.isfinite(masses) & (masses >= MASS_FIT_MIN) & (masses <= MASS_FIT_MAX)]
+    if len(masses) < 80:
+        return False
+    peak = np.count_nonzero((masses >= 90.0) & (masses <= 100.0))
+    high = np.count_nonzero((masses > MASS_FIT_ALT_MAX) & (masses <= MASS_FIT_MAX))
+    if peak < 20:
+        return False
+    return (high / peak) > 0.12
+
+
+def low_side_shoulder_fit_window(pass_masses: np.ndarray, fail_masses: np.ndarray) -> Optional[Tuple[float, float]]:
+    masses = np.concatenate([pass_masses, fail_masses]) if len(pass_masses) or len(fail_masses) else np.array([])
+    masses = masses[np.isfinite(masses) & (masses >= MASS_FIT_MIN) & (masses <= MASS_FIT_MAX)]
+    if len(masses) < 250:
+        return None
+    hist, edges = np.histogram(masses, bins=np.arange(65.0, 106.0, 1.0))
+    if np.sum(hist) <= 0:
+        return None
+    centers = 0.5 * (edges[:-1] + edges[1:])
+    smooth = np.convolve(hist.astype(float), np.array([0.25, 0.5, 0.25]), mode="same")
+    peak_mask = (centers >= 84.0) & (centers <= 98.0)
+    if not np.any(peak_mask):
+        return None
+    peak_idx_candidates = np.flatnonzero(peak_mask)
+    peak_idx = int(peak_idx_candidates[np.argmax(smooth[peak_idx_candidates])])
+    peak_center = float(centers[peak_idx])
+    peak_height = float(smooth[peak_idx])
+    if peak_height < 30.0:
+        return None
+
+    low_mask = (centers >= 68.0) & (centers <= peak_center - 6.0)
+    if not np.any(low_mask):
+        return None
+    low_idx_candidates = np.flatnonzero(low_mask)
+    low_idx = int(low_idx_candidates[np.argmax(smooth[low_idx_candidates])])
+    low_height = float(smooth[low_idx])
+    if low_height < 0.20 * peak_height:
+        return None
+    valley = float(np.min(smooth[low_idx: peak_idx + 1])) if low_idx < peak_idx else peak_height
+    if valley > 0.85 * min(low_height, peak_height):
+        return None
+
+    fit_min = max(MASS_FIT_MIN, peak_center - 9.0)
+    fit_max = min(MASS_FIT_ALT_MAX, peak_center + 10.0)
+    if fit_max - fit_min < 14.0:
+        return None
+    return float(fit_min), float(fit_max)
 
 
 def fit_context_from_bin(
@@ -1621,6 +1705,7 @@ def fit_context_from_bin(
         "right_tail": float(right_tail),
         "mass_peak": mass_peak,
         "mass_width": mass_width,
+        "allow_alt_fit_max": float(has_high_mass_background_shape(pass_masses, fail_masses)),
     }
 
 
@@ -1763,6 +1848,11 @@ def save_tnp_fit_plot(
             0.72,
             f"status = {int(quality.get('status', -1))}, covQual = {int(quality.get('covQual', -1))}",
         )
+        latex.DrawLatex(
+            0.18,
+            0.67,
+            f"fit range = [{quality.get('fit_min', MASS_FIT_MIN):.0f}, {quality.get('fit_max', MASS_FIT_MAX):.0f}] GeV",
+        )
     legend = ROOT.TLegend(0.62, 0.70, 0.88, 0.88)
     legend.SetBorderSize(0)
     legend.SetFillStyle(0)
@@ -1800,14 +1890,42 @@ def fit_tnp_signal_efficiency_with_model(
     uid: str,
     mass,
     sample,
-    comb_data,
+    pass_masses: np.ndarray,
+    fail_masses: np.ndarray,
     n_pass: int,
     n_fail: int,
     fit_context: Mapping[str, float],
+    fit_min: float,
+    fit_max: float,
     plot_path: Optional[Path] = None,
     plot_title: Optional[str] = None,
 ) -> Tuple[float, float, Dict[str, float]]:
     n_total = n_pass + n_fail
+    mass.setRange("full", MASS_FIT_MIN, MASS_FIT_MAX)
+    mass.setRange("fit_window", fit_min, fit_max)
+    n_pass_fit = int(np.count_nonzero((pass_masses >= fit_min) & (pass_masses <= fit_max)))
+    n_fail_fit = int(np.count_nonzero((fail_masses >= fit_min) & (fail_masses <= fit_max)))
+    if min(n_pass_fit, n_fail_fit) < TNP_MIN_FIT_EACH or (n_pass_fit + n_fail_fit) < TNP_MIN_FIT_ALL:
+        return np.nan, np.nan, {
+            "status": np.inf,
+            "covQual": -1.0,
+            "fit_min": fit_min,
+            "fit_max": fit_max,
+            "chi2_pass": np.inf,
+            "chi2_fail": np.inf,
+            "chi2_max": np.inf,
+        }
+    comb_data = make_combined_roodataset(
+        f"comb_data_{uid}",
+        mass,
+        sample,
+        pass_masses,
+        fail_masses,
+        fit_min,
+        fit_max,
+    )
+    if comb_data.numEntries() < TNP_MIN_FIT_ALL:
+        return np.nan, np.nan, {"status": np.inf, "covQual": -1.0, "fit_min": fit_min, "fit_max": fit_max}
     shape = signal_shape_hints(fit_context)
     bkg_pass_init = initial_bkg_fraction(fit_context, passed=True)
     bkg_fail_init = initial_bkg_fraction(fit_context, passed=False)
@@ -1882,6 +2000,18 @@ def fit_tnp_signal_efficiency_with_model(
         cb_large_pass = ROOT.RooCBShape(f"cb_large_pass_{uid}", "cb_large_pass", mass, mean, sigma_large_pass, alpha_r, n_r)
         cb_small_fail = ROOT.RooCBShape(f"cb_small_fail_{uid}", "cb_small_fail", mass, mean, sigma_small_fail, alpha_l, n_l)
         cb_large_fail = ROOT.RooCBShape(f"cb_large_fail_{uid}", "cb_large_fail", mass, mean, sigma_large_fail, alpha_r, n_r)
+        signal_pass = ROOT.RooAddPdf(
+            f"signal_pass_{uid}",
+            "signal_pass",
+            ROOT.RooArgList(cb_small_pass, cb_large_pass),
+            ROOT.RooArgList(frac_pass),
+        )
+        signal_fail = ROOT.RooAddPdf(
+            f"signal_fail_{uid}",
+            "signal_fail",
+            ROOT.RooArgList(cb_small_fail, cb_large_fail),
+            ROOT.RooArgList(frac_fail),
+        )
     elif tier == "single_cb":
         sigma_pass = ROOT.RooRealVar(f"sigma_pass_{uid}", "sigma_pass", shape["sigma1"], 0.15, 12.0)
         sigma_fail = ROOT.RooRealVar(f"sigma_fail_{uid}", "sigma_fail", shape["sigma1"], 0.15, 12.0)
@@ -1936,75 +2066,30 @@ def fit_tnp_signal_efficiency_with_model(
         "@0*@1",
         ROOT.RooArgList(bkg_frac_fail, nsig_fail),
     )
-    if tier == "double_cb":
-        nsig_small_pass = ROOT.RooFormulaVar(
-            f"nsig_small_pass_{uid}",
-            "nsig_small_pass",
-            "@0*@1",
-            ROOT.RooArgList(frac_pass, nsig_pass),
-        )
-        nsig_large_pass = ROOT.RooFormulaVar(
-            f"nsig_large_pass_{uid}",
-            "nsig_large_pass",
-            "(1.0-@0)*@1",
-            ROOT.RooArgList(frac_pass, nsig_pass),
-        )
-        nsig_small_fail = ROOT.RooFormulaVar(
-            f"nsig_small_fail_{uid}",
-            "nsig_small_fail",
-            "@0*@1",
-            ROOT.RooArgList(frac_fail, nsig_fail),
-        )
-        nsig_large_fail = ROOT.RooFormulaVar(
-            f"nsig_large_fail_{uid}",
-            "nsig_large_fail",
-            "(1.0-@0)*@1",
-            ROOT.RooArgList(frac_fail, nsig_fail),
-        )
-        model_pass_pdfs = ROOT.RooArgList(cb_small_pass, cb_large_pass)
-        model_pass_pdfs.add(bkg_pass)
-        model_pass_yields = ROOT.RooArgList(nsig_small_pass, nsig_large_pass)
-        model_pass_yields.add(nbkg_pass)
-        model_fail_pdfs = ROOT.RooArgList(cb_small_fail, cb_large_fail)
-        model_fail_pdfs.add(bkg_fail)
-        model_fail_yields = ROOT.RooArgList(nsig_small_fail, nsig_large_fail)
-        model_fail_yields.add(nbkg_fail)
-        model_pass = ROOT.RooAddPdf(
-            f"model_pass_{uid}",
-            "model_pass",
-            model_pass_pdfs,
-            model_pass_yields,
-        )
-        model_fail = ROOT.RooAddPdf(
-            f"model_fail_{uid}",
-            "model_fail",
-            model_fail_pdfs,
-            model_fail_yields,
-        )
-    else:
-        model_pass = ROOT.RooAddPdf(
-            f"model_pass_{uid}",
-            "model_pass",
-            ROOT.RooArgList(signal_pass, bkg_pass),
-            ROOT.RooArgList(nsig_pass, nbkg_pass),
-        )
-        model_fail = ROOT.RooAddPdf(
-            f"model_fail_{uid}",
-            "model_fail",
-            ROOT.RooArgList(signal_fail, bkg_fail),
-            ROOT.RooArgList(nsig_fail, nbkg_fail),
-        )
+    model_pass = ROOT.RooAddPdf(
+        f"model_pass_{uid}",
+        "model_pass",
+        ROOT.RooArgList(signal_pass, bkg_pass),
+        ROOT.RooArgList(nsig_pass, nbkg_pass),
+    )
+    model_fail = ROOT.RooAddPdf(
+        f"model_fail_{uid}",
+        "model_fail",
+        ROOT.RooArgList(signal_fail, bkg_fail),
+        ROOT.RooArgList(nsig_fail, nbkg_fail),
+    )
     sim_pdf = ROOT.RooSimultaneous(f"sim_pdf_{uid}", "sim_pdf", sample)
     sim_pdf.addPdf(model_pass, "pass")
     sim_pdf.addPdf(model_fail, "fail")
+    model_pass.fixCoefRange("full")
+    model_fail.fixCoefRange("full")
 
     def run_fit(strategy: int):
-        # The mass variable already defines the fit bounds; a named full-range fit
-        # creates duplicate RooFit coefficient-normalization integrals here.
         return sim_pdf.fitTo(
             comb_data,
             ROOT.RooFit.Save(True),
             ROOT.RooFit.Extended(True),
+            ROOT.RooFit.Range("fit_window"),
             ROOT.RooFit.Strategy(strategy),
             ROOT.RooFit.Offset(True),
             ROOT.RooFit.PrintLevel(-1),
@@ -2075,37 +2160,50 @@ def fit_tnp_signal_efficiency(
 
     base_uid = str(next(TNP_FIT_COUNTER))
     mass = ROOT.RooRealVar(f"mll_{base_uid}", "m_{ll}", MASS_FIT_MIN, MASS_FIT_MAX)
+    mass.setRange("full", MASS_FIT_MIN, MASS_FIT_MAX)
     sample = ROOT.RooCategory(f"sample_{base_uid}", "sample")
     sample.defineType("pass")
     sample.defineType("fail")
-    comb_data = make_combined_roodataset(f"comb_data_{base_uid}", mass, sample, pass_masses, fail_masses)
     fit_context = fit_context_from_bin(plot_key, ibin, edges, pass_masses, fail_masses)
     best_quality: Optional[Dict[str, float]] = None
     best_tier: Optional[str] = None
 
     for tier in tnp_fit_tiers(tnp_fit_model_tier(n_pass, n_total)):
-        plot_path = None
-        plot_title = None
-        if plot_dir is not None and plot_key is not None and ibin is not None:
-            plot_path = tnp_fit_plot_path(plot_dir, plot_key, ibin, edges, tier)
-            plot_title = tnp_fit_plot_title(plot_key, ibin, edges, tier, n_pass, n_fail)
-        value, error, quality = fit_tnp_signal_efficiency_with_model(
-            tier,
-            f"{base_uid}_{tier}",
-            mass,
-            sample,
-            comb_data,
-            n_pass,
-            n_fail,
-            fit_context,
-            plot_path,
-            plot_title,
-        )
-        if best_quality is None or quality.get("chi2_max", np.inf) < best_quality.get("chi2_max", np.inf):
-            best_quality = quality
-            best_tier = tier
-        if np.isfinite(value) and np.isfinite(error):
-            return value, error
+        windows = [(MASS_FIT_MIN, MASS_FIT_MAX)]
+        if bool(fit_context.get("allow_alt_fit_max", 0.0)):
+            windows.append((MASS_FIT_MIN, MASS_FIT_ALT_MAX))
+        core_window = low_side_shoulder_fit_window(pass_masses, fail_masses)
+        if core_window is not None and core_window not in windows:
+            windows.append(core_window)
+        for fit_min, fit_max in windows:
+            plot_path = None
+            plot_title = None
+            if plot_dir is not None and plot_key is not None and ibin is not None:
+                plot_path = tnp_fit_plot_path(plot_dir, plot_key, ibin, edges, tier)
+                plot_title = (
+                    f"{tnp_fit_plot_title(plot_key, ibin, edges, tier, n_pass, n_fail)} "
+                    f"| fit {fit_min:g}-{fit_max:g} GeV"
+                )
+            value, error, quality = fit_tnp_signal_efficiency_with_model(
+                tier,
+                f"{base_uid}_{tier}_{format_bin_edge(fit_min)}_{format_bin_edge(fit_max)}",
+                mass,
+                sample,
+                pass_masses,
+                fail_masses,
+                n_pass,
+                n_fail,
+                fit_context,
+                fit_min,
+                fit_max,
+                plot_path,
+                plot_title,
+            )
+            if best_quality is None or quality.get("chi2_max", np.inf) < best_quality.get("chi2_max", np.inf):
+                best_quality = quality
+                best_tier = tier
+            if np.isfinite(value) and np.isfinite(error):
+                return value, error
     if plot_key is not None and ibin is not None:
         print(
             f"[WARN] TnP fit rejected for {plot_key} bin {ibin}; "

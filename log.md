@@ -12,7 +12,9 @@
   - added rejected-fit diagnostic PDFs;
   - raised the minimum statistics for fitted TnP points and fall back to counting for low-stat or rejected fits;
   - decoupled pass/fail signal width parameters to improve fit stability.
-- Inspected rejected fit PDFs. The low-mass structure below 90 GeV can mimic a second peak after other selections; per user instruction, removed the attempted two-peak model and changed the TnP fit mass range to start at 90 GeV.
+- Inspected rejected fit PDFs. An attempted two-peak model was removed after user feedback; apparent low-mass structures should not be modeled as a second signal peak.
+- Revised the TnP strategy to keep the broad full mass range while allowing a restricted high edge of 100 GeV only for bins with a high-mass background shape. The RooFit coefficient range is fixed to the full mass range so the returned efficiency remains a full-signal-PDF efficiency rather than a restricted-window efficiency.
+- Reduced the configured pT/energy scale changes so they remain visible but do not strongly distort the dilepton invariant-mass peak.
 - Quick plot validation on the smallest ROOT sample with `plot.py` in pixi:
   - no `two_gaussian` fit PDFs were produced;
   - 232 accepted fit PDFs and 59 rejected diagnostic fit PDFs were produced for the reduced quick config;
@@ -20,3 +22,21 @@
   - correlation input/output/delta directories were produced, with 10 delta heatmaps in the quick config.
 - Checked the requested `modify_nanoaod` runtime environment. `/cvmfs/cms.cern.ch/cmsset_default.sh` is not present in this workspace environment, so final compile/run of `modify_nanoaod` with the required CVMFS sources cannot be performed here until CVMFS is available.
 - Verified the pixi environment provides ROOT 6.40.02 and the required Python plotting packages.
+- Added production helper scripts:
+  - `scripts/run_modify_all_cvmfs.sh` compiles and runs `modify_nanoaod` only after sourcing the requested CMS and LCG CVMFS environments;
+  - `scripts/run_plot_all_pixi.sh` runs `plot.py` in pixi after clearing old figures.
+- Restored `config.json` pT/energy scale parameters to the original user-provided values after observing that enlarged/changed corrections can create artificial multi-peak mass shapes in modified output.
+- Refined TnP fitting after the original-configuration rollback:
+  - kept the single-peak signal model family only (`double_cb`, `single_cb`, `gaussian`; no double-peak model);
+  - kept `MASS_FIT_MIN=55` and full mass range normalization, with optional 100 GeV upper fit range only for high-mass background cases;
+  - added a main-peak fallback fit window for bins with a clear low-side shoulder, still using a single signal peak;
+  - raised the chi2/ndf acceptance threshold to 8 after PDF inspection showed visually good high-stat fits around chi2/ndf 7-8;
+  - silenced RooFit internal duplicate-normalization messages while preserving explicit fit-quality warnings from the script.
+- Quick input-only plot validation with pixi, using one raw file as both input and output to avoid stale modified ROOT files:
+  - command: `pixi run python plot.py --config-plot tmp/config_plot_inputonly.json --figdir tmp/quick_figures_inputonly --chunk-size 50000`;
+  - accepted final fit PDFs: 242;
+  - intermediate rejected diagnostic PDFs: 30;
+  - final TnP bins falling back to counting after chi2/ndf rejection: 4, all edge eta bins with `chi2/ndf=inf`;
+  - `two_gaussian` PDFs: 0;
+  - RooFit `RooArgSet::checkForDup` log messages after silencing: 0;
+  - the pixi PyROOT cling warning about missing `assert.h` still appears, but the plot job exits successfully.

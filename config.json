@@ -44,15 +44,15 @@
       "barrel": {
         "abs_eta_min": 0.0,
         "abs_eta_max": 1.2,
-        "constant": 0.0600,
-        "pt_slope_log": 0.0140,
+        "constant": 0.0450,
+        "pt_slope_log": 0.0100,
         "charge_asymmetry": 0.0
       },
       "endcap": {
         "abs_eta_min": 1.2,
         "abs_eta_max": 2.4,
-        "constant": -0.0850,
-        "pt_slope_log": -0.0200,
+        "constant": -0.0650,
+        "pt_slope_log": -0.0150,
         "charge_asymmetry": 0.0
       }
     },
@@ -60,15 +60,15 @@
       "barrel": {
         "abs_eta_min": 0.0,
         "abs_eta_max": 1.5,
-        "constant": 0.1100,
-        "pt_slope_log": 0.0240,
+        "constant": 0.0800,
+        "pt_slope_log": 0.0180,
         "charge_asymmetry": 0.0
       },
       "endcap": {
         "abs_eta_min": 1.5,
         "abs_eta_max": 2.5,
-        "constant": -0.1550,
-        "pt_slope_log": -0.0340,
+        "constant": -0.1100,
+        "pt_slope_log": -0.0250,
         "charge_asymmetry": 0.0
       }
     }

@@ -8,4 +8,4 @@
 - Use the pixi environment for `plot.py` and Python plotting diagnostics.
 - Do not mix the pixi environment with `modify_nanoaod` compilation or execution.
 - Before full production reruns, use one small ROOT file for fast validation of code changes.
-- For TnP fits, use the configured mass range starting at 90 GeV and inspect rejected fit PDFs before changing fit models or thresholds.
+- For TnP fits, keep the broad mass fit range for sidebands and inspect rejected fit PDFs before changing fit models or thresholds.

@@ -1,0 +1,201 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{graphicx}
+\usepackage{subcaption}
+\usepackage{booktabs}
+\usepackage{hyperref}
+\usepackage{xcolor}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue,
+  citecolor=blue,
+  urlcolor=blue
+}
+
+\newcommand{\cms}{CMS}
+\newcommand{\figwidth}{0.48\textwidth}
+\newcommand{\plotplaceholder}[2]{%
+  \fbox{\begin{minipage}[c][0.26\textheight][c]{#1}
+  \centering
+  \small Missing final production figure:\\
+  \texttt{#2}
+  \end{minipage}}%
+}
+\newcommand{\maybeplot}[2]{%
+  \IfFileExists{#2}{\includegraphics[width=#1]{#2}}{\plotplaceholder{#1}{#2}}%
+}
+
+\title{\bfseries NanoAOD Lepton Reweighting and Validation}
+\author{CMS Simulation Study}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+This note documents a small NanoAOD-level workflow used to distort lepton
+kinematics and identification efficiencies in simulated events.  The modified
+NanoAOD files are compared to the raw inputs through one-dimensional
+distributions, efficiency curves, tag-and-probe mass fits, and two-dimensional
+correlation maps.  The final figures in this note must be produced from the
+full set of input ROOT files after rerunning \texttt{modify\_nanoaod} and
+\texttt{plot.py}.
+\end{abstract}
+
+\section{Workflow}
+
+The C++ program \texttt{modify\_nanoaod.cpp} reads NanoAOD \texttt{Events}
+trees, applies deterministic lepton momentum scale and resolution changes, and
+distorts selected lepton ID/isolation working points according to the
+configuration in \texttt{config.json}.  The modified files are written to the
+\texttt{modified/} directory with the configured suffix.
+
+The Python program \texttt{plot.py} compares each raw input file to its
+corresponding modified output.  It produces normalized lepton distributions,
+dilepton spectra, MC-truth and tag-and-probe efficiency curves, fit diagnostic
+plots, and two-dimensional heatmaps.  For every input/output heatmap pair, an
+additional \texttt{Modified - raw} map is produced.
+
+\section{Configuration}
+
+The lepton momentum scale, resolution, and efficiency distortions use the
+original configured amplitudes.  In particular, no additional scale or
+efficiency enlargement is applied beyond \texttt{config.json}.  Branches with
+explicit energy values are scaled by the same ratio as the corresponding
+transverse momentum, so the energy response follows the configured momentum
+distortion without introducing an independent mass-shape change.
+
+For tag-and-probe fits, the nominal invariant-mass fit range is kept broad
+($55$--$135$ GeV).  For bins with an additional high-mass background shape,
+the fit window can be shortened to 100 GeV, while the signal coefficients are
+kept normalized over the full mass range.  The reported efficiency therefore
+corresponds to the full signal PDF normalization, not only to the restricted
+fit window.  Each accepted fit must satisfy RooFit status and covariance
+quality requirements and pass a pass/fail $\chi^{2}/\mathrm{ndf}$ validation.
+The $\chi^{2}/\mathrm{ndf}$ values and the fit window are printed directly on
+each fit PDF.
+
+\section{Kinematic Distributions}
+
+Figure~\ref{fig:lepton-kinematics} shows representative lepton-level
+distributions before and after the NanoAOD modification.  The relative momentum
+shift distributions directly expose the configured scale changes, while the
+smearing response isolates the stochastic resolution term.
+
+\begin{figure}[htbp]
+  \centering
+  \begin{subfigure}{\figwidth}
+    \centering
+    \maybeplot{\linewidth}{../figures/distributions/lepton/dist_muon_pt.pdf}
+    \caption{Muon $p_{\mathrm{T}}$}
+  \end{subfigure}
+  \begin{subfigure}{\figwidth}
+    \centering
+    \maybeplot{\linewidth}{../figures/distributions/lepton/dist_electron_pt.pdf}
+    \caption{Electron $p_{\mathrm{T}}$}
+  \end{subfigure}
+  \begin{subfigure}{\figwidth}
+    \centering
+    \maybeplot{\linewidth}{../figures/distributions/lepton/dist_muon_relative_pt_shift.pdf}
+    \caption{Muon relative $p_{\mathrm{T}}$ shift}
+  \end{subfigure}
+  \begin{subfigure}{\figwidth}
+    \centering
+    \maybeplot{\linewidth}{../figures/distributions/lepton/dist_electron_relative_pt_shift.pdf}
+    \caption{Electron relative $p_{\mathrm{T}}$ shift}
+  \end{subfigure}
+  \caption{Representative lepton kinematic validation plots.}
+  \label{fig:lepton-kinematics}
+\end{figure}
+
+\section{Efficiency Validation}
+
+The efficiency validation compares the raw and modified samples with both
+generator-matched MC truth and tag-and-probe fits.  The modified efficiencies
+are expected to follow the configured global and kinematic distortions.  Fit
+diagnostics are kept under \texttt{figures/efficiency/fit/}; rejected fits are
+stored separately and their efficiency points fall back to counting estimates.
+
+\begin{figure}[htbp]
+  \centering
+  \begin{subfigure}{\figwidth}
+    \centering
+    \maybeplot{\linewidth}{../figures/efficiency/eff_muon_Muon_mediumId_pt.pdf}
+    \caption{Muon medium ID vs. $p_{\mathrm{T}}$}
+  \end{subfigure}
+  \begin{subfigure}{\figwidth}
+    \centering
+    \maybeplot{\linewidth}{../figures/efficiency/eff_electron_Electron_mvaFall17V2Iso_WP80_pt.pdf}
+    \caption{Electron WP80 vs. $p_{\mathrm{T}}$}
+  \end{subfigure}
+  \caption{Representative efficiency curves.}
+  \label{fig:efficiency}
+\end{figure}
+
+\section{Dilepton Resolution}
+
+The dilepton mass distributions summarize the combined impact of the lepton
+momentum scale and resolution changes.  The modified mass peak can shift
+relative to the raw sample because the workflow intentionally applies enlarged
+scale changes for validation visibility.
+
+\begin{figure}[htbp]
+  \centering
+  \begin{subfigure}{\figwidth}
+    \centering
+    \maybeplot{\linewidth}{../figures/distributions/dilepton/dilepton_muon_mass.pdf}
+    \caption{Muon-pair mass}
+  \end{subfigure}
+  \begin{subfigure}{\figwidth}
+    \centering
+    \maybeplot{\linewidth}{../figures/distributions/dilepton/dilepton_electron_mass.pdf}
+    \caption{Electron-pair mass}
+  \end{subfigure}
+  \caption{Dilepton mass validation.}
+  \label{fig:dilepton}
+\end{figure}
+
+\section{Two-dimensional Heatmaps}
+
+The correlation plots are written in separate \texttt{input}, \texttt{output},
+and \texttt{delta} directories.  The delta maps show the bin-by-bin
+\texttt{Modified - raw} entry difference and provide a compact check of where
+the modification changes the event population.
+
+\begin{figure}[htbp]
+  \centering
+  \begin{subfigure}{\figwidth}
+    \centering
+    \maybeplot{\linewidth}{../figures/correlation/input/corr_muon_input_energy_pt.pdf}
+    \caption{Muon raw energy vs. $p_{\mathrm{T}}$}
+  \end{subfigure}
+  \begin{subfigure}{\figwidth}
+    \centering
+    \maybeplot{\linewidth}{../figures/correlation/delta/corr_muon_delta_energy_pt.pdf}
+    \caption{Muon modified minus raw}
+  \end{subfigure}
+  \begin{subfigure}{\figwidth}
+    \centering
+    \maybeplot{\linewidth}{../figures/correlation/input/corr_electron_input_energy_pt.pdf}
+    \caption{Electron raw energy vs. $p_{\mathrm{T}}$}
+  \end{subfigure}
+  \begin{subfigure}{\figwidth}
+    \centering
+    \maybeplot{\linewidth}{../figures/correlation/delta/corr_electron_delta_energy_pt.pdf}
+    \caption{Electron modified minus raw}
+  \end{subfigure}
+  \caption{Representative two-dimensional heatmaps.}
+  \label{fig:heatmaps}
+\end{figure}
+
+\section{Production Status}
+
+The final production requires the CMS and LCG CVMFS environments for
+\texttt{modify\_nanoaod}.  The command sequence is captured in
+\texttt{scripts/run\_modify\_all\_cvmfs.sh}.  Plotting is performed in the pixi
+environment with \texttt{scripts/run\_plot\_all\_pixi.sh}.  This note should be
+rebuilt after both production steps complete successfully.
+
+\end{document}
