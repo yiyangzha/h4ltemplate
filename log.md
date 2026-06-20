@@ -52,3 +52,13 @@
   - status: successful compile, with only small overfull-box warnings from placeholder/caption layout;
   - this is not the final AN PDF because final figures still require rerunning `modify_nanoaod` with CVMFS and then all-sample `plot.py`.
 - Added and verified `scripts/build_an_pixi.sh` as the repeatable pixi/tectonic AN build command.
+- Added `scripts/run_modify_all_pixi.sh` as a fallback build/run path for `modify_nanoaod` when CVMFS is unavailable. This uses the pixi ROOT toolchain and does not change the C++ program logic.
+- Reduced the configured modification amplitudes after observing multi-peak dilepton mass shapes in older quick outputs:
+  - pT/energy scale shifts are now small and same-sign in barrel/endcap regions to avoid splitting the Z peak by topology;
+  - resolution smearing was reduced;
+  - ID/isolation efficiency turn-on distortion amplitudes and shifts were reduced.
+- Quick pixi fallback validation on one ROOT file:
+  - command: `pixi run ./modify_nanoaod --config tmp/config_modify_pixi_quick.json --threads 2`;
+  - output ROOT: `tmp/quick_modified_pixi/599809F9-6E6F-9B40-88BD-2C5049861107_modified.root`;
+  - command: `pixi run python plot.py --config-plot tmp/config_plot_pixi_quick.json --figdir tmp/quick_figures_pixi --chunk-size 50000`;
+  - inspected `tmp/quick_figures_pixi/distributions/dilepton/dilepton_electron_mass.pdf` and `dilepton_muon_mass.pdf`; both modified distributions are single-main-peak shapes rather than separated multi-peak spectra.

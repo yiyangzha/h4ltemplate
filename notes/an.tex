@@ -60,12 +60,15 @@ additional \texttt{Modified - raw} map is produced.
 
 \section{Configuration}
 
-The lepton momentum scale, resolution, and efficiency distortions use the
-original configured amplitudes.  In particular, no additional scale or
-efficiency enlargement is applied beyond \texttt{config.json}.  Branches with
-explicit energy values are scaled by the same ratio as the corresponding
-transverse momentum, so the energy response follows the configured momentum
-distortion without introducing an independent mass-shape change.
+The lepton momentum scale, resolution, and efficiency distortions use moderate
+configured amplitudes.  The barrel and endcap scale shifts are kept in the
+same direction with small regional differences, and the efficiency turn-on
+distortions are limited, so the validation changes remain visible without
+splitting the dilepton invariant-mass peak into artificial multiple peaks.
+Branches with explicit energy values are scaled by the same ratio as the
+corresponding transverse momentum, so the energy response follows the
+configured momentum distortion without introducing an independent mass-shape
+change.
 
 For tag-and-probe fits, the nominal invariant-mass fit range is kept broad
 ($55$--$135$ GeV).  For bins with an additional high-mass background shape,
