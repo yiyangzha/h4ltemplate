@@ -44,15 +44,15 @@
       "barrel": {
         "abs_eta_min": 0.0,
         "abs_eta_max": 1.2,
-        "constant": 0.0100,
-        "pt_slope_log": 0.0010,
+        "constant": 0.02,
+        "pt_slope_log": 0.002,
         "charge_asymmetry": 0.0
       },
       "endcap": {
         "abs_eta_min": 1.2,
         "abs_eta_max": 2.4,
-        "constant": 0.0080,
-        "pt_slope_log": 0.0010,
+        "constant": 0.018,
+        "pt_slope_log": 0.002,
         "charge_asymmetry": 0.0
       }
     },
@@ -60,15 +60,15 @@
       "barrel": {
         "abs_eta_min": 0.0,
         "abs_eta_max": 1.5,
-        "constant": 0.0150,
-        "pt_slope_log": 0.0015,
+        "constant": 0.03,
+        "pt_slope_log": 0.003,
         "charge_asymmetry": 0.0
       },
       "endcap": {
         "abs_eta_min": 1.5,
         "abs_eta_max": 2.5,
-        "constant": 0.0120,
-        "pt_slope_log": 0.0015,
+        "constant": 0.025,
+        "pt_slope_log": 0.003,
         "charge_asymmetry": 0.0
       }
     }
@@ -84,94 +84,120 @@
       "endcap": {
         "abs_eta_min": 1.2,
         "abs_eta_max": 2.4,
-        "sigma": 0.0030
+        "sigma": 0.003
       }
     },
     "electron": {
       "barrel": {
         "abs_eta_min": 0.0,
         "abs_eta_max": 1.5,
-        "sigma": 0.0050
+        "sigma": 0.005
       },
       "endcap": {
         "abs_eta_min": 1.5,
         "abs_eta_max": 2.5,
-        "sigma": 0.0080
+        "sigma": 0.008
       }
     }
   },
   "efficiency": {
     "enabled": true,
     "binning": {
-      "pt": [0, 10, 20, 30, 40, 50, 100, 200],
-      "abs_eta": [0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0],
-      "eta": [-3.0, -2.5, -2.0, -1.5, -1.0, -0.5, 0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0]
+      "pt": [
+        0,
+        10,
+        20,
+        30,
+        40,
+        50,
+        100,
+        200
+      ],
+      "abs_eta": [
+        0.0,
+        0.5,
+        1.0,
+        1.5,
+        2.0,
+        2.5,
+        3.0
+      ],
+      "eta": [
+        -3.0,
+        -2.5,
+        -2.0,
+        -1.5,
+        -1.0,
+        -0.5,
+        0.0,
+        0.5,
+        1.0,
+        1.5,
+        2.0,
+        2.5,
+        3.0
+      ]
     },
     "muon_branches": {
       "Muon_looseId": {
         "type": "bool",
         "distortion": {
-          "global_factor": 0.970,
-          "pt_turnon_amplitude": 0.050,
+          "global_factor": 0.97,
+          "pt_turnon_amplitude": 0.05,
           "pt_turnon_center": 24.0,
           "pt_turnon_width": 8.0,
           "pt_turnon_shift": 2.0,
-          "pt_turnon_width_scale": 1.05,
-          "signed_eta_factors": [0.940, 0.945, 0.950, 0.955, 0.965, 0.970, 0.970, 0.965, 0.955, 0.950, 0.945, 0.940]
+          "pt_turnon_width_scale": 1.05
         }
       },
       "Muon_mediumId": {
         "type": "bool",
         "distortion": {
-          "global_factor": 0.970,
-          "pt_turnon_amplitude": 0.050,
+          "global_factor": 0.97,
+          "pt_turnon_amplitude": 0.05,
           "pt_turnon_center": 24.0,
           "pt_turnon_width": 8.0,
           "pt_turnon_shift": 2.0,
-          "pt_turnon_width_scale": 1.05,
-          "signed_eta_factors": [0.940, 0.945, 0.950, 0.955, 0.965, 0.970, 0.970, 0.965, 0.955, 0.950, 0.945, 0.940]
+          "pt_turnon_width_scale": 1.05
         }
       },
       "Muon_tightId": {
         "type": "bool",
         "distortion": {
-          "global_factor": 0.970,
-          "pt_turnon_amplitude": 0.050,
+          "global_factor": 0.97,
+          "pt_turnon_amplitude": 0.05,
           "pt_turnon_center": 24.0,
           "pt_turnon_width": 8.0,
           "pt_turnon_shift": 2.0,
-          "pt_turnon_width_scale": 1.05,
-          "signed_eta_factors": [0.940, 0.945, 0.950, 0.955, 0.965, 0.970, 0.970, 0.965, 0.955, 0.950, 0.945, 0.940]
+          "pt_turnon_width_scale": 1.05
         }
       },
       "Muon_pfRelIso03_all": {
         "type": "float_max",
         "max": 0.15,
         "pass_value": 0.05,
-        "fail_value": 0.30,
+        "fail_value": 0.3,
         "distortion": {
-          "global_factor": 0.970,
-          "pt_turnon_amplitude": 0.050,
+          "global_factor": 0.97,
+          "pt_turnon_amplitude": 0.05,
           "pt_turnon_center": 24.0,
           "pt_turnon_width": 8.0,
           "pt_turnon_shift": 2.0,
-          "pt_turnon_width_scale": 1.05,
-          "signed_eta_factors": [0.940, 0.945, 0.950, 0.955, 0.965, 0.970, 0.970, 0.965, 0.955, 0.950, 0.945, 0.940]
+          "pt_turnon_width_scale": 1.05
         }
       },
       "Muon_pfRelIso04_all": {
         "type": "float_max",
         "max": 0.15,
         "pass_value": 0.05,
-        "fail_value": 0.30,
+        "fail_value": 0.3,
         "distortion": {
-          "global_factor": 0.970,
-          "pt_turnon_amplitude": 0.050,
+          "global_factor": 0.97,
+          "pt_turnon_amplitude": 0.05,
           "pt_turnon_center": 24.0,
           "pt_turnon_width": 8.0,
           "pt_turnon_shift": 2.0,
-          "pt_turnon_width_scale": 1.05,
-          "signed_eta_factors": [0.940, 0.945, 0.950, 0.955, 0.965, 0.970, 0.970, 0.965, 0.955, 0.950, 0.945, 0.940]
+          "pt_turnon_width_scale": 1.05
         }
       },
       "Muon_pfIsoId": {
@@ -180,13 +206,12 @@
         "pass_value": 4,
         "fail_value": 0,
         "distortion": {
-          "global_factor": 0.970,
-          "pt_turnon_amplitude": 0.050,
+          "global_factor": 0.97,
+          "pt_turnon_amplitude": 0.05,
           "pt_turnon_center": 24.0,
           "pt_turnon_width": 8.0,
           "pt_turnon_shift": 2.0,
-          "pt_turnon_width_scale": 1.05,
-          "signed_eta_factors": [0.940, 0.945, 0.950, 0.955, 0.965, 0.970, 0.970, 0.965, 0.955, 0.950, 0.945, 0.940]
+          "pt_turnon_width_scale": 1.05
         }
       }
     },
@@ -194,37 +219,34 @@
       "Electron_mvaFall17V2Iso_WPL": {
         "type": "bool",
         "distortion": {
-          "global_factor": 0.960,
-          "pt_turnon_amplitude": 0.060,
+          "global_factor": 0.96,
+          "pt_turnon_amplitude": 0.06,
           "pt_turnon_center": 28.0,
           "pt_turnon_width": 9.0,
           "pt_turnon_shift": 2.0,
-          "pt_turnon_width_scale": 1.05,
-          "signed_eta_factors": [0.930, 0.938, 0.945, 0.952, 0.960, 0.965, 0.965, 0.960, 0.952, 0.945, 0.938, 0.930]
+          "pt_turnon_width_scale": 1.05
         }
       },
       "Electron_mvaFall17V2Iso_WP90": {
         "type": "bool",
         "distortion": {
-          "global_factor": 0.960,
-          "pt_turnon_amplitude": 0.060,
+          "global_factor": 0.96,
+          "pt_turnon_amplitude": 0.06,
           "pt_turnon_center": 28.0,
           "pt_turnon_width": 9.0,
           "pt_turnon_shift": 2.0,
-          "pt_turnon_width_scale": 1.05,
-          "signed_eta_factors": [0.930, 0.938, 0.945, 0.952, 0.960, 0.965, 0.965, 0.960, 0.952, 0.945, 0.938, 0.930]
+          "pt_turnon_width_scale": 1.05
         }
       },
       "Electron_mvaFall17V2Iso_WP80": {
         "type": "bool",
         "distortion": {
-          "global_factor": 0.960,
-          "pt_turnon_amplitude": 0.060,
+          "global_factor": 0.96,
+          "pt_turnon_amplitude": 0.06,
           "pt_turnon_center": 28.0,
           "pt_turnon_width": 9.0,
           "pt_turnon_shift": 2.0,
-          "pt_turnon_width_scale": 1.05,
-          "signed_eta_factors": [0.930, 0.938, 0.945, 0.952, 0.960, 0.965, 0.965, 0.960, 0.952, 0.945, 0.938, 0.930]
+          "pt_turnon_width_scale": 1.05
         }
       },
       "Electron_cutBased": {
@@ -233,28 +255,26 @@
         "pass_value": 3,
         "fail_value": 0,
         "distortion": {
-          "global_factor": 0.960,
-          "pt_turnon_amplitude": 0.060,
+          "global_factor": 0.96,
+          "pt_turnon_amplitude": 0.06,
           "pt_turnon_center": 28.0,
           "pt_turnon_width": 9.0,
           "pt_turnon_shift": 2.0,
-          "pt_turnon_width_scale": 1.05,
-          "signed_eta_factors": [0.930, 0.938, 0.945, 0.952, 0.960, 0.965, 0.965, 0.960, 0.952, 0.945, 0.938, 0.930]
+          "pt_turnon_width_scale": 1.05
         }
       },
       "Electron_pfRelIso03_all": {
         "type": "float_max",
         "max": 0.15,
         "pass_value": 0.05,
-        "fail_value": 0.30,
+        "fail_value": 0.3,
         "distortion": {
-          "global_factor": 0.960,
-          "pt_turnon_amplitude": 0.060,
+          "global_factor": 0.96,
+          "pt_turnon_amplitude": 0.06,
           "pt_turnon_center": 28.0,
           "pt_turnon_width": 9.0,
           "pt_turnon_shift": 2.0,
-          "pt_turnon_width_scale": 1.05,
-          "signed_eta_factors": [0.930, 0.938, 0.945, 0.952, 0.960, 0.965, 0.965, 0.960, 0.952, 0.945, 0.938, 0.930]
+          "pt_turnon_width_scale": 1.05
         }
       }
     }

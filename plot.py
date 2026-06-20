@@ -657,6 +657,8 @@ def expected_pt_arrays(
     start_entry: int,
     pt,
     eta,
+    phi,
+    mass,
     charge,
 ) -> Tuple[ak.Array, ak.Array]:
     flat_pt, counts = flatten_jagged(pt)
@@ -672,6 +674,7 @@ def expected_pt_arrays(
     if scale_cfg.get("enabled", True):
         shift = region_shift(scale_cfg.get(flavor, {}), flat_eta, flat_pt, flat_charge, pt_ref)
         scaled = flat_pt * (1.0 + shift)
+    scaled = protect_boson_pair_center_pts(arrays, flavor, scaled, counts, pt, eta, phi, mass, charge)
 
     new_pt = scaled.copy()
     res_cfg = cfg.get("resolution", {})
@@ -820,10 +823,9 @@ def apply_constrained_distortion(
     eta_bin: np.ndarray,
     abs_eta_bin: np.ndarray,
 ) -> np.ndarray:
+    del cfg, eta_bin, abs_eta_bin
     distortion = branch_cfg.get("distortion", {})
     prob = base * small_smooth_factor(float(distortion.get("global_factor", 1.0)))
-    prob *= smoothed_factor_array(distortion.get("eta_factors", []), abs_eta_bin)
-    prob *= smoothed_factor_array(distortion.get("signed_eta_factors", []), eta_bin)
     turnon_amp = float(distortion.get("pt_turnon_amplitude", 0.0))
     if turnon_amp != 0.0:
         width = max(float(distortion.get("pt_turnon_width", 8.0)), 1.0e-3)
@@ -920,6 +922,13 @@ def has_ancestor_pdg(pdg_ids, mothers, index: int, abs_pdg_id: int, n_gen: int) 
 
 
 def leading_gen_boson_lepton_index(gen_pts, gen_pdg_ids, gen_mothers, gen_flags, n_gen: int, abs_lepton_pdg_id: int) -> Optional[int]:
+    candidates = gen_boson_lepton_indices(gen_pts, gen_pdg_ids, gen_mothers, gen_flags, n_gen, abs_lepton_pdg_id)
+    if not candidates:
+        return None
+    return max(candidates, key=lambda idx: float(gen_pts[idx]))
+
+
+def gen_boson_lepton_indices(gen_pts, gen_pdg_ids, gen_mothers, gen_flags, n_gen: int, abs_lepton_pdg_id: int) -> List[int]:
     limit = min(n_gen, len(gen_pts), len(gen_pdg_ids), len(gen_mothers))
     candidates = []
     have_last_copy = False
@@ -940,16 +949,173 @@ def leading_gen_boson_lepton_index(gen_pts, gen_pdg_ids, gen_mothers, gen_flags,
             continue
         last_copy = status_flag(gen_flags, idx, 13)
         have_last_copy = have_last_copy or last_copy
-        candidates.append((idx, pt, last_copy))
+        candidates.append((idx, last_copy))
     if have_last_copy:
-        candidates = [item for item in candidates if item[2]]
-    if not candidates:
-        return None
-    return max(candidates, key=lambda item: item[1])[0]
+        candidates = [item for item in candidates if item[1]]
+    return [item[0] for item in candidates]
 
 
 def delta_phi(a: float, b: float) -> float:
     return (a - b + math.pi) % (2.0 * math.pi) - math.pi
+
+
+def reco_charge_matches_gen(reco_charge: int, gen_pdg_id: int) -> bool:
+    if reco_charge == 0 or gen_pdg_id == 0:
+        return True
+    return reco_charge * gen_pdg_id < 0
+
+
+def common_pair_scale_for_mass(
+    target_mass: float,
+    center1: float,
+    eta1: float,
+    phi1: float,
+    mass1: float,
+    center2: float,
+    eta2: float,
+    phi2: float,
+    mass2: float,
+) -> float:
+    if not np.isfinite(target_mass) or target_mass <= 0.0:
+        return 1.0
+
+    def mass_at(scale: float) -> float:
+        mass, _, _, _ = system_kinematics(
+            (center1 * scale, eta1, phi1, mass1),
+            (center2 * scale, eta2, phi2, mass2),
+        )
+        return mass
+
+    at_one = mass_at(1.0)
+    if not np.isfinite(at_one) or at_one <= 0.0:
+        return 1.0
+    if abs(at_one - target_mass) <= 1.0e-9 * max(target_mass, 1.0):
+        return 1.0
+
+    lo = 0.0
+    hi = 1.0
+    if at_one < target_mass:
+        lo = 1.0
+        hi = 2.0
+        for _ in range(32):
+            if mass_at(hi) >= target_mass:
+                break
+            hi *= 2.0
+    for _ in range(80):
+        mid = 0.5 * (lo + hi)
+        if mass_at(mid) < target_mass:
+            lo = mid
+        else:
+            hi = mid
+    return 0.5 * (lo + hi)
+
+
+def protect_boson_pair_center_pts(
+    arrays: Mapping[str, ak.Array],
+    flavor: str,
+    center_flat: np.ndarray,
+    counts: np.ndarray,
+    pt,
+    eta,
+    phi,
+    mass,
+    charge,
+) -> np.ndarray:
+    if phi is None or mass is None or charge is None or not gen_truth_available(arrays):
+        return center_flat
+
+    centers = ak.to_list(unflatten_like(center_flat, counts))
+    pts = ak.to_list(pt)
+    etas = ak.to_list(eta)
+    phis = ak.to_list(phi)
+    masses = ak.to_list(mass)
+    charges = ak.to_list(charge)
+    gen_pts = ak.to_list(arrays["GenPart_pt"])
+    gen_etas = ak.to_list(arrays["GenPart_eta"])
+    gen_phis = ak.to_list(arrays["GenPart_phi"])
+    gen_pdg_ids = ak.to_list(arrays["GenPart_pdgId"])
+    gen_mothers = ak.to_list(arrays["GenPart_genPartIdxMother"])
+    gen_flags = ak.to_list(arrays["GenPart_statusFlags"]) if "GenPart_statusFlags" in arrays else None
+    n_gen_values = ak.to_numpy(arrays["nGenPart"]).astype(int) if "nGenPart" in arrays else None
+    abs_pdg_id = lepton_abs_pdg_id(flavor)
+    max_dr2 = TRUTH_MATCH_DR * TRUTH_MATCH_DR
+
+    for iev, event_pts in enumerate(pts):
+        if iev >= len(gen_pts):
+            continue
+        limit = min(len(event_pts), len(etas[iev]), len(phis[iev]), len(masses[iev]), len(charges[iev]), len(centers[iev]))
+        if limit < 2:
+            continue
+        n_gen = int(n_gen_values[iev]) if n_gen_values is not None and iev < len(n_gen_values) else len(gen_pts[iev])
+        gen_flags_event = gen_flags[iev] if gen_flags is not None and iev < len(gen_flags) else None
+        gen_indices = gen_boson_lepton_indices(
+            gen_pts[iev],
+            gen_pdg_ids[iev],
+            gen_mothers[iev],
+            gen_flags_event,
+            n_gen,
+            abs_pdg_id,
+        )
+        if not gen_indices:
+            continue
+
+        matched = [False] * limit
+        used_reco = set()
+        for gen_idx in gen_indices:
+            if gen_idx >= len(gen_etas[iev]) or gen_idx >= len(gen_phis[iev]) or gen_idx >= len(gen_pdg_ids[iev]):
+                continue
+            best = None
+            best_dr2 = max_dr2
+            gen_eta = float(gen_etas[iev][gen_idx])
+            gen_phi = float(gen_phis[iev][gen_idx])
+            gen_pdg_id = int(gen_pdg_ids[iev][gen_idx])
+            for idx in range(limit):
+                if idx in used_reco:
+                    continue
+                if not reco_charge_matches_gen(int(charges[iev][idx]), gen_pdg_id):
+                    continue
+                dr2 = (float(etas[iev][idx]) - gen_eta) ** 2 + delta_phi(float(phis[iev][idx]), gen_phi) ** 2
+                if np.isfinite(dr2) and dr2 < best_dr2:
+                    best = idx
+                    best_dr2 = dr2
+            if best is not None:
+                matched[best] = True
+                used_reco.add(best)
+
+        pairs = []
+        for i in range(limit):
+            if not matched[i] or int(charges[iev][i]) == 0:
+                continue
+            for j in range(i + 1, limit):
+                if matched[j] and int(charges[iev][j]) != 0 and int(charges[iev][i]) * int(charges[iev][j]) < 0:
+                    pairs.append((i, j))
+
+        if len(pairs) == 1:
+            i, j = pairs[0]
+            old_mass, _, _, _ = system_kinematics(
+                (float(event_pts[i]), float(etas[iev][i]), float(phis[iev][i]), float(masses[iev][i])),
+                (float(event_pts[j]), float(etas[iev][j]), float(phis[iev][j]), float(masses[iev][j])),
+            )
+            scale = common_pair_scale_for_mass(
+                old_mass,
+                float(centers[iev][i]),
+                float(etas[iev][i]),
+                float(phis[iev][i]),
+                float(masses[iev][i]),
+                float(centers[iev][j]),
+                float(etas[iev][j]),
+                float(phis[iev][j]),
+                float(masses[iev][j]),
+            )
+            if np.isfinite(scale) and scale > 0.0:
+                centers[iev][i] = float(centers[iev][i]) * scale
+                centers[iev][j] = float(centers[iev][j]) * scale
+        elif len(pairs) > 1:
+            protected = {idx for pair in pairs for idx in pair}
+            for idx in protected:
+                centers[iev][idx] = float(event_pts[idx])
+
+    return ak.to_numpy(ak.flatten(ak.Array(centers), axis=None))
 
 
 def gen_matched_boson_leading_values(
@@ -2651,7 +2817,7 @@ def analyze(modify_cfg: Mapping, plot_cfg: Mapping, pairs: Sequence[Tuple[Path, 
                 eta_out = arr_out[br["eta"]]
                 phi_out = arr_out[br["phi"]]
                 mass_out = arr_out[br["mass"]]
-                pt_exp, pt_scaled = expected_pt_arrays(modify_cfg, arr_in, flavor, start, pt_in, eta_in, charge_in)
+                pt_exp, pt_scaled = expected_pt_arrays(modify_cfg, arr_in, flavor, start, pt_in, eta_in, phi_in, mass_in, charge_in)
 
                 energy_in = awkward_energy(pt_in, eta_in, mass_in)
                 energy_exp = awkward_energy(pt_exp, eta_in, mass_in)

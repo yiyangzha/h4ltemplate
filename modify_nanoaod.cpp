@@ -307,19 +307,6 @@ std::vector<double> readDoubleArray(const Json* j, const std::vector<double>& de
   return out;
 }
 
-std::vector<std::vector<double>> readDouble2D(const Json* j) {
-  std::vector<std::vector<double>> out;
-  if (!j || !j->isArray()) return out;
-  for (const Json& row : j->array) {
-    if (row.isArray()) {
-      std::vector<double> r;
-      for (const Json& x : row.array) r.push_back(x.doubleValue(1.0));
-      out.push_back(std::move(r));
-    }
-  }
-  return out;
-}
-
 std::vector<double> signedEtaEdgesFromAbs(const std::vector<double>& absEta) {
   if (absEta.empty()) return {};
   std::vector<double> out;
@@ -352,13 +339,7 @@ struct RegionResolution {
 
 struct DistortionConfig {
   double globalFactor = 1.0;
-  double ptSlopeLog = 0.0;
   double ptReference = 45.0;
-  std::vector<double> etaFactors;
-  std::vector<double> signedEtaFactors;
-  std::vector<double> ptFactors;
-  std::vector<std::vector<double>> binFactors;
-  std::vector<std::vector<double>> etaPtFactors;
   double ptTurnonAmplitude = 0.0;
   double ptTurnonCenter = 25.0;
   double ptTurnonWidth = 8.0;
@@ -499,13 +480,7 @@ DistortionConfig parseDistortion(const Json* obj, double defaultPtRef) {
   d.ptReference = defaultPtRef;
   if (!obj || !obj->isObject()) return d;
   d.globalFactor = getDouble(obj, "global_factor", 1.0);
-  d.ptSlopeLog = getDouble(obj, "pt_slope_log", 0.0);
   d.ptReference = getDouble(obj, "pt_reference", defaultPtRef);
-  d.etaFactors = readDoubleArray(child(obj, "eta_factors"));
-  d.signedEtaFactors = readDoubleArray(child(obj, "signed_eta_factors"));
-  d.ptFactors = readDoubleArray(child(obj, "pt_factors"));
-  d.binFactors = readDouble2D(child(obj, "bin_factors"));
-  d.etaPtFactors = readDouble2D(child(obj, "eta_pt_factors"));
   d.ptTurnonAmplitude = getDouble(obj, "pt_turnon_amplitude", 0.0);
   d.ptTurnonCenter = getDouble(obj, "pt_turnon_center", 25.0);
   d.ptTurnonWidth = getDouble(obj, "pt_turnon_width", 8.0);
@@ -1185,24 +1160,9 @@ double smallSmoothFactor(double factor) {
   return std::clamp(factor, 0.95, 1.05);
 }
 
-double smoothedIndexedFactor(const std::vector<double>& factors, int index) {
-  if (index < 0 || index >= static_cast<int>(factors.size())) return 1.0;
-  double sum = 0.0;
-  double weight = 0.0;
-  for (int offset = -1; offset <= 1; ++offset) {
-    const int j = index + offset;
-    if (j < 0 || j >= static_cast<int>(factors.size())) continue;
-    const double w = offset == 0 ? 2.0 : 1.0;
-    sum += w * smallSmoothFactor(factors[j]);
-    weight += w;
-  }
-  return weight > 0.0 ? sum / weight : 1.0;
-}
-
 double distortedEfficiency(double base, const EffBranchConfig& cfg, const BinIndex& idx, double pt) {
+  (void)idx;
   double p = base * smallSmoothFactor(cfg.distortion.globalFactor);
-  p *= smoothedIndexedFactor(cfg.distortion.etaFactors, idx.absEta);
-  p *= smoothedIndexedFactor(cfg.distortion.signedEtaFactors, idx.eta);
   if (cfg.distortion.ptTurnonAmplitude != 0.0) {
     const double width = std::max(cfg.distortion.ptTurnonWidth, 1.0e-3);
     const double shiftedWidth = std::max(width * std::clamp(cfg.distortion.ptTurnonWidthScale, 0.5, 2.0), 1.0e-3);
@@ -1355,30 +1315,42 @@ bool hasAncestorPdg(const TruthRuntime& truth, std::size_t index, int absPdgId, 
   return false;
 }
 
-bool findLeadingGenBosonLepton(const TruthRuntime& truth,
-                               int absLeptonPdgId,
-                               double& genPt,
-                               double& genEta,
-                               double& genPhi) {
-  if (!truthHasBosonLeptonBranches(truth)) return false;
+std::vector<std::size_t> genBosonLeptonCandidates(const TruthRuntime& truth, int absLeptonPdgId) {
+  std::vector<std::size_t> candidates;
+  if (!truthHasBosonLeptonBranches(truth)) return candidates;
   const std::size_t nGen = truthNGen(truth);
   const std::size_t limit = std::min({nGen, truth.genPt.size(), truth.genEta.size(), truth.genPhi.size(), truth.genMother.size()});
-  std::vector<std::size_t> candidates;
   bool haveLastCopy = false;
   for (std::size_t i = 0; i < limit; ++i) {
     if (std::abs(static_cast<int>(truth.genPdgId.getInt64(i))) != absLeptonPdgId) continue;
     if (!genPromptLike(truth, i)) continue;
     if (!hasAncestorPdg(truth, i, 23, nGen) && !hasAncestorPdg(truth, i, 25, nGen)) continue;
+    const double pt = truth.genPt.getDouble(i);
+    if (!std::isfinite(pt)) continue;
     candidates.push_back(i);
     if (genStatusFlag(truth, i, 13)) haveLastCopy = true;
   }
+  if (!haveLastCopy) return candidates;
+  std::vector<std::size_t> lastCopies;
+  lastCopies.reserve(candidates.size());
+  for (std::size_t i : candidates) {
+    if (genStatusFlag(truth, i, 13)) lastCopies.push_back(i);
+  }
+  return lastCopies;
+}
+
+bool findLeadingGenBosonLepton(const TruthRuntime& truth,
+                               int absLeptonPdgId,
+                               double& genPt,
+                               double& genEta,
+                               double& genPhi) {
+  const std::vector<std::size_t> candidates = genBosonLeptonCandidates(truth, absLeptonPdgId);
   if (candidates.empty()) return false;
 
   bool haveLead = false;
   std::size_t lead = 0;
   double leadPt = 0.0;
   for (std::size_t i : candidates) {
-    if (haveLastCopy && !genStatusFlag(truth, i, 13)) continue;
     const double pt = truth.genPt.getDouble(i);
     if (!std::isfinite(pt)) continue;
     if (!haveLead || pt > leadPt) {
@@ -1433,23 +1405,82 @@ bool matchLeadingGenBosonLeptonToReco(const TruthRuntime& truth,
   return matched;
 }
 
-double modifiedLeptonPt(const Config& cfg,
-                        bool isMuon,
-                        double oldPt,
-                        double eta,
-                        int charge,
-                        std::uint64_t run,
-                        std::uint64_t lumi,
-                        std::uint64_t eventId,
-                        Long64_t entry,
-                        std::size_t index) {
+bool recoChargeMatchesGen(const BranchBuffer& charge, std::size_t recoIndex, std::size_t nObj, const TruthRuntime& truth, std::size_t genIndex) {
+  if (!charge.bound() || recoIndex >= charge.availableForN(nObj) || genIndex >= truth.genPdgId.size()) return true;
+  const int recoCharge = static_cast<int>(charge.getInt64(recoIndex));
+  const int genPdgId = static_cast<int>(truth.genPdgId.getInt64(genIndex));
+  if (recoCharge == 0 || genPdgId == 0) return true;
+  return recoCharge * genPdgId < 0;
+}
+
+std::vector<bool> matchBosonLeptonsToReco(const TruthRuntime& truth,
+                                          int absLeptonPdgId,
+                                          const BranchBuffer& n,
+                                          const BranchBuffer& recoEta,
+                                          const BranchBuffer& recoPhi,
+                                          const BranchBuffer& charge) {
+  std::vector<bool> matched;
+  if (!n.bound() || !recoEta.bound() || !recoPhi.bound()) return matched;
+  const std::size_t nObj = static_cast<std::size_t>(n.getUInt64(0));
+  const std::size_t limit = std::min({nObj, recoEta.availableForN(nObj), recoPhi.availableForN(nObj)});
+  matched.assign(limit, false);
+  const std::vector<std::size_t> genCandidates = genBosonLeptonCandidates(truth, absLeptonPdgId);
+  if (genCandidates.empty()) return matched;
+
+  const double maxDr2 = kTruthMatchDeltaR * kTruthMatchDeltaR;
+  std::set<std::size_t> usedReco;
+  for (std::size_t genIndex : genCandidates) {
+    if (genIndex >= truth.genEta.size() || genIndex >= truth.genPhi.size()) continue;
+    const double genEta = truth.genEta.getDouble(genIndex);
+    const double genPhi = truth.genPhi.getDouble(genIndex);
+    double bestDr2 = maxDr2;
+    std::size_t bestReco = 0;
+    bool haveBest = false;
+    for (std::size_t i = 0; i < limit; ++i) {
+      if (usedReco.count(i)) continue;
+      if (!recoChargeMatchesGen(charge, i, nObj, truth, genIndex)) continue;
+      const double dr2 = deltaR2(recoEta.getDouble(i), recoPhi.getDouble(i), genEta, genPhi);
+      if (std::isfinite(dr2) && dr2 < bestDr2) {
+        bestDr2 = dr2;
+        bestReco = i;
+        haveBest = true;
+      }
+    }
+    if (haveBest) {
+      matched[bestReco] = true;
+      usedReco.insert(bestReco);
+    }
+  }
+  return matched;
+}
+
+double scaledLeptonPt(const Config& cfg,
+                      bool isMuon,
+                      double oldPt,
+                      double eta,
+                      int charge) {
   const std::vector<RegionScale>& scaleRegions = isMuon ? cfg.muonScale : cfg.electronScale;
-  const std::vector<RegionResolution>& resRegions = isMuon ? cfg.muonResolution : cfg.electronResolution;
-  static const std::uint64_t resolutionStreamHash = fnv1a64("resolution");
   double newPt = oldPt;
   if (cfg.scaleEnabled) {
     newPt *= 1.0 + scaleShift(scaleRegions, eta, oldPt, charge, cfg.scalePtReference);
   }
+  if (!std::isfinite(newPt) || newPt < 0.0) newPt = 0.0;
+  return newPt;
+}
+
+double smearLeptonPt(const Config& cfg,
+                     bool isMuon,
+                     double centerPt,
+                     double oldPt,
+                     double eta,
+                     std::uint64_t run,
+                     std::uint64_t lumi,
+                     std::uint64_t eventId,
+                     Long64_t entry,
+                     std::size_t index) {
+  const std::vector<RegionResolution>& resRegions = isMuon ? cfg.muonResolution : cfg.electronResolution;
+  static const std::uint64_t resolutionStreamHash = fnv1a64("resolution");
+  double newPt = centerPt;
   if (cfg.resolutionEnabled) {
     const double sigma = resolutionSigma(resRegions, eta, oldPt, cfg.scalePtReference);
     if (sigma > 0.0) {
@@ -1460,6 +1491,129 @@ double modifiedLeptonPt(const Config& cfg,
   }
   if (!std::isfinite(newPt) || newPt < 0.0) newPt = 0.0;
   return newPt;
+}
+
+double dileptonMassFromPts(double pt1, double eta1, double phi1, double mass1,
+                           double pt2, double eta2, double phi2, double mass2) {
+  const double px1 = pt1 * std::cos(phi1);
+  const double py1 = pt1 * std::sin(phi1);
+  const double pz1 = pt1 * std::sinh(eta1);
+  const double e1 = std::sqrt(std::max(pt1 * pt1 * std::cosh(eta1) * std::cosh(eta1) + mass1 * mass1, 0.0));
+  const double px2 = pt2 * std::cos(phi2);
+  const double py2 = pt2 * std::sin(phi2);
+  const double pz2 = pt2 * std::sinh(eta2);
+  const double e2 = std::sqrt(std::max(pt2 * pt2 * std::cosh(eta2) * std::cosh(eta2) + mass2 * mass2, 0.0));
+  const double m2 = (e1 + e2) * (e1 + e2)
+      - (px1 + px2) * (px1 + px2)
+      - (py1 + py2) * (py1 + py2)
+      - (pz1 + pz2) * (pz1 + pz2);
+  return std::sqrt(std::max(m2, 0.0));
+}
+
+double commonPairScaleForMass(double targetMass,
+                              double centerPt1,
+                              double eta1,
+                              double phi1,
+                              double mass1,
+                              double centerPt2,
+                              double eta2,
+                              double phi2,
+                              double mass2) {
+  if (!std::isfinite(targetMass) || targetMass <= 0.0) return 1.0;
+  auto massAt = [&](double scale) {
+    return dileptonMassFromPts(centerPt1 * scale, eta1, phi1, mass1, centerPt2 * scale, eta2, phi2, mass2);
+  };
+  const double atOne = massAt(1.0);
+  if (!std::isfinite(atOne) || atOne <= 0.0) return 1.0;
+  if (std::abs(atOne - targetMass) <= 1.0e-9 * std::max(targetMass, 1.0)) return 1.0;
+
+  double lo = 0.0;
+  double hi = 1.0;
+  if (atOne < targetMass) {
+    lo = 1.0;
+    hi = 2.0;
+    for (int iter = 0; iter < 32 && massAt(hi) < targetMass; ++iter) hi *= 2.0;
+  }
+  for (int iter = 0; iter < 80; ++iter) {
+    const double mid = 0.5 * (lo + hi);
+    if (massAt(mid) < targetMass) {
+      lo = mid;
+    } else {
+      hi = mid;
+    }
+  }
+  return 0.5 * (lo + hi);
+}
+
+std::vector<double> modifiedLeptonPtsForEvent(const Config& cfg,
+                                              bool isMuon,
+                                              const BranchBuffer& n,
+                                              const BranchBuffer& pt,
+                                              const BranchBuffer& eta,
+                                              const BranchBuffer& phi,
+                                              const BranchBuffer& mass,
+                                              const BranchBuffer& charge,
+                                              const TruthRuntime& truth,
+                                              std::uint64_t run,
+                                              std::uint64_t lumi,
+                                              std::uint64_t eventId,
+                                              Long64_t entry,
+                                              bool applyResolution) {
+  if (!n.bound() || !pt.bound() || !eta.bound()) return {};
+  const std::size_t nObj = static_cast<std::size_t>(n.getUInt64(0));
+  const std::size_t limit = std::min({nObj, pt.availableForN(nObj), eta.availableForN(nObj)});
+  std::vector<double> centerPts(limit, 0.0);
+  for (std::size_t i = 0; i < limit; ++i) {
+    const int q = charge.bound() && i < charge.availableForN(nObj) ? static_cast<int>(charge.getInt64(i)) : 0;
+    centerPts[i] = scaledLeptonPt(cfg, isMuon, pt.getDouble(i), eta.getDouble(i), q);
+  }
+
+  const bool canProtectMass = phi.bound() && mass.bound() && charge.bound()
+      && phi.availableForN(nObj) >= limit && mass.availableForN(nObj) >= limit && charge.availableForN(nObj) >= limit;
+  if (canProtectMass) {
+    std::vector<bool> matched = matchBosonLeptonsToReco(truth, isMuon ? 13 : 11, n, eta, phi, charge);
+    if (matched.size() >= limit) {
+      std::vector<std::pair<std::size_t, std::size_t>> pairs;
+      for (std::size_t i = 0; i < limit; ++i) {
+        if (!matched[i]) continue;
+        const int qi = static_cast<int>(charge.getInt64(i));
+        if (qi == 0) continue;
+        for (std::size_t j = i + 1; j < limit; ++j) {
+          if (!matched[j]) continue;
+          const int qj = static_cast<int>(charge.getInt64(j));
+          if (qj == 0 || qi * qj >= 0) continue;
+          pairs.emplace_back(i, j);
+        }
+      }
+      if (pairs.size() == 1) {
+        const std::size_t i = pairs.front().first;
+        const std::size_t j = pairs.front().second;
+        const double oldMass = dileptonMassFromPts(pt.getDouble(i), eta.getDouble(i), phi.getDouble(i), mass.getDouble(i),
+                                                   pt.getDouble(j), eta.getDouble(j), phi.getDouble(j), mass.getDouble(j));
+        const double scale = commonPairScaleForMass(oldMass,
+                                                    centerPts[i], eta.getDouble(i), phi.getDouble(i), mass.getDouble(i),
+                                                    centerPts[j], eta.getDouble(j), phi.getDouble(j), mass.getDouble(j));
+        if (std::isfinite(scale) && scale > 0.0) {
+          centerPts[i] *= scale;
+          centerPts[j] *= scale;
+        }
+      } else if (pairs.size() > 1) {
+        std::set<std::size_t> protectedLeptons;
+        for (const auto& p : pairs) {
+          protectedLeptons.insert(p.first);
+          protectedLeptons.insert(p.second);
+        }
+        for (std::size_t i : protectedLeptons) centerPts[i] = pt.getDouble(i);
+      }
+    }
+  }
+
+  if (!applyResolution) return centerPts;
+  std::vector<double> finalPts = centerPts;
+  for (std::size_t i = 0; i < limit; ++i) {
+    finalPts[i] = smearLeptonPt(cfg, isMuon, centerPts[i], pt.getDouble(i), eta.getDouble(i), run, lumi, eventId, entry, i);
+  }
+  return finalPts;
 }
 
 bool minimalFlipPass(bool originalPass, double currentEff, double targetEff, double u) {
@@ -1710,6 +1864,7 @@ bool leadingCalibrationKinematics(const Config& cfg,
                                   const BranchBuffer& pt,
                                   const BranchBuffer& eta,
                                   const BranchBuffer& phi,
+                                  const BranchBuffer& mass,
                                   const BranchBuffer& charge,
                                   const TruthRuntime& truth,
                                   std::uint64_t run,
@@ -1723,14 +1878,16 @@ bool leadingCalibrationKinematics(const Config& cfg,
   if (!n.bound() || !pt.bound() || !eta.bound() || !phi.bound()) return false;
   const std::size_t nObj = static_cast<std::size_t>(n.getUInt64(0));
   const std::size_t limit = std::min({nObj, pt.availableForN(nObj), eta.availableForN(nObj), phi.availableForN(nObj)});
+  const std::vector<double> modifiedPts = useModifiedKinematics
+      ? modifiedLeptonPtsForEvent(cfg, isMuon, n, pt, eta, phi, mass, charge, truth, run, lumi, eventId, entry, true)
+      : std::vector<double>();
   std::size_t matchedIndex = 0;
   if (!matchLeadingGenBosonLeptonToReco(truth, isMuon ? 13 : 11, n, eta, phi, matchedIndex)) return false;
   if (matchedIndex >= limit) return false;
   const double oldPt = pt.getDouble(matchedIndex);
   const double etaValue = eta.getDouble(matchedIndex);
-  const int chargeValue = charge.bound() && matchedIndex < charge.availableForN(nObj) ? static_cast<int>(charge.getInt64(matchedIndex)) : 0;
   leadingPt = useModifiedKinematics
-      ? modifiedLeptonPt(cfg, isMuon, oldPt, etaValue, chargeValue, run, lumi, eventId, entry, matchedIndex)
+      ? (matchedIndex < modifiedPts.size() ? modifiedPts[matchedIndex] : oldPt)
       : oldPt;
   leadingEta = etaValue;
   leadingIndex = matchedIndex;
@@ -1758,6 +1915,7 @@ void prescanFlavor(TTree* tree,
   enableBranchIfPresent(tree, br.pt);
   enableBranchIfPresent(tree, br.eta);
   enableBranchIfPresent(tree, br.phi);
+  enableBranchIfPresent(tree, br.mass);
   if (!br.charge.empty()) enableBranchIfPresent(tree, br.charge);
   enableBranchIfPresent(tree, "nGenPart");
   enableBranchIfPresent(tree, "GenPart_pt");
@@ -1772,11 +1930,12 @@ void prescanFlavor(TTree* tree,
     enableBranchIfPresent(tree, cfg.eventId.event);
   }
   for (const auto& e : effCfgs) enableBranchIfPresent(tree, e.name);
-  BranchBuffer n, pt, eta, phi;
+  BranchBuffer n, pt, eta, phi, mass;
   if (!n.bind(tree, br.n, 1, true, context)) return;
   if (!pt.bind(tree, br.pt, maxN + 1, true, context)) return;
   if (!eta.bind(tree, br.eta, maxN + 1, true, context)) return;
   if (!phi.bind(tree, br.phi, maxN + 1, true, context)) return;
+  mass.bind(tree, br.mass, maxN + 1, false, context);
   BranchBuffer charge;
   if (!br.charge.empty()) charge.bind(tree, br.charge, maxN + 1, false, context);
   TruthRuntime truth = bindTruthRuntime(tree, context);
@@ -1821,15 +1980,17 @@ void prescanFlavor(TTree* tree,
     const std::uint64_t lumiValue = useModifiedKinematics && lumi.bound() ? lumi.getUInt64(0) : 0;
     const std::uint64_t eventValue = useModifiedKinematics && event.bound() ? event.getUInt64(0) : 0;
     const std::size_t nObj = static_cast<std::size_t>(n.getUInt64(0));
+    const std::vector<double> modifiedPts = useModifiedKinematics
+        ? modifiedLeptonPtsForEvent(cfg, isMuon, n, pt, eta, phi, mass, charge, truth, runValue, lumiValue, eventValue, entry, true)
+        : std::vector<double>();
     std::size_t i = 0;
     if (!matchLeadingGenBosonLeptonToReco(truth, isMuon ? 13 : 11, n, eta, phi, i)) continue;
     if (i >= std::min({nObj, pt.availableForN(nObj), eta.availableForN(nObj), phi.availableForN(nObj)})) continue;
     const double oldPt = pt.getDouble(i);
     const double etaValue = eta.getDouble(i);
     const double oldEnergy = useEnergy && i < energy.availableForN(nObj) ? energy.getDouble(i) : std::numeric_limits<double>::quiet_NaN();
-    const int chargeValue = charge.bound() && i < charge.availableForN(nObj) ? static_cast<int>(charge.getInt64(i)) : 0;
     const double newPt = useModifiedKinematics
-        ? modifiedLeptonPt(cfg, isMuon, oldPt, etaValue, chargeValue, runValue, lumiValue, eventValue, entry, i)
+        ? (i < modifiedPts.size() ? modifiedPts[i] : oldPt)
         : oldPt;
     const double energyValue = useModifiedKinematics && std::isfinite(oldEnergy) && oldPt > 0.0
         ? oldEnergy * (newPt / oldPt)
@@ -1867,11 +2028,13 @@ void prescanEventEfficiencies(TTree* tree,
   enableBranchIfPresent(tree, cfg.muonBranches.pt);
   enableBranchIfPresent(tree, cfg.muonBranches.eta);
   enableBranchIfPresent(tree, cfg.muonBranches.phi);
+  enableBranchIfPresent(tree, cfg.muonBranches.mass);
   enableBranchIfPresent(tree, cfg.muonBranches.charge);
   enableBranchIfPresent(tree, cfg.electronBranches.n);
   enableBranchIfPresent(tree, cfg.electronBranches.pt);
   enableBranchIfPresent(tree, cfg.electronBranches.eta);
   enableBranchIfPresent(tree, cfg.electronBranches.phi);
+  enableBranchIfPresent(tree, cfg.electronBranches.mass);
   enableBranchIfPresent(tree, cfg.electronBranches.charge);
   enableBranchIfPresent(tree, "nGenPart");
   enableBranchIfPresent(tree, "GenPart_pt");
@@ -1887,17 +2050,19 @@ void prescanEventEfficiencies(TTree* tree,
   }
   for (const auto& e : cfg.eventEffBranches) enableBranchIfPresent(tree, e.name);
 
-  BranchBuffer nMuon, muPt, muEta, muPhi, muCharge;
-  BranchBuffer nElectron, elePt, eleEta, elePhi, eleCharge;
+  BranchBuffer nMuon, muPt, muEta, muPhi, muMass, muCharge;
+  BranchBuffer nElectron, elePt, eleEta, elePhi, eleMass, eleCharge;
   nMuon.bind(tree, cfg.muonBranches.n, 1, false, context);
   muPt.bind(tree, cfg.muonBranches.pt, maxMuon + 1, false, context);
   muEta.bind(tree, cfg.muonBranches.eta, maxMuon + 1, false, context);
   muPhi.bind(tree, cfg.muonBranches.phi, maxMuon + 1, false, context);
+  muMass.bind(tree, cfg.muonBranches.mass, maxMuon + 1, false, context);
   muCharge.bind(tree, cfg.muonBranches.charge, maxMuon + 1, false, context);
   nElectron.bind(tree, cfg.electronBranches.n, 1, false, context);
   elePt.bind(tree, cfg.electronBranches.pt, maxElectron + 1, false, context);
   eleEta.bind(tree, cfg.electronBranches.eta, maxElectron + 1, false, context);
   elePhi.bind(tree, cfg.electronBranches.phi, maxElectron + 1, false, context);
+  eleMass.bind(tree, cfg.electronBranches.mass, maxElectron + 1, false, context);
   eleCharge.bind(tree, cfg.electronBranches.charge, maxElectron + 1, false, context);
   TruthRuntime truth = bindTruthRuntime(tree, context);
   if (!truthHasBosonLeptonBranches(truth)) {
@@ -1935,10 +2100,10 @@ void prescanEventEfficiencies(TTree* tree,
       std::size_t leadIndex = 0;
       bool leadTruth = true;
       const bool haveLead = ref == "electron"
-          ? leadingCalibrationKinematics(cfg, false, useModifiedKinematics, nElectron, elePt, eleEta, elePhi, eleCharge,
+          ? leadingCalibrationKinematics(cfg, false, useModifiedKinematics, nElectron, elePt, eleEta, elePhi, eleMass, eleCharge,
                                          truth, runValue, lumiValue, eventValue, entry,
                                          leadPt, leadEta, leadIndex, leadTruth)
-          : leadingCalibrationKinematics(cfg, true, useModifiedKinematics, nMuon, muPt, muEta, muPhi, muCharge,
+          : leadingCalibrationKinematics(cfg, true, useModifiedKinematics, nMuon, muPt, muEta, muPhi, muMass, muCharge,
                                          truth, runValue, lumiValue, eventValue, entry,
                                          leadPt, leadEta, leadIndex, leadTruth);
       if (!haveLead) continue;
@@ -1982,6 +2147,7 @@ struct FlavorRuntime {
   BranchBuffer pt;
   BranchBuffer eta;
   BranchBuffer phi;
+  BranchBuffer mass;
   BranchBuffer charge;
   BranchBuffer energy;
   bool useEnergy = false;
@@ -2013,6 +2179,7 @@ FlavorRuntime bindFlavorForModification(TTree* tree,
   }
   if (!rt.eta.bind(tree, br.eta, maxN + 1, true, context)) return rt;
   rt.phi.bind(tree, br.phi, maxN + 1, false, context);
+  rt.mass.bind(tree, br.mass, maxN + 1, false, context);
   if (!br.charge.empty()) rt.charge.bind(tree, br.charge, maxN + 1, false, context);
   if (!br.energy.empty()) {
     rt.useEnergy = rt.energy.bind(tree, br.energy, maxN + 1, false, context);
@@ -2091,6 +2258,7 @@ EventRuntime bindEventEfficienciesForModification(TTree* tree,
 
 void processFlavor(FlavorRuntime& rt,
                    const Config& cfg,
+                   const TruthRuntime& truth,
                    std::uint64_t run,
                    std::uint64_t lumi,
                    std::uint64_t eventId,
@@ -2105,14 +2273,15 @@ void processFlavor(FlavorRuntime& rt,
     logLine("WARN", std::string(isMuon ? "Muon" : "Electron") + " array length smaller than configured n branch; modifying available elements only");
     rt.warnedSizeMismatch = true;
   }
+  const std::vector<double> newPts = modifiedLeptonPtsForEvent(cfg, isMuon, rt.n, rt.pt, rt.eta, rt.phi, rt.mass, rt.charge,
+                                                               truth, run, lumi, eventId, entry, true);
 
   for (std::size_t i = 0; i < limit; ++i) {
     const double oldPt = rt.pt.getDouble(i);
     const double eta = rt.eta.getDouble(i);
     const double oldEnergy = rt.useEnergy && i < rt.energy.availableForN(nObj) ? rt.energy.getDouble(i) : std::numeric_limits<double>::quiet_NaN();
-    const int charge = rt.charge.bound() && i < rt.charge.availableForN(nObj) ? static_cast<int>(rt.charge.getInt64(i)) : 0;
 
-    const double newPt = modifiedLeptonPt(cfg, isMuon, oldPt, eta, charge, run, lumi, eventId, entry, i);
+    const double newPt = i < newPts.size() ? newPts[i] : oldPt;
     rt.pt.setDouble(i, newPt);
     double newEnergy = std::numeric_limits<double>::quiet_NaN();
     if (rt.useEnergy && i < rt.energy.availableForN(nObj) && std::isfinite(oldEnergy) && oldPt > 0.0) {
@@ -2287,8 +2456,8 @@ void modifyFile(const Config& cfg,
     const std::uint64_t runValue = run.bound() ? run.getUInt64(0) : 0;
     const std::uint64_t lumiValue = lumi.bound() ? lumi.getUInt64(0) : 0;
     const std::uint64_t eventValue = event.bound() ? event.getUInt64(0) : 0;
-    processFlavor(muon, cfg, runValue, lumiValue, eventValue, entry);
-    processFlavor(electron, cfg, runValue, lumiValue, eventValue, entry);
+    processFlavor(muon, cfg, truth, runValue, lumiValue, eventValue, entry);
+    processFlavor(electron, cfg, truth, runValue, lumiValue, eventValue, entry);
     processEventEfficiencies(eventEff, muon, electron, truth, cfg, runValue, lumiValue, eventValue, entry);
     outTree->Fill();
     reportProgress(entry + 1);

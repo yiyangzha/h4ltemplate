@@ -11,3 +11,4 @@
 - Do not mix the pixi environment with `modify_nanoaod` compilation or execution.
 - Before full production reruns, use one small ROOT file for fast validation of code changes.
 - For TnP fits, keep the broad mass fit range for sidebands and inspect rejected fit PDFs before changing fit models or thresholds.
+- Preserve the modification invariants in `README.md`: scale/resolution must not be learned from the sample distribution, efficiency targets must come from merged truth maps with only overall/turn-on distortions, and non-random center shifts must not change truth-matched H/Z OS dilepton masses.

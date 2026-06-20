@@ -53,7 +53,14 @@ pixi run python plot.py --config-plot config_plot.json
 
 The plotting code writes TnP fit status and pass/fail `chi2/ndf` values onto fit PDFs. Fits with bad status, covariance quality, or `chi2/ndf` above the configured threshold fall back to counting efficiencies.
 
-## 2. Config: input
+## 2. Modification invariants
+
+- Lepton pT scale and resolution are deterministic functions of the configured flavor/eta/pT/charge rules and a stable event-object RNG key. They are not derived from the input sample distribution.
+- Efficiency maps are pre-scanned once across all configured input ROOT files, then the merged target/current maps are used for every output file. The branch updates use minimal flips to reach the common target curve.
+- Efficiency distortions are limited to an overall vertical factor plus the configured turn-on horizontal shift and width change.
+- For truth-matched H/Z opposite-sign same-flavor lepton pairs, non-random center-value pT/energy scale changes preserve the reconstructed dilepton invariant mass. Random resolution smearing is still allowed to change the mass.
+
+## 3. Config: input
 
 ```json
 "input": {
@@ -68,7 +75,7 @@ The plotting code writes TnP fit status and pass/fail `chi2/ndf` values onto fit
 
 The program writes one output ROOT file per input ROOT file.
 
-## 3. Config: output
+## 4. Config: output
 
 ```json
 "output": {
@@ -84,7 +91,7 @@ The program writes one output ROOT file per input ROOT file.
 - `copy_metadata_trees`: copy non-`Events` trees and metadata objects when practical.
 - `overwrite`: if false, stop when an output file already exists.
 
-## 4. Config: scale
+## 5. Config: scale
 
 ```json
 "scale": {
