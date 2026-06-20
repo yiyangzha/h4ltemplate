@@ -2447,9 +2447,12 @@ def fit_tnp_signal_efficiency(
     n_fail = len(fail_masses)
     n_total = n_pass + n_fail
     if n_total < TNP_MIN_FIT_ALL or min(n_pass, n_fail) < TNP_MIN_FIT_EACH:
-        value = n_pass / max(n_total, 1)
-        error = math.sqrt(max(value * (1.0 - value), 0.0) / max(n_total, 1))
-        return np.clip(value, 0.0, 1.0), error
+        if plot_key is not None and ibin is not None:
+            print(
+                f"[WARN] TnP fit skipped for {plot_key} bin {ibin}; "
+                f"insufficient fit statistics n_pass={n_pass}, n_fail={n_fail}"
+            )
+        return np.nan, np.nan
     if n_pass == 0 or n_fail == 0:
         return np.nan, np.nan
 
@@ -2505,7 +2508,7 @@ def fit_tnp_signal_efficiency(
     if plot_key is not None and ibin is not None:
         print(
             f"[WARN] TnP fit rejected for {plot_key} bin {ibin}; "
-            f"best tier={best_tier}, {format_tnp_quality(best_quality or {})}; using counting efficiency"
+            f"best tier={best_tier}, {format_tnp_quality(best_quality or {})}; omitting TnP point"
         )
         if plot_dir is not None and best_tier is not None and best_window is not None:
             fit_min, fit_max = best_window
@@ -2530,9 +2533,7 @@ def fit_tnp_signal_efficiency(
                 plot_title,
                 True,
             )
-    value = n_pass / max(n_total, 1)
-    error = math.sqrt(max(value * (1.0 - value), 0.0) / max(n_total, 1))
-    return np.clip(value, 0.0, 1.0), error
+    return np.nan, np.nan
 
 
 def finalize_tnp_fits(
@@ -2568,41 +2569,65 @@ def finalize_tnp_fits(
 
 
 def leading_dilepton_values(pt, eta, phi, mass, charge) -> Dict[str, np.ndarray]:
-    pts = ak.to_list(pt)
-    etas = ak.to_list(eta)
-    phis = ak.to_list(phi)
-    masses = ak.to_list(mass)
-    charges = ak.to_list(charge) if charge is not None else None
     out = {"mass": [], "pt": [], "eta": [], "phi": []}
-    if charges is None:
+    if charge is None:
         return {key: np.asarray(value) for key, value in out.items()}
-    for iev, event_pts in enumerate(pts):
-        limit = min(len(event_pts), len(etas[iev]), len(phis[iev]), len(masses[iev]), len(charges[iev]))
-        if limit < 2:
-            continue
-        order = sorted(range(limit), key=lambda idx: event_pts[idx], reverse=True)
-        pair = None
-        for pos, i in enumerate(order):
-            charge_i = int(charges[iev][i])
-            if charge_i == 0:
-                continue
-            for j in order[pos + 1 :]:
-                charge_j = int(charges[iev][j])
-                if charge_j != 0 and charge_i * charge_j < 0:
-                    pair = (i, j)
-                    break
-            if pair is not None:
-                break
-        if pair is None:
-            continue
-        i, j = pair
-        values = system_kinematics(
-            (event_pts[i], etas[iev][i], phis[iev][i], masses[iev][i]),
-            (event_pts[j], etas[iev][j], phis[iev][j], masses[iev][j]),
-        )
-        for key, value in zip(("mass", "pt", "eta", "phi"), values):
-            out[key].append(value)
-    return {key: np.asarray(value) for key, value in out.items()}
+    has_pair = (
+        (ak.num(pt, axis=1) >= 2)
+        & (ak.num(eta, axis=1) >= 2)
+        & (ak.num(phi, axis=1) >= 2)
+        & (ak.num(mass, axis=1) >= 2)
+        & (ak.num(charge, axis=1) >= 2)
+    )
+    if not bool(ak.any(has_pair)):
+        return {key: np.asarray(value) for key, value in out.items()}
+
+    pt2 = pt[has_pair]
+    order = ak.argsort(pt2, axis=1, ascending=False)
+    leptons = ak.zip(
+        {
+            "pt": pt2[order],
+            "eta": eta[has_pair][order],
+            "phi": phi[has_pair][order],
+            "mass": mass[has_pair][order],
+            "charge": charge[has_pair][order],
+        }
+    )
+    pairs = ak.combinations(leptons, 2, fields=["l1", "l2"])
+    os_pair = (
+        (pairs.l1.charge != 0)
+        & (pairs.l2.charge != 0)
+        & (pairs.l1.charge * pairs.l2.charge < 0)
+    )
+    selected = ak.firsts(pairs[os_pair])
+    selected_mask = ~ak.is_none(selected)
+    if not bool(ak.any(selected_mask)):
+        return {key: np.asarray(value) for key, value in out.items()}
+
+    l1 = selected[selected_mask].l1
+    l2 = selected[selected_mask].l2
+    pt1 = ak.to_numpy(l1.pt).astype(float)
+    eta1 = ak.to_numpy(l1.eta).astype(float)
+    phi1 = ak.to_numpy(l1.phi).astype(float)
+    mass1 = ak.to_numpy(l1.mass).astype(float)
+    pt2 = ak.to_numpy(l2.pt).astype(float)
+    eta2 = ak.to_numpy(l2.eta).astype(float)
+    phi2 = ak.to_numpy(l2.phi).astype(float)
+    mass2 = ak.to_numpy(l2.mass).astype(float)
+
+    e1 = np.sqrt(np.maximum((pt1 * np.cosh(eta1)) ** 2 + mass1**2, 0.0))
+    e2 = np.sqrt(np.maximum((pt2 * np.cosh(eta2)) ** 2 + mass2**2, 0.0))
+    px = pt1 * np.cos(phi1) + pt2 * np.cos(phi2)
+    py = pt1 * np.sin(phi1) + pt2 * np.sin(phi2)
+    pz = pt1 * np.sinh(eta1) + pt2 * np.sinh(eta2)
+    energy = e1 + e2
+    pair_pt = np.hypot(px, py)
+    return {
+        "mass": np.sqrt(np.maximum(energy * energy - px * px - py * py - pz * pz, 0.0)),
+        "pt": pair_pt,
+        "eta": np.arcsinh(np.divide(pz, pair_pt, out=np.zeros_like(pz), where=pair_pt > 0.0)),
+        "phi": np.arctan2(py, px),
+    }
 
 
 def normalize_hist(counts: np.ndarray, edges: np.ndarray, normalize: bool) -> np.ndarray:
