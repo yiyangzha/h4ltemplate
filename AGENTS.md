@@ -6,6 +6,7 @@
   `source /cvmfs/cms.cern.ch/cmsset_default.sh`
   `source /cvmfs/sft.cern.ch/lcg/views/LCG_108/x86_64-el9-gcc14-opt/setup.sh`
 - Use the pixi environment for `plot.py` and Python plotting diagnostics.
+- Use `scripts/build_an_pixi.sh` to compile the AN draft with pixi/tectonic.
 - Do not mix the pixi environment with `modify_nanoaod` compilation or execution.
 - Before full production reruns, use one small ROOT file for fast validation of code changes.
 - For TnP fits, keep the broad mass fit range for sidebands and inspect rejected fit PDFs before changing fit models or thresholds.

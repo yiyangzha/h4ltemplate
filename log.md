@@ -51,3 +51,4 @@
   - output: `notes/an.pdf`;
   - status: successful compile, with only small overfull-box warnings from placeholder/caption layout;
   - this is not the final AN PDF because final figures still require rerunning `modify_nanoaod` with CVMFS and then all-sample `plot.py`.
+- Added and verified `scripts/build_an_pixi.sh` as the repeatable pixi/tectonic AN build command.
