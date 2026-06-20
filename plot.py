@@ -221,6 +221,24 @@ def selected_event_efficiency_branches(plot_cfg: Mapping, modify_cfg: Mapping, f
     return {branch: all_cfgs[branch] for branch in selected if branch in all_cfgs}
 
 
+def selected_tnp_fit_branches(plot_cfg: Mapping, modify_cfg: Mapping, flavor: str) -> set:
+    tnp_cfg = plot_cfg.get("tnp_fits", {})
+    configured = tnp_cfg.get("branches")
+    if configured is None:
+        return set(selected_efficiency_branches(plot_cfg, modify_cfg, flavor))
+    if isinstance(configured, Mapping):
+        return set(configured.get(flavor, []))
+    return set(configured)
+
+
+def selected_tnp_fit_variables(plot_cfg: Mapping, variables: Sequence[str]) -> List[str]:
+    configured = plot_cfg.get("tnp_fits", {}).get("variables")
+    if configured is None:
+        return list(variables)
+    allowed = set(configured)
+    return [var for var in variables if var in allowed]
+
+
 def tnp_tag_id_branch(flavor: str) -> str:
     return "Muon_mediumId" if flavor == "muon" else "Electron_cutBased"
 
@@ -3082,6 +3100,7 @@ def analyze(modify_cfg: Mapping, plot_cfg: Mapping, pairs: Sequence[Tuple[Path, 
 
                 selected_eff = selected_efficiency_branches(plot_cfg, modify_cfg, flavor)
                 selected_event_eff = selected_event_efficiency_branches(plot_cfg, modify_cfg, flavor)
+                selected_tnp_eff = selected_tnp_fit_branches(plot_cfg, modify_cfg, flavor)
                 tag_branch = tnp_tag_id_branch(flavor)
                 tag_cfg = tnp_tag_id_cfg(modify_cfg, flavor)
                 tag_pass_in = pass_mask(arr_in[tag_branch], tag_cfg) if tag_branch in arr_in else ak.zeros_like(pt_in, dtype=bool)
@@ -3115,10 +3134,12 @@ def analyze(modify_cfg: Mapping, plot_cfg: Mapping, pairs: Sequence[Tuple[Path, 
                                 eff_edges[var],
                             )
 
-                    tnp_in = tnp_probe_with_pass(tnp_base_in, pass_in)
-                    tnp_out = tnp_probe_with_pass(tnp_base_out, pass_out)
-                    add_tnp_mass_candidates(tnp_mass_store, (flavor, branch, "input", "tnp"), tnp_in, eff_edges, variables)
-                    add_tnp_mass_candidates(tnp_mass_store, (flavor, branch, "output", "tnp"), tnp_out, eff_edges, variables)
+                    if branch in selected_tnp_eff:
+                        tnp_variables = selected_tnp_fit_variables(plot_cfg, variables)
+                        tnp_in = tnp_probe_with_pass(tnp_base_in, pass_in)
+                        tnp_out = tnp_probe_with_pass(tnp_base_out, pass_out)
+                        add_tnp_mass_candidates(tnp_mass_store, (flavor, branch, "input", "tnp"), tnp_in, eff_edges, tnp_variables)
+                        add_tnp_mass_candidates(tnp_mass_store, (flavor, branch, "output", "tnp"), tnp_out, eff_edges, tnp_variables)
 
                     base_map = base_maps.get((flavor, branch))
                     if base_map is not None:
@@ -3174,10 +3195,12 @@ def analyze(modify_cfg: Mapping, plot_cfg: Mapping, pairs: Sequence[Tuple[Path, 
                                     eff_edges[var],
                                 )
 
-                        tnp_in = tnp_event_probe_with_pass(tnp_base_in, pass_mask(arr_in[branch], ecfg))
-                        tnp_out = tnp_event_probe_with_pass(tnp_base_out, pass_mask(arr_out[branch], ecfg))
-                        add_tnp_mass_candidates(tnp_mass_store, (flavor, branch, "input", "tnp"), tnp_in, eff_edges, variables)
-                        add_tnp_mass_candidates(tnp_mass_store, (flavor, branch, "output", "tnp"), tnp_out, eff_edges, variables)
+                        if branch in selected_tnp_eff:
+                            tnp_variables = selected_tnp_fit_variables(plot_cfg, variables)
+                            tnp_in = tnp_event_probe_with_pass(tnp_base_in, pass_mask(arr_in[branch], ecfg))
+                            tnp_out = tnp_event_probe_with_pass(tnp_base_out, pass_mask(arr_out[branch], ecfg))
+                            add_tnp_mass_candidates(tnp_mass_store, (flavor, branch, "input", "tnp"), tnp_in, eff_edges, tnp_variables)
+                            add_tnp_mass_candidates(tnp_mass_store, (flavor, branch, "output", "tnp"), tnp_out, eff_edges, tnp_variables)
 
                         base_map = base_maps.get((flavor, branch))
                         if base_map is not None and len(leading_exp["pt"]):
