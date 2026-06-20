@@ -22,7 +22,7 @@ make
 ./modify_nanoaod --config config.json
 ```
 
-Useful options:
+Options:
 
 ```bash
 ./modify_nanoaod --config config.json --dry-run
