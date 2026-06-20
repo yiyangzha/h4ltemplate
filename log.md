@@ -46,3 +46,8 @@
 - Production rerun is blocked in this environment because `/cvmfs/cms.cern.ch/cmsset_default.sh` is missing. I did not compile or run `modify_nanoaod` in pixi or any other environment.
 - Because `modified/*.root` is stale and could not be regenerated, I did not run the final all-sample `plot.py` production step against those files.
 - Checked AN PDF compilation tools. Neither `pdflatex` nor `latexmk` is available in this environment, so `notes/an.tex` could not be compiled to PDF here.
+- Added `tectonic` to the local pixi environment and verified that `notes/an.tex` compiles successfully with placeholder figure boxes:
+  - command: `pixi run tectonic notes/an.tex --outdir notes`;
+  - output: `notes/an.pdf`;
+  - status: successful compile, with only small overfull-box warnings from placeholder/caption layout;
+  - this is not the final AN PDF because final figures still require rerunning `modify_nanoaod` with CVMFS and then all-sample `plot.py`.

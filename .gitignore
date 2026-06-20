@@ -8,3 +8,7 @@ pixi*
 __pycache__
 nohup.out
 tmp/
+notes/*.pdf
+notes/*.aux
+notes/*.log
+notes/*.out
