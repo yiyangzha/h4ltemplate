@@ -7,3 +7,4 @@ pixi*
 .gitattributes
 __pycache__
 nohup.out
+tmp/

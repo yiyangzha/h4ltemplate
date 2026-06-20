@@ -32,7 +32,7 @@ import matplotlib
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
-from matplotlib.colors import LogNorm
+from matplotlib.colors import LogNorm, TwoSlopeNorm
 
 try:
     import ROOT
@@ -50,16 +50,19 @@ BLUE = "#5790fc"
 RED = "#e42536"
 GRAY = "#9c9ca1"
 Z_MASS = 91.1876
-MASS_FIT_MIN = 55.0
+MASS_FIT_MIN = 90.0
 MASS_FIT_MAX = 135.0
 UINT64 = np.uint64
 MASK64 = (1 << 64) - 1
 TNP_FIT_COUNTER = itertools.count()
-TNP_MIN_FIT_ALL = 1
-TNP_SINGLE_CB_MIN_ALL = 60
-TNP_SINGLE_CB_MIN_PASS = 10
-TNP_DOUBLE_CB_MIN_ALL = 200
-TNP_DOUBLE_CB_MIN_PASS = 30
+TNP_MIN_FIT_ALL = 40
+TNP_MIN_FIT_EACH = 5
+TNP_SINGLE_CB_MIN_ALL = 120
+TNP_SINGLE_CB_MIN_PASS = 20
+TNP_DOUBLE_CB_MIN_ALL = 600
+TNP_DOUBLE_CB_MIN_PASS = 80
+TNP_CHI2_BINS = 40
+TNP_MAX_CHI2_NDF = 5.0
 MIN_EFF_BIN_TOTAL = 20
 TRUTH_MATCH_DR = 0.1
 GEN_TRUTH_BRANCHES = [
@@ -1462,10 +1465,81 @@ def make_combined_roodataset(name: str, mass_var, sample, pass_masses: np.ndarra
     return data
 
 
-def acceptable_fit(result) -> bool:
+def converged_fit(result) -> bool:
     if result is None:
         return False
-    return int(result.status()) == 0 and int(result.covQual()) >= 1
+    return int(result.status()) == 0 and int(result.covQual()) >= 2
+
+
+def fit_result_nfloat(result) -> int:
+    if result is None:
+        return 0
+    try:
+        return max(0, int(result.floatParsFinal().getSize()))
+    except Exception:
+        return 0
+
+
+def projection_chi2_ndf(mass, sample, comb_data, sim_pdf, label: str, uid: str, n_float: int) -> float:
+    frame = mass.frame(ROOT.RooFit.Bins(TNP_CHI2_BINS))
+    sample_name = sample.GetName()
+    data_name = f"chi2_data_{label}_{uid}"
+    model_name = f"chi2_model_{label}_{uid}"
+    sample_set = ROOT.RooArgSet(sample)
+    comb_data.plotOn(
+        frame,
+        ROOT.RooFit.Cut(f"{sample_name}=={sample_name}::{label}"),
+        ROOT.RooFit.Name(data_name),
+    )
+    sim_pdf.plotOn(
+        frame,
+        ROOT.RooFit.Slice(sample, label),
+        ROOT.RooFit.ProjWData(sample_set, comb_data),
+        ROOT.RooFit.Name(model_name),
+    )
+    projection_nfloat = max(1, int(math.ceil(0.5 * n_float)))
+    chi2 = float(frame.chiSquare(model_name, data_name, projection_nfloat))
+    if not np.isfinite(chi2) or chi2 <= 0.0:
+        return np.inf
+    return chi2
+
+
+def tnp_fit_quality(result, mass, sample, comb_data, sim_pdf, uid: str) -> Dict[str, float]:
+    n_float = fit_result_nfloat(result)
+    quality = {
+        "status": float(result.status()) if result is not None else np.inf,
+        "covQual": float(result.covQual()) if result is not None else -1.0,
+        "n_float": float(n_float),
+        "chi2_pass": np.inf,
+        "chi2_fail": np.inf,
+        "chi2_max": np.inf,
+    }
+    if not converged_fit(result):
+        return quality
+    chi2_pass = projection_chi2_ndf(mass, sample, comb_data, sim_pdf, "pass", uid, n_float)
+    chi2_fail = projection_chi2_ndf(mass, sample, comb_data, sim_pdf, "fail", uid, n_float)
+    quality["chi2_pass"] = chi2_pass
+    quality["chi2_fail"] = chi2_fail
+    quality["chi2_max"] = max(chi2_pass, chi2_fail)
+    return quality
+
+
+def acceptable_fit_quality(quality: Mapping[str, float]) -> bool:
+    return (
+        int(quality.get("status", 1)) == 0
+        and int(quality.get("covQual", 0)) >= 2
+        and float(quality.get("chi2_max", np.inf)) <= TNP_MAX_CHI2_NDF
+    )
+
+
+def format_tnp_quality(quality: Mapping[str, float]) -> str:
+    if not quality:
+        return "fit quality unavailable"
+    return (
+        f"status={int(quality.get('status', -1))}, covQual={int(quality.get('covQual', -1))}, "
+        f"chi2/ndf pass={quality.get('chi2_pass', np.inf):.2f}, "
+        f"fail={quality.get('chi2_fail', np.inf):.2f}"
+    )
 
 
 def format_bin_edge(value: float) -> str:
@@ -1487,6 +1561,29 @@ def tnp_fit_plot_title(key: Tuple, ibin: int, edges: Optional[np.ndarray], tier:
     if edges is not None and ibin + 1 < len(edges):
         parts.insert(5, f"{edges[ibin]:g} <= {var} < {edges[ibin + 1]:g}")
     return " | ".join(parts)
+
+
+def mass_peak_and_width(pass_masses: np.ndarray, fail_masses: np.ndarray) -> Tuple[float, float]:
+    masses = np.concatenate([pass_masses, fail_masses]) if len(pass_masses) or len(fail_masses) else np.array([])
+    masses = masses[np.isfinite(masses) & (masses >= MASS_FIT_MIN) & (masses <= MASS_FIT_MAX)]
+    if len(masses) < 10:
+        return Z_MASS, 2.0
+    hist, edges = np.histogram(masses, bins=np.linspace(MASS_FIT_MIN, MASS_FIT_MAX, 81))
+    if np.sum(hist) <= 0:
+        return Z_MASS, 2.0
+    imax = int(np.argmax(hist))
+    low = max(0, imax - 2)
+    high = min(len(hist), imax + 3)
+    centers = 0.5 * (edges[:-1] + edges[1:])
+    weights = hist[low:high].astype(float)
+    peak = float(np.average(centers[low:high], weights=weights)) if np.sum(weights) > 0.0 else float(centers[imax])
+    central = masses[(masses >= peak - 15.0) & (masses <= peak + 15.0)]
+    if len(central) >= 10:
+        q16, q84 = np.percentile(central, [16.0, 84.0])
+        width = 0.5 * (q84 - q16)
+    else:
+        width = np.std(masses)
+    return float(np.clip(peak, MASS_FIT_MIN + 3.0, MASS_FIT_MAX - 3.0)), float(np.clip(width, 0.8, 12.0))
 
 
 def fit_context_from_bin(
@@ -1515,12 +1612,15 @@ def fit_context_from_bin(
     right_tail = False
     if len(masses) >= 10:
         q10, q90 = np.percentile(masses, [10.0, 90.0])
-        right_tail = (q90 - Z_MASS) > (Z_MASS - q10)
+        right_tail = (q90 - np.median(masses)) > (np.median(masses) - q10)
+    mass_peak, mass_width = mass_peak_and_width(pass_masses, fail_masses)
     return {
         "flavor": flavor,
         "pt": float(pt_hint),
         "abs_eta": float(abs_eta_hint),
         "right_tail": float(right_tail),
+        "mass_peak": mass_peak,
+        "mass_width": mass_width,
     }
 
 
@@ -1529,9 +1629,10 @@ def signal_shape_hints(context: Mapping[str, float]) -> Dict[str, float]:
     eta_term = float(np.clip(context.get("abs_eta", 0.8) / 2.5, 0.0, 1.6))
     pt_term = float(np.clip((context.get("pt", 45.0) - 45.0) / 160.0, 0.0, 1.8))
     right_tail = bool(context.get("right_tail", 0.0))
+    mass_width = float(np.clip(context.get("mass_width", 2.0), 0.8, 12.0))
 
     if flavor == "electron":
-        sigma1 = 1.05 + 0.55 * eta_term + 0.45 * pt_term
+        sigma1 = max(1.05 + 0.55 * eta_term + 0.45 * pt_term, 0.45 * mass_width)
         sigma2 = sigma1 * (5.2 + 0.80 * eta_term + 0.35 * pt_term)
         alpha_l = 0.75 + 0.15 * (not right_tail) - 0.08 * eta_term
         alpha_r = -(0.70 + 0.20 * right_tail - 0.05 * eta_term)
@@ -1541,7 +1642,7 @@ def signal_shape_hints(context: Mapping[str, float]) -> Dict[str, float]:
         sigma2_bounds = (1.0, 40.0)
         alpha_bound = 0.20
     else:
-        sigma1 = 0.75 + 0.32 * eta_term + 0.28 * pt_term
+        sigma1 = max(0.75 + 0.32 * eta_term + 0.28 * pt_term, 0.40 * mass_width)
         sigma2 = sigma1 * (2.6 + 0.25 * eta_term)
         alpha_l = 2.05 + 0.25 * (not right_tail) - 0.10 * eta_term
         alpha_r = -(2.25 + 0.25 * right_tail - 0.10 * eta_term)
@@ -1573,7 +1674,17 @@ def initial_bkg_fraction(context: Mapping[str, float], passed: bool) -> float:
     return float(np.clip(0.05 * eta_factor * pt_factor * pass_factor, 0.005, 0.50))
 
 
-def save_tnp_fit_plot(plot_path: Path, title: str, tier: str, uid: str, mass, sample, comb_data, sim_pdf) -> None:
+def save_tnp_fit_plot(
+    plot_path: Path,
+    title: str,
+    tier: str,
+    uid: str,
+    mass,
+    sample,
+    comb_data,
+    sim_pdf,
+    quality: Optional[Mapping[str, float]] = None,
+) -> None:
     plot_path.parent.mkdir(parents=True, exist_ok=True)
     frame = mass.frame(ROOT.RooFit.Title(title))
     sample_name = sample.GetName()
@@ -1633,6 +1744,25 @@ def save_tnp_fit_plot(plot_path: Path, title: str, tier: str, uid: str, mass, sa
     frame.GetXaxis().SetLabelSize(0.044)
     frame.GetYaxis().SetLabelSize(0.044)
     frame.Draw()
+    if quality is not None:
+        latex = ROOT.TLatex()
+        latex.SetNDC(True)
+        latex.SetTextSize(0.030)
+        latex.DrawLatex(
+            0.18,
+            0.82,
+            f"#chi^{{2}}/ndf pass = {quality.get('chi2_pass', np.inf):.2f}",
+        )
+        latex.DrawLatex(
+            0.18,
+            0.77,
+            f"#chi^{{2}}/ndf fail = {quality.get('chi2_fail', np.inf):.2f}",
+        )
+        latex.DrawLatex(
+            0.18,
+            0.72,
+            f"status = {int(quality.get('status', -1))}, covQual = {int(quality.get('covQual', -1))}",
+        )
     legend = ROOT.TLegend(0.62, 0.70, 0.88, 0.88)
     legend.SetBorderSize(0)
     legend.SetFillStyle(0)
@@ -1676,13 +1806,17 @@ def fit_tnp_signal_efficiency_with_model(
     fit_context: Mapping[str, float],
     plot_path: Optional[Path] = None,
     plot_title: Optional[str] = None,
-) -> Tuple[float, float]:
+) -> Tuple[float, float, Dict[str, float]]:
     n_total = n_pass + n_fail
     shape = signal_shape_hints(fit_context)
     bkg_pass_init = initial_bkg_fraction(fit_context, passed=True)
     bkg_fail_init = initial_bkg_fraction(fit_context, passed=False)
     avg_bkg_init = 0.5 * (bkg_pass_init + bkg_fail_init)
-    mean = ROOT.RooRealVar(f"mean_{uid}", "mean", Z_MASS, 88.0, 94.0)
+    mean_hint = float(np.clip(fit_context.get("mass_peak", Z_MASS), MASS_FIT_MIN + 2.0, MASS_FIT_MAX - 2.0))
+    mean_window = float(np.clip(2.5 * fit_context.get("mass_width", 2.0), 5.0, 18.0))
+    mean_low = max(MASS_FIT_MIN + 1.0, mean_hint - mean_window)
+    mean_high = min(MASS_FIT_MAX - 1.0, mean_hint + mean_window)
+    mean = ROOT.RooRealVar(f"mean_{uid}", "mean", mean_hint, mean_low, mean_high)
     slope_pass = ROOT.RooRealVar(f"slope_pass_{uid}", "slope_pass", -0.015, -0.10, 0.03)
     slope_fail = ROOT.RooRealVar(f"slope_fail_{uid}", "slope_fail", -0.015, -0.10, 0.03)
 
@@ -1693,26 +1827,48 @@ def fit_tnp_signal_efficiency_with_model(
         alpha_bound = 0.15 if is_electron else 0.25
         sigma_small_init = float(np.clip(shape["sigma1"], sigma_small_min, sigma_small_max))
         sigma_gap_init = float(np.clip(shape["sigma2"] - sigma_small_init, sigma_gap_min, sigma_gap_max))
-        # Keep the two CB widths ordered instead of letting the fit swap them.
-        sigma_small = ROOT.RooRealVar(
-            f"sigma_small_{uid}",
-            "sigma_small",
+        # Keep the two CB widths ordered separately for pass/fail. Sharing the
+        # peak position is stable, but sharing the full resolution model can
+        # bias bins where the selected and rejected probes have different tails.
+        sigma_small_pass = ROOT.RooRealVar(
+            f"sigma_small_pass_{uid}",
+            "sigma_small_pass",
             sigma_small_init,
             sigma_small_min,
             sigma_small_max,
         )
-        sigma_gap = ROOT.RooRealVar(
-            f"sigma_gap_{uid}",
-            "sigma_gap",
+        sigma_gap_pass = ROOT.RooRealVar(
+            f"sigma_gap_pass_{uid}",
+            "sigma_gap_pass",
             sigma_gap_init,
             sigma_gap_min,
             sigma_gap_max,
         )
-        sigma_large = ROOT.RooFormulaVar(
-            f"sigma_large_{uid}",
-            "sigma_large",
+        sigma_large_pass = ROOT.RooFormulaVar(
+            f"sigma_large_pass_{uid}",
+            "sigma_large_pass",
             "@0+@1",
-            ROOT.RooArgList(sigma_small, sigma_gap),
+            ROOT.RooArgList(sigma_small_pass, sigma_gap_pass),
+        )
+        sigma_small_fail = ROOT.RooRealVar(
+            f"sigma_small_fail_{uid}",
+            "sigma_small_fail",
+            sigma_small_init,
+            sigma_small_min,
+            sigma_small_max,
+        )
+        sigma_gap_fail = ROOT.RooRealVar(
+            f"sigma_gap_fail_{uid}",
+            "sigma_gap_fail",
+            sigma_gap_init,
+            sigma_gap_min,
+            sigma_gap_max,
+        )
+        sigma_large_fail = ROOT.RooFormulaVar(
+            f"sigma_large_fail_{uid}",
+            "sigma_large_fail",
+            "@0+@1",
+            ROOT.RooArgList(sigma_small_fail, sigma_gap_fail),
         )
         alpha_l = ROOT.RooRealVar(f"alpha_l_{uid}", "alpha_l", shape["alpha_l"], alpha_bound, 10.0)
         alpha_r = ROOT.RooRealVar(f"alpha_r_{uid}", "alpha_r", shape["alpha_r"], -10.0, -alpha_bound)
@@ -1720,13 +1876,15 @@ def fit_tnp_signal_efficiency_with_model(
         n_r = ROOT.RooRealVar(f"n_r_{uid}", "n_r", shape["n_tail"])
         n_l.setConstant(True)
         n_r.setConstant(True)
-        frac = ROOT.RooRealVar(f"frac_{uid}", "frac", shape["frac"], 0.0, 1.0)
-        cb_small_pass = ROOT.RooCBShape(f"cb_small_pass_{uid}", "cb_small_pass", mass, mean, sigma_small, alpha_l, n_l)
-        cb_large_pass = ROOT.RooCBShape(f"cb_large_pass_{uid}", "cb_large_pass", mass, mean, sigma_large, alpha_r, n_r)
-        cb_small_fail = ROOT.RooCBShape(f"cb_small_fail_{uid}", "cb_small_fail", mass, mean, sigma_small, alpha_l, n_l)
-        cb_large_fail = ROOT.RooCBShape(f"cb_large_fail_{uid}", "cb_large_fail", mass, mean, sigma_large, alpha_r, n_r)
+        frac_pass = ROOT.RooRealVar(f"frac_pass_{uid}", "frac_pass", shape["frac"], 0.0, 1.0)
+        frac_fail = ROOT.RooRealVar(f"frac_fail_{uid}", "frac_fail", shape["frac"], 0.0, 1.0)
+        cb_small_pass = ROOT.RooCBShape(f"cb_small_pass_{uid}", "cb_small_pass", mass, mean, sigma_small_pass, alpha_l, n_l)
+        cb_large_pass = ROOT.RooCBShape(f"cb_large_pass_{uid}", "cb_large_pass", mass, mean, sigma_large_pass, alpha_r, n_r)
+        cb_small_fail = ROOT.RooCBShape(f"cb_small_fail_{uid}", "cb_small_fail", mass, mean, sigma_small_fail, alpha_l, n_l)
+        cb_large_fail = ROOT.RooCBShape(f"cb_large_fail_{uid}", "cb_large_fail", mass, mean, sigma_large_fail, alpha_r, n_r)
     elif tier == "single_cb":
-        sigma = ROOT.RooRealVar(f"sigma_{uid}", "sigma", shape["sigma1"], 0.15, 12.0)
+        sigma_pass = ROOT.RooRealVar(f"sigma_pass_{uid}", "sigma_pass", shape["sigma1"], 0.15, 12.0)
+        sigma_fail = ROOT.RooRealVar(f"sigma_fail_{uid}", "sigma_fail", shape["sigma1"], 0.15, 12.0)
         alpha_init = shape["single_alpha"]
         if alpha_init < 0.0:
             alpha = ROOT.RooRealVar(f"alpha_{uid}", "alpha", alpha_init, -8.0, -0.25)
@@ -1734,12 +1892,13 @@ def fit_tnp_signal_efficiency_with_model(
             alpha = ROOT.RooRealVar(f"alpha_{uid}", "alpha", alpha_init, 0.25, 8.0)
         n = ROOT.RooRealVar(f"n_{uid}", "n", shape["n_tail"])
         n.setConstant(True)
-        signal_pass = ROOT.RooCBShape(f"signal_pass_{uid}", "signal_pass", mass, mean, sigma, alpha, n)
-        signal_fail = ROOT.RooCBShape(f"signal_fail_{uid}", "signal_fail", mass, mean, sigma, alpha, n)
+        signal_pass = ROOT.RooCBShape(f"signal_pass_{uid}", "signal_pass", mass, mean, sigma_pass, alpha, n)
+        signal_fail = ROOT.RooCBShape(f"signal_fail_{uid}", "signal_fail", mass, mean, sigma_fail, alpha, n)
     else:
-        sigma = ROOT.RooRealVar(f"sigma_{uid}", "sigma", shape["sigma1"], 0.15, 12.0)
-        signal_pass = ROOT.RooGaussian(f"signal_pass_{uid}", "signal_pass", mass, mean, sigma)
-        signal_fail = ROOT.RooGaussian(f"signal_fail_{uid}", "signal_fail", mass, mean, sigma)
+        sigma_pass = ROOT.RooRealVar(f"sigma_pass_{uid}", "sigma_pass", shape["sigma1"], 0.15, 12.0)
+        sigma_fail = ROOT.RooRealVar(f"sigma_fail_{uid}", "sigma_fail", shape["sigma1"], 0.15, 12.0)
+        signal_pass = ROOT.RooGaussian(f"signal_pass_{uid}", "signal_pass", mass, mean, sigma_pass)
+        signal_fail = ROOT.RooGaussian(f"signal_fail_{uid}", "signal_fail", mass, mean, sigma_fail)
 
     bkg_pass = ROOT.RooExponential(f"bkg_pass_{uid}", "bkg_pass", mass, slope_pass)
     bkg_fail = ROOT.RooExponential(f"bkg_fail_{uid}", "bkg_fail", mass, slope_fail)
@@ -1782,25 +1941,25 @@ def fit_tnp_signal_efficiency_with_model(
             f"nsig_small_pass_{uid}",
             "nsig_small_pass",
             "@0*@1",
-            ROOT.RooArgList(frac, nsig_pass),
+            ROOT.RooArgList(frac_pass, nsig_pass),
         )
         nsig_large_pass = ROOT.RooFormulaVar(
             f"nsig_large_pass_{uid}",
             "nsig_large_pass",
             "(1.0-@0)*@1",
-            ROOT.RooArgList(frac, nsig_pass),
+            ROOT.RooArgList(frac_pass, nsig_pass),
         )
         nsig_small_fail = ROOT.RooFormulaVar(
             f"nsig_small_fail_{uid}",
             "nsig_small_fail",
             "@0*@1",
-            ROOT.RooArgList(frac, nsig_fail),
+            ROOT.RooArgList(frac_fail, nsig_fail),
         )
         nsig_large_fail = ROOT.RooFormulaVar(
             f"nsig_large_fail_{uid}",
             "nsig_large_fail",
             "(1.0-@0)*@1",
-            ROOT.RooArgList(frac, nsig_fail),
+            ROOT.RooArgList(frac_fail, nsig_fail),
         )
         model_pass_pdfs = ROOT.RooArgList(cb_small_pass, cb_large_pass)
         model_pass_pdfs.add(bkg_pass)
@@ -1853,19 +2012,43 @@ def fit_tnp_signal_efficiency_with_model(
         )
 
     result = run_fit(1)
-    if not acceptable_fit(result):
+    if not converged_fit(result):
         result = run_fit(2)
-    if not acceptable_fit(result):
-        return np.nan, np.nan
+    quality = tnp_fit_quality(result, mass, sample, comb_data, sim_pdf, uid)
+    if not acceptable_fit_quality(quality):
+        if plot_path is not None:
+            rejected_path = plot_path.parent / "rejected" / plot_path.name
+            save_tnp_fit_plot(
+                rejected_path,
+                f"{plot_title or uid} | rejected | {format_tnp_quality(quality)}",
+                tier,
+                uid,
+                mass,
+                sample,
+                comb_data,
+                sim_pdf,
+                quality,
+            )
+        return np.nan, np.nan, quality
 
     if plot_path is not None:
-        save_tnp_fit_plot(plot_path, plot_title or uid, tier, uid, mass, sample, comb_data, sim_pdf)
+        save_tnp_fit_plot(
+            plot_path,
+            f"{plot_title or uid} | {format_tnp_quality(quality)}",
+            tier,
+            uid,
+            mass,
+            sample,
+            comb_data,
+            sim_pdf,
+            quality,
+        )
 
     value = float(eff.getVal())
     error = float(eff.getError())
     if not np.isfinite(value) or not np.isfinite(error):
-        return np.nan, np.nan
-    return np.clip(value, 0.0, 1.0), max(error, 0.0)
+        return np.nan, np.nan, quality
+    return np.clip(value, 0.0, 1.0), max(error, 0.0), quality
 
 
 def fit_tnp_signal_efficiency(
@@ -1883,7 +2066,11 @@ def fit_tnp_signal_efficiency(
     n_pass = len(pass_masses)
     n_fail = len(fail_masses)
     n_total = n_pass + n_fail
-    if n_total < TNP_MIN_FIT_ALL:
+    if n_total < TNP_MIN_FIT_ALL or min(n_pass, n_fail) < TNP_MIN_FIT_EACH:
+        value = n_pass / max(n_total, 1)
+        error = math.sqrt(max(value * (1.0 - value), 0.0) / max(n_total, 1))
+        return np.clip(value, 0.0, 1.0), error
+    if n_pass == 0 or n_fail == 0:
         return np.nan, np.nan
 
     base_uid = str(next(TNP_FIT_COUNTER))
@@ -1893,6 +2080,8 @@ def fit_tnp_signal_efficiency(
     sample.defineType("fail")
     comb_data = make_combined_roodataset(f"comb_data_{base_uid}", mass, sample, pass_masses, fail_masses)
     fit_context = fit_context_from_bin(plot_key, ibin, edges, pass_masses, fail_masses)
+    best_quality: Optional[Dict[str, float]] = None
+    best_tier: Optional[str] = None
 
     for tier in tnp_fit_tiers(tnp_fit_model_tier(n_pass, n_total)):
         plot_path = None
@@ -1900,7 +2089,7 @@ def fit_tnp_signal_efficiency(
         if plot_dir is not None and plot_key is not None and ibin is not None:
             plot_path = tnp_fit_plot_path(plot_dir, plot_key, ibin, edges, tier)
             plot_title = tnp_fit_plot_title(plot_key, ibin, edges, tier, n_pass, n_fail)
-        value, error = fit_tnp_signal_efficiency_with_model(
+        value, error, quality = fit_tnp_signal_efficiency_with_model(
             tier,
             f"{base_uid}_{tier}",
             mass,
@@ -1912,8 +2101,16 @@ def fit_tnp_signal_efficiency(
             plot_path,
             plot_title,
         )
+        if best_quality is None or quality.get("chi2_max", np.inf) < best_quality.get("chi2_max", np.inf):
+            best_quality = quality
+            best_tier = tier
         if np.isfinite(value) and np.isfinite(error):
             return value, error
+    if plot_key is not None and ibin is not None:
+        print(
+            f"[WARN] TnP fit rejected for {plot_key} bin {ibin}; "
+            f"best tier={best_tier}, {format_tnp_quality(best_quality or {})}; using counting efficiency"
+        )
     value = n_pass / max(n_total, 1)
     error = math.sqrt(max(value * (1.0 - value), 0.0) / max(n_total, 1))
     return np.clip(value, 0.0, 1.0), error
@@ -2050,7 +2247,9 @@ def plot_hist_comparison(
     ax.set_ylim(bottom=0.0)
     ax.legend()
     add_cms_label(ax)
-    fig.savefig(figdir / filename)
+    outpath = figdir / filename
+    outpath.parent.mkdir(parents=True, exist_ok=True)
+    fig.savefig(outpath)
     plt.close(fig)
 
 
@@ -2098,6 +2297,44 @@ def plot_correlation_heatmap(
     plt.close(fig)
 
 
+def plot_correlation_delta_heatmap(
+    outdir: Path,
+    filename: str,
+    delta: np.ndarray,
+    x_edges: np.ndarray,
+    y_edges: np.ndarray,
+    xlabel: str,
+    ylabel: str,
+    title: str,
+) -> None:
+    outdir.mkdir(parents=True, exist_ok=True)
+    delta = np.asarray(delta, dtype=float)
+    max_abs = float(np.nanmax(np.abs(delta))) if delta.size else 0.0
+    vmax = max(1.0, max_abs)
+    norm = TwoSlopeNorm(vmin=-vmax, vcenter=0.0, vmax=vmax)
+
+    fig, ax = plt.subplots(figsize=(8.0, 6.8))
+    mesh = ax.pcolormesh(x_edges, y_edges, delta, cmap="RdBu_r", norm=norm, shading="auto")
+    cbar = fig.colorbar(mesh, ax=ax)
+    cbar.set_label("Modified - raw entries")
+    ax.set_xlabel(xlabel)
+    ax.set_ylabel(ylabel)
+    ax.set_title(title)
+
+    x_centers = 0.5 * (x_edges[:-1] + x_edges[1:])
+    y_centers = 0.5 * (y_edges[:-1] + y_edges[1:])
+    fontsize = 7 if delta.size <= 120 else 5
+    for iy, y_center in enumerate(y_centers):
+        for ix, x_center in enumerate(x_centers):
+            value = delta[iy, ix]
+            color = "white" if abs(value) > 0.55 * vmax else "black"
+            ax.text(x_center, y_center, f"{int(round(value)):+d}", ha="center", va="center", color=color, fontsize=fontsize)
+
+    add_cms_label(ax)
+    fig.savefig(outdir / filename)
+    plt.close(fig)
+
+
 def plot_correlation_outputs(
     figdir: Path,
     store: Mapping[Tuple, np.ndarray],
@@ -2116,9 +2353,24 @@ def plot_correlation_outputs(
                 filename = f"corr_{flavor}_{sample}_{sanitize(xvar)}_{sanitize(yvar)}.pdf"
                 title = f"{flavor} {sample_labels[sample]}: {xvar} vs {yvar}"
                 plot_correlation_heatmap(
-                    outdir,
+                    outdir / sample,
                     filename,
                     store[key],
+                    spec["x_edges"],
+                    spec["y_edges"],
+                    spec["x_label"],
+                    spec["y_label"],
+                    title,
+                )
+            input_key = (flavor, "input", xvar, yvar)
+            output_key = (flavor, "output", xvar, yvar)
+            if input_key in store and output_key in store:
+                filename = f"corr_{flavor}_delta_{sanitize(xvar)}_{sanitize(yvar)}.pdf"
+                title = f"{flavor} Modified - raw: {xvar} vs {yvar}"
+                plot_correlation_delta_heatmap(
+                    outdir / "delta",
+                    filename,
+                    np.asarray(store[output_key], dtype=float) - np.asarray(store[input_key], dtype=float),
                     spec["x_edges"],
                     spec["y_edges"],
                     spec["x_label"],
@@ -2184,7 +2436,9 @@ def plot_efficiency(
     ax.set_ylim(0.0, 1.0)
     ax.legend(fontsize=12)
     add_cms_label(ax)
-    fig.savefig(figdir / filename)
+    outpath = figdir / filename
+    outpath.parent.mkdir(parents=True, exist_ok=True)
+    fig.savefig(outpath)
     plt.close(fig)
 
 
@@ -2511,7 +2765,7 @@ def analyze(modify_cfg: Mapping, plot_cfg: Mapping, pairs: Sequence[Tuple[Path, 
                                     )
             progress_bucket = print_progress(progress_label, stop, input_tree.num_entries, progress_bucket)
 
-    fit_dir = figdir / "fit"
+    fit_dir = figdir / "efficiency" / "fit"
     print(f"[INFO] Fitting TnP pass/fail dilepton mass spectra with RooFit and writing fit plots to {fit_dir}")
     finalize_tnp_fits(eff_store, tnp_mass_store, fit_dir, eff_edges)
 
@@ -2522,7 +2776,7 @@ def analyze(modify_cfg: Mapping, plot_cfg: Mapping, pairs: Sequence[Tuple[Path, 
                 continue
             plot_hist_comparison(
                 figdir,
-                f"dist_{flavor}_{var}.pdf",
+                f"distributions/lepton/dist_{flavor}_{var}.pdf",
                 hist_store,
                 (flavor, var),
                 hist_edges[var],
@@ -2537,7 +2791,7 @@ def analyze(modify_cfg: Mapping, plot_cfg: Mapping, pairs: Sequence[Tuple[Path, 
                 continue
             plot_hist_comparison(
                 figdir,
-                f"dilepton_{flavor}_{var}.pdf",
+                f"distributions/dilepton/dilepton_{flavor}_{var}.pdf",
                 dilepton_store,
                 (flavor, var),
                 dilepton_edges[var],
@@ -2556,7 +2810,7 @@ def analyze(modify_cfg: Mapping, plot_cfg: Mapping, pairs: Sequence[Tuple[Path, 
                 continue
             plot_efficiency(
                 figdir,
-                f"eff_{flavor}_{sanitize(branch)}_{var}.pdf",
+                f"efficiency/eff_{flavor}_{sanitize(branch)}_{var}.pdf",
                 eff_store,
                 expected_eff_store,
                 flavor,
