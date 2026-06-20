@@ -3,7 +3,7 @@
 ## 2026-06-20
 
 - Inspected the repository, current ignored outputs, available raw ROOT inputs, and existing plotting code.
-- Increased the configured lepton pT scale shifts in `config.json`; energy changes follow the pT scaling for available energy branches.
+- Initially inspected and experimented with the configured lepton pT scale shifts; energy changes follow the pT scaling for available energy branches.
 - Updated `plot.py` to organize output figures under `distributions/`, `efficiency/`, and `correlation/{input,output,delta}/`.
 - Added per-pair correlation delta heatmaps using `Modified - raw` bin counts.
 - Started improving TnP fits:
@@ -14,10 +14,10 @@
   - decoupled pass/fail signal width parameters to improve fit stability.
 - Inspected rejected fit PDFs. An attempted two-peak model was removed after user feedback; apparent low-mass structures should not be modeled as a second signal peak.
 - Revised the TnP strategy to keep the broad full mass range while allowing a restricted high edge of 100 GeV only for bins with a high-mass background shape. The RooFit coefficient range is fixed to the full mass range so the returned efficiency remains a full-signal-PDF efficiency rather than a restricted-window efficiency.
-- Reduced the configured pT/energy scale changes so they remain visible but do not strongly distort the dilepton invariant-mass peak.
+- After PDF inspection and user feedback, reverted the configured pT/energy scale changes to the original user-provided amplitudes rather than using the experimental enlarged values.
 - Quick plot validation on the smallest ROOT sample with `plot.py` in pixi:
   - no `two_gaussian` fit PDFs were produced;
-  - 232 accepted fit PDFs and 59 rejected diagnostic fit PDFs were produced for the reduced quick config;
+  - 232 accepted fit PDFs and 59 rejected diagnostic fit PDFs were produced for the small quick plotting config;
   - only 6 TnP bins fell back to counting after chi2/ndf rejection;
   - correlation input/output/delta directories were produced, with 10 delta heatmaps in the quick config.
 - Checked the requested `modify_nanoaod` runtime environment. `/cvmfs/cms.cern.ch/cmsset_default.sh` is not present in this workspace environment, so final compile/run of `modify_nanoaod` with the required CVMFS sources cannot be performed here until CVMFS is available.
