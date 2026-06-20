@@ -40,3 +40,8 @@
   - `two_gaussian` PDFs: 0;
   - RooFit `RooArgSet::checkForDup` log messages after silencing: 0;
   - the pixi PyROOT cling warning about missing `assert.h` still appears, but the plot job exits successfully.
+- Attempted the required production rerun of `modify_nanoaod` with `scripts/run_modify_all_cvmfs.sh`, which directly sources:
+  - `/cvmfs/cms.cern.ch/cmsset_default.sh`;
+  - `/cvmfs/sft.cern.ch/lcg/views/LCG_108/x86_64-el9-gcc14-opt/setup.sh`.
+- Production rerun is blocked in this environment because `/cvmfs/cms.cern.ch/cmsset_default.sh` is missing. I did not compile or run `modify_nanoaod` in pixi or any other environment.
+- Because `modified/*.root` is stale and could not be regenerated, I did not run the final all-sample `plot.py` production step against those files.
