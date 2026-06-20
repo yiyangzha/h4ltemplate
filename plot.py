@@ -660,6 +660,7 @@ def expected_pt_arrays(
     phi,
     mass,
     charge,
+    protect_boson_mass: bool = False,
 ) -> Tuple[ak.Array, ak.Array]:
     flat_pt, counts = flatten_jagged(pt)
     flat_eta, _ = flatten_jagged(eta)
@@ -674,7 +675,8 @@ def expected_pt_arrays(
     if scale_cfg.get("enabled", True):
         shift = region_shift(scale_cfg.get(flavor, {}), flat_eta, flat_pt, flat_charge, pt_ref)
         scaled = flat_pt * (1.0 + shift)
-    scaled = protect_boson_pair_center_pts(arrays, flavor, scaled, counts, pt, eta, phi, mass, charge)
+    if protect_boson_mass:
+        scaled = protect_boson_pair_center_pts(arrays, flavor, scaled, counts, pt, eta, phi, mass, charge)
 
     new_pt = scaled.copy()
     res_cfg = cfg.get("resolution", {})
@@ -743,41 +745,36 @@ def build_base_efficiency_maps(
                         energy = arrays[br["energy"]]
                     else:
                         energy = pt * np.cosh(eta)
+                leading = gen_matched_boson_leading_values(
+                    arrays,
+                    flavor,
+                    pt,
+                    eta,
+                    arrays.get(br.get("phi")),
+                    energy=energy,
+                )
+                if len(leading["pt"]) == 0:
+                    continue
+                flat_energy = leading["energy"] if energy is not None else None
+                flat_bin, _, _, _ = flat_eff_bin(cfg, leading["pt"], leading["eta"], flat_energy)
+                denom = leading["denom"].astype(bool)
                 for branch, ecfg in selected_efficiency_branches(plot_cfg, cfg, flavor).items():
                     if branch not in arrays:
                         continue
-                    leading = gen_matched_boson_leading_values(
-                        arrays,
-                        flavor,
-                        pt,
-                        eta,
-                        arrays.get(br.get("phi")),
-                        passed=pass_mask(arrays[branch], ecfg),
-                        energy=energy,
-                    )
-                    if len(leading["pt"]) == 0:
-                        continue
-                    flat_energy = leading["energy"] if energy is not None else None
-                    flat_bin, _, _, _ = flat_eff_bin(cfg, leading["pt"], leading["eta"], flat_energy)
-                    denom = leading["denom"].astype(bool)
+                    passed = matched_object_values(pass_mask(arrays[branch], ecfg), leading["event"], leading["index"])
                     maps[(flavor, branch)]["total"] += np.bincount(flat_bin[denom], minlength=n_eff_bins(cfg))
                     maps[(flavor, branch)]["pass"] += np.bincount(
-                        flat_bin[denom], weights=leading["pass"][denom].astype(float), minlength=n_eff_bins(cfg)
+                        flat_bin[denom], weights=passed[denom].astype(float), minlength=n_eff_bins(cfg)
                     )
 
                 for branch, ecfg in selected_event_efficiency_branches(plot_cfg, cfg, flavor).items():
                     if branch not in arrays:
                         continue
-                    leading = gen_matched_boson_leading_values(arrays, flavor, pt, eta, arrays.get(br.get("phi")))
-                    if len(leading["pt"]) == 0:
-                        continue
                     event_pass = ak.to_numpy(pass_mask(arrays[branch], ecfg)).astype(float)
                     passed = event_pass[leading["event"]]
-                    event_bin, _, _, _ = flat_eff_bin(cfg, leading["pt"], leading["eta"])
-                    denom = leading["denom"].astype(bool)
-                    maps[(flavor, branch)]["total"] += np.bincount(event_bin[denom], minlength=n_eff_bins(cfg))
+                    maps[(flavor, branch)]["total"] += np.bincount(flat_bin[denom], minlength=n_eff_bins(cfg))
                     maps[(flavor, branch)]["pass"] += np.bincount(
-                        event_bin[denom], weights=passed[denom], minlength=n_eff_bins(cfg)
+                        flat_bin[denom], weights=passed[denom], minlength=n_eff_bins(cfg)
                     )
             progress_bucket = print_progress(f"Base efficiency {path}", stop, tree.num_entries, progress_bucket)
     return maps
@@ -1399,19 +1396,33 @@ def correlation_specs(modify_cfg: Mapping, plot_cfg: Mapping, flavor: str, bins:
 
 
 def matched_object_values(values, events: np.ndarray, indices: np.ndarray) -> np.ndarray:
+    events = np.asarray(events, dtype=int)
     if isinstance(values, ak.Array) and values.ndim <= 1:
         arr = ak.to_numpy(values)
-        out = []
-        for event_idx in np.asarray(events, dtype=int):
-            if event_idx < 0 or event_idx >= len(arr):
-                out.append(np.nan)
-            else:
-                out.append(float(arr[event_idx]))
-        return np.asarray(out, dtype=float)
+        out = np.full(len(events), np.nan, dtype=float)
+        valid = (events >= 0) & (events < len(arr))
+        out[valid] = np.asarray(arr[events[valid]], dtype=float)
+        return out
+
+    if isinstance(values, ak.Array):
+        indices = np.asarray(indices, dtype=int)
+        counts = ak.to_numpy(ak.num(values, axis=1)).astype(np.int64)
+        offsets = np.empty(len(counts), dtype=np.int64)
+        if len(counts) > 0:
+            offsets[0] = 0
+            offsets[1:] = np.cumsum(counts[:-1])
+        flat = ak.to_numpy(ak.flatten(values, axis=1))
+        out = np.full(len(events), np.nan, dtype=float)
+        valid_event = (events >= 0) & (events < len(counts))
+        valid = np.zeros(len(events), dtype=bool)
+        valid[valid_event] = (indices[valid_event] >= 0) & (indices[valid_event] < counts[events[valid_event]])
+        flat_indices = offsets[events[valid]] + indices[valid]
+        out[valid] = np.asarray(flat[flat_indices], dtype=float)
+        return out
 
     rows = ak.to_list(values)
     out = []
-    for event_idx, object_idx in zip(np.asarray(events, dtype=int), np.asarray(indices, dtype=int)):
+    for event_idx, object_idx in zip(events, np.asarray(indices, dtype=int)):
         if event_idx < 0 or event_idx >= len(rows):
             out.append(np.nan)
             continue
@@ -1540,6 +1551,123 @@ def tnp_probes(arrays: Mapping[str, ak.Array], br: Mapping[str, str], probe_pass
         out["mass"].append(mass)
         out["pass"].append(bool(probe_passes[iev][probe]))
     return {key: np.asarray(value) for key, value in out.items()}
+
+
+def tnp_probe_base(arrays: Mapping[str, ak.Array], br: Mapping[str, str], tag_passed) -> Dict[str, np.ndarray]:
+    required = [br.get("pt"), br.get("eta"), br.get("phi"), br.get("mass"), br.get("charge")]
+    if any(name not in arrays for name in required):
+        return {
+            "pt": np.array([]),
+            "eta": np.array([]),
+            "phi": np.array([]),
+            "mass": np.array([]),
+            "event": np.array([], dtype=int),
+            "index": np.array([], dtype=int),
+        }
+
+    pt = arrays[br["pt"]]
+    eta = arrays[br["eta"]]
+    phi = arrays[br["phi"]]
+    mass = arrays[br["mass"]]
+    charge = arrays[br["charge"]]
+    has_pair = (
+        (ak.num(pt, axis=1) >= 2)
+        & (ak.num(eta, axis=1) >= 2)
+        & (ak.num(phi, axis=1) >= 2)
+        & (ak.num(mass, axis=1) >= 2)
+        & (ak.num(charge, axis=1) >= 2)
+        & (ak.num(tag_passed, axis=1) >= 2)
+    )
+    if not bool(ak.any(has_pair)):
+        return {
+            "pt": np.array([]),
+            "eta": np.array([]),
+            "phi": np.array([]),
+            "mass": np.array([]),
+            "event": np.array([], dtype=int),
+            "index": np.array([], dtype=int),
+        }
+
+    event_indices = np.nonzero(ak.to_numpy(has_pair))[0]
+    pt2 = pt[has_pair]
+    eta2 = eta[has_pair]
+    phi2 = phi[has_pair]
+    mass2 = mass[has_pair]
+    charge2 = charge[has_pair]
+    tag_passed2 = tag_passed[has_pair]
+    order = ak.argsort(pt2, axis=1, ascending=False)
+    sorted_pt = pt2[order]
+    sorted_eta = eta2[order]
+    sorted_phi = phi2[order]
+    sorted_mass = mass2[order]
+    sorted_charge = charge2[order]
+    sorted_tag_passed = tag_passed2[order]
+    sorted_index = ak.local_index(pt2, axis=1)[order]
+
+    tag_pt = ak.to_numpy(sorted_pt[:, 0]).astype(float)
+    tag_eta = ak.to_numpy(sorted_eta[:, 0]).astype(float)
+    tag_phi = ak.to_numpy(sorted_phi[:, 0]).astype(float)
+    tag_mass = ak.to_numpy(sorted_mass[:, 0]).astype(float)
+    tag_charge = ak.to_numpy(sorted_charge[:, 0]).astype(int)
+    tag_ok = ak.to_numpy(sorted_tag_passed[:, 0]).astype(bool)
+    probe_pt = ak.to_numpy(sorted_pt[:, 1]).astype(float)
+    probe_eta = ak.to_numpy(sorted_eta[:, 1]).astype(float)
+    probe_phi = ak.to_numpy(sorted_phi[:, 1]).astype(float)
+    probe_mass = ak.to_numpy(sorted_mass[:, 1]).astype(float)
+    probe_charge = ak.to_numpy(sorted_charge[:, 1]).astype(int)
+    probe_index = ak.to_numpy(sorted_index[:, 1]).astype(int)
+
+    valid = (tag_charge != 0) & (probe_charge != 0) & (tag_charge * probe_charge < 0) & tag_ok
+    if not np.any(valid):
+        return {
+            "pt": np.array([]),
+            "eta": np.array([]),
+            "phi": np.array([]),
+            "mass": np.array([]),
+            "event": np.array([], dtype=int),
+            "index": np.array([], dtype=int),
+        }
+
+    e1 = np.sqrt(np.maximum((tag_pt * np.cosh(tag_eta)) ** 2 + tag_mass**2, 0.0))
+    e2 = np.sqrt(np.maximum((probe_pt * np.cosh(probe_eta)) ** 2 + probe_mass**2, 0.0))
+    px = tag_pt * np.cos(tag_phi) + probe_pt * np.cos(probe_phi)
+    py = tag_pt * np.sin(tag_phi) + probe_pt * np.sin(probe_phi)
+    pz = tag_pt * np.sinh(tag_eta) + probe_pt * np.sinh(probe_eta)
+    energy = e1 + e2
+    pair_mass = np.sqrt(np.maximum(energy * energy - px * px - py * py - pz * pz, 0.0))
+    return {
+        "pt": probe_pt[valid],
+        "eta": probe_eta[valid],
+        "phi": probe_phi[valid],
+        "mass": pair_mass[valid],
+        "event": event_indices[valid].astype(int),
+        "index": probe_index[valid],
+    }
+
+
+def tnp_probe_with_pass(base: Mapping[str, np.ndarray], probe_passed) -> Dict[str, np.ndarray]:
+    passed = matched_object_values(probe_passed, base["event"], base["index"]).astype(bool)
+    return {
+        "pt": np.asarray(base["pt"], dtype=float),
+        "eta": np.asarray(base["eta"], dtype=float),
+        "phi": np.asarray(base["phi"], dtype=float),
+        "mass": np.asarray(base["mass"], dtype=float),
+        "pass": passed,
+    }
+
+
+def tnp_event_probe_with_pass(base: Mapping[str, np.ndarray], event_passed) -> Dict[str, np.ndarray]:
+    event_pass = ak.to_numpy(event_passed).astype(bool) if isinstance(event_passed, ak.Array) else np.asarray(event_passed, dtype=bool)
+    valid = (base["event"] >= 0) & (base["event"] < len(event_pass))
+    passed = np.zeros(len(base["event"]), dtype=bool)
+    passed[valid] = event_pass[base["event"][valid]]
+    return {
+        "pt": np.asarray(base["pt"], dtype=float),
+        "eta": np.asarray(base["eta"], dtype=float),
+        "phi": np.asarray(base["phi"], dtype=float),
+        "mass": np.asarray(base["mass"], dtype=float),
+        "pass": passed,
+    }
 
 
 def tnp_event_probes(arrays: Mapping[str, ak.Array], br: Mapping[str, str], event_passed, tag_passed) -> Dict[str, np.ndarray]:
@@ -2065,6 +2193,7 @@ def fit_tnp_signal_efficiency_with_model(
     fit_max: float,
     plot_path: Optional[Path] = None,
     plot_title: Optional[str] = None,
+    save_rejected_plot: bool = True,
 ) -> Tuple[float, float, Dict[str, float]]:
     n_total = n_pass + n_fail
     mass.setRange("full", MASS_FIT_MIN, MASS_FIT_MAX)
@@ -2267,7 +2396,7 @@ def fit_tnp_signal_efficiency_with_model(
         result = run_fit(2)
     quality = tnp_fit_quality(result, mass, sample, comb_data, sim_pdf, uid)
     if not acceptable_fit_quality(quality):
-        if plot_path is not None:
+        if plot_path is not None and save_rejected_plot:
             rejected_path = plot_path.parent / "rejected" / plot_path.name
             save_tnp_fit_plot(
                 rejected_path,
@@ -2333,6 +2462,7 @@ def fit_tnp_signal_efficiency(
     fit_context = fit_context_from_bin(plot_key, ibin, edges, pass_masses, fail_masses)
     best_quality: Optional[Dict[str, float]] = None
     best_tier: Optional[str] = None
+    best_window: Optional[Tuple[float, float]] = None
 
     for tier in tnp_fit_tiers(tnp_fit_model_tier(n_pass, n_total)):
         windows = [(MASS_FIT_MIN, MASS_FIT_MAX)]
@@ -2364,10 +2494,12 @@ def fit_tnp_signal_efficiency(
                 fit_max,
                 plot_path,
                 plot_title,
+                False,
             )
             if best_quality is None or quality.get("chi2_max", np.inf) < best_quality.get("chi2_max", np.inf):
                 best_quality = quality
                 best_tier = tier
+                best_window = (fit_min, fit_max)
             if np.isfinite(value) and np.isfinite(error):
                 return value, error
     if plot_key is not None and ibin is not None:
@@ -2375,6 +2507,29 @@ def fit_tnp_signal_efficiency(
             f"[WARN] TnP fit rejected for {plot_key} bin {ibin}; "
             f"best tier={best_tier}, {format_tnp_quality(best_quality or {})}; using counting efficiency"
         )
+        if plot_dir is not None and best_tier is not None and best_window is not None:
+            fit_min, fit_max = best_window
+            plot_path = tnp_fit_plot_path(plot_dir, plot_key, ibin, edges, best_tier)
+            plot_title = (
+                f"{tnp_fit_plot_title(plot_key, ibin, edges, best_tier, n_pass, n_fail)} "
+                f"| fit {fit_min:g}-{fit_max:g} GeV"
+            )
+            fit_tnp_signal_efficiency_with_model(
+                best_tier,
+                f"{base_uid}_{best_tier}_{format_bin_edge(fit_min)}_{format_bin_edge(fit_max)}_final_rejected",
+                mass,
+                sample,
+                pass_masses,
+                fail_masses,
+                n_pass,
+                n_fail,
+                fit_context,
+                fit_min,
+                fit_max,
+                plot_path,
+                plot_title,
+                True,
+            )
     value = n_pass / max(n_total, 1)
     error = math.sqrt(max(value * (1.0 - value), 0.0) / max(n_total, 1))
     return np.clip(value, 0.0, 1.0), error
@@ -2759,8 +2914,9 @@ def analyze(modify_cfg: Mapping, plot_cfg: Mapping, pairs: Sequence[Tuple[Path, 
     eff_variables = {(item["flavor"], item["branch"]): item["variables"] for item in eff_specs}
     lepton_specs = {item["flavor"]: item["variables"] for item in lepton_distribution_specs(plot_cfg)}
     dilepton_specs = {item["flavor"]: item["variables"] for item in dilepton_distribution_specs(plot_cfg)}
+    correlation_enabled = bool(plot_cfg.get("correlations", {}).get("enabled", False))
     correlation_specs_by_flavor = {
-        flavor: correlation_specs(modify_cfg, plot_cfg, flavor, bins)
+        flavor: (correlation_specs(modify_cfg, plot_cfg, flavor, bins) if correlation_enabled else [])
         for flavor in ("muon", "electron")
     }
     correlation_branch_cfgs_by_flavor = {
@@ -2773,6 +2929,11 @@ def analyze(modify_cfg: Mapping, plot_cfg: Mapping, pairs: Sequence[Tuple[Path, 
         | {item["flavor"] for item in eff_specs}
         | {flavor for flavor, specs in correlation_specs_by_flavor.items() if specs}
     )
+    protect_expected_boson_mass = bool(plot_cfg.get("protect_expected_boson_mass", False))
+    if not protect_expected_boson_mass:
+        print("[INFO] Fast plotting: expected pT curves skip per-event boson-pair mass protection; output ROOT files remain fully validated")
+    if not correlation_enabled:
+        print("[INFO] Fast plotting: correlation heatmaps are disabled; set correlations.enabled=true to produce them")
 
     print("[INFO] Stage A: learning one merged input efficiency map from all input ROOT files")
     base_maps = build_base_efficiency_maps(modify_cfg, plot_cfg, [src for src, _ in pairs], chunk_size)
@@ -2817,7 +2978,18 @@ def analyze(modify_cfg: Mapping, plot_cfg: Mapping, pairs: Sequence[Tuple[Path, 
                 eta_out = arr_out[br["eta"]]
                 phi_out = arr_out[br["phi"]]
                 mass_out = arr_out[br["mass"]]
-                pt_exp, pt_scaled = expected_pt_arrays(modify_cfg, arr_in, flavor, start, pt_in, eta_in, phi_in, mass_in, charge_in)
+                pt_exp, pt_scaled = expected_pt_arrays(
+                    modify_cfg,
+                    arr_in,
+                    flavor,
+                    start,
+                    pt_in,
+                    eta_in,
+                    phi_in,
+                    mass_in,
+                    charge_in,
+                    protect_expected_boson_mass,
+                )
 
                 energy_in = awkward_energy(pt_in, eta_in, mass_in)
                 energy_exp = awkward_energy(pt_exp, eta_in, mass_in)
@@ -2830,31 +3002,18 @@ def analyze(modify_cfg: Mapping, plot_cfg: Mapping, pairs: Sequence[Tuple[Path, 
                 smear_out = ak.where(pt_scaled > 0, (pt_out - pt_scaled) / pt_scaled, np.nan)
 
                 corr_specs = correlation_specs_by_flavor.get(flavor, [])
+                leading_in = gen_matched_boson_leading_values(arr_in, flavor, pt_in, eta_in, phi_in, energy=energy_in)
+                leading_out = gen_matched_boson_leading_values(arr_out, flavor, pt_out, eta_out, phi_out, energy=energy_out)
+                leading_exp = gen_matched_boson_leading_values(arr_in, flavor, pt_exp, eta_in, phi_in, energy=energy_exp)
                 if corr_specs:
                     corr_branch_cfgs = correlation_branch_cfgs_by_flavor.get(flavor, {})
-                    leading_corr_in = gen_matched_boson_leading_values(
-                        arr_in,
-                        flavor,
-                        pt_in,
-                        eta_in,
-                        phi_in,
-                        energy=energy_in,
-                    )
-                    leading_corr_out = gen_matched_boson_leading_values(
-                        arr_out,
-                        flavor,
-                        pt_out,
-                        eta_out,
-                        phi_out,
-                        energy=energy_out,
-                    )
                     add_correlation_sample(
                         correlation_store,
                         corr_specs,
                         flavor,
                         "input",
                         arr_in,
-                        leading_corr_in,
+                        leading_in,
                         corr_branch_cfgs,
                     )
                     add_correlation_sample(
@@ -2863,7 +3022,7 @@ def analyze(modify_cfg: Mapping, plot_cfg: Mapping, pairs: Sequence[Tuple[Path, 
                         flavor,
                         "output",
                         arr_out,
-                        leading_corr_out,
+                        leading_out,
                         corr_branch_cfgs,
                     )
 
@@ -2898,18 +3057,24 @@ def analyze(modify_cfg: Mapping, plot_cfg: Mapping, pairs: Sequence[Tuple[Path, 
 
                 selected_eff = selected_efficiency_branches(plot_cfg, modify_cfg, flavor)
                 selected_event_eff = selected_event_efficiency_branches(plot_cfg, modify_cfg, flavor)
+                tag_branch = tnp_tag_id_branch(flavor)
+                tag_cfg = tnp_tag_id_cfg(modify_cfg, flavor)
+                tag_pass_in = pass_mask(arr_in[tag_branch], tag_cfg) if tag_branch in arr_in else ak.zeros_like(pt_in, dtype=bool)
+                tag_pass_out = pass_mask(arr_out[tag_branch], tag_cfg) if tag_branch in arr_out else ak.zeros_like(pt_out, dtype=bool)
+                tnp_base_in = tnp_probe_base(arr_in, br, tag_pass_in)
+                tnp_base_out = tnp_probe_base(arr_out, br, tag_pass_out)
 
                 for branch, ecfg in selected_eff.items():
                     if branch not in arr_in or branch not in arr_out:
                         continue
                     pass_in = pass_mask(arr_in[branch], ecfg)
                     pass_out = pass_mask(arr_out[branch], ecfg)
-                    leading_in = gen_matched_boson_leading_values(arr_in, flavor, pt_in, eta_in, phi_in, passed=pass_in)
-                    leading_out = gen_matched_boson_leading_values(arr_out, flavor, pt_out, eta_out, phi_out, passed=pass_out)
+                    pass_in_matched = matched_object_values(pass_in, leading_in["event"], leading_in["index"]).astype(bool)
+                    pass_out_matched = matched_object_values(pass_out, leading_out["event"], leading_out["index"]).astype(bool)
                     variables = eff_variables.get((flavor, branch), [])
-                    for sample, leading in (
-                        ("input", leading_in),
-                        ("output", leading_out),
+                    for sample, leading, matched_pass in (
+                        ("input", leading_in, pass_in_matched),
+                        ("output", leading_out, pass_out_matched),
                     ):
                         values_by_var = {"pt": leading["pt"], "eta": leading["eta"], "phi": leading["phi"]}
                         for var in variables:
@@ -2921,22 +3086,17 @@ def analyze(modify_cfg: Mapping, plot_cfg: Mapping, pairs: Sequence[Tuple[Path, 
                                 (flavor, branch, sample, "mc_truth", var),
                                 values_by_var[var],
                                 leading["denom"],
-                                leading["pass"],
+                                matched_pass,
                                 eff_edges[var],
                             )
 
-                    tag_branch = tnp_tag_id_branch(flavor)
-                    tag_cfg = tnp_tag_id_cfg(modify_cfg, flavor)
-                    tag_pass_in = pass_mask(arr_in[tag_branch], tag_cfg) if tag_branch in arr_in else ak.zeros_like(pt_in, dtype=bool)
-                    tag_pass_out = pass_mask(arr_out[tag_branch], tag_cfg) if tag_branch in arr_out else ak.zeros_like(pt_out, dtype=bool)
-                    tnp_in = tnp_probes(arr_in, br, pass_in, tag_pass_in)
-                    tnp_out = tnp_probes(arr_out, br, pass_out, tag_pass_out)
+                    tnp_in = tnp_probe_with_pass(tnp_base_in, pass_in)
+                    tnp_out = tnp_probe_with_pass(tnp_base_out, pass_out)
                     add_tnp_mass_candidates(tnp_mass_store, (flavor, branch, "input", "tnp"), tnp_in, eff_edges, variables)
                     add_tnp_mass_candidates(tnp_mass_store, (flavor, branch, "output", "tnp"), tnp_out, eff_edges, variables)
 
                     base_map = base_maps.get((flavor, branch))
                     if base_map is not None:
-                        leading_exp = gen_matched_boson_leading_values(arr_in, flavor, pt_exp, eta_in, phi_in)
                         exp_probs = distorted_probability_flat(modify_cfg, base_map, ecfg, leading_exp["pt"], leading_exp["eta"])
                         values_by_var = {"pt": leading_exp["pt"], "eta": leading_exp["eta"], "phi": leading_exp["phi"]}
                         values_in_by_var = {"pt": leading_in["pt"], "eta": leading_in["eta"], "phi": leading_in["phi"]}
@@ -2958,14 +3118,11 @@ def analyze(modify_cfg: Mapping, plot_cfg: Mapping, pairs: Sequence[Tuple[Path, 
                                     (flavor, branch, "expected", var),
                                     values_in_by_var[var],
                                     leading_in["denom"],
-                                    leading_in["pass"],
+                                    pass_in_matched,
                                     eff_edges[var],
                                 )
 
                 if selected_event_eff:
-                    leading_in = gen_matched_boson_leading_values(arr_in, flavor, pt_in, eta_in, phi_in)
-                    leading_out = gen_matched_boson_leading_values(arr_out, flavor, pt_out, eta_out, phi_out)
-                    leading_exp = gen_matched_boson_leading_values(arr_in, flavor, pt_exp, eta_in, phi_in)
                     for branch, ecfg in selected_event_eff.items():
                         if branch not in arr_in or branch not in arr_out:
                             continue
@@ -2992,12 +3149,8 @@ def analyze(modify_cfg: Mapping, plot_cfg: Mapping, pairs: Sequence[Tuple[Path, 
                                     eff_edges[var],
                                 )
 
-                        tag_branch = tnp_tag_id_branch(flavor)
-                        tag_cfg = tnp_tag_id_cfg(modify_cfg, flavor)
-                        tag_pass_in = pass_mask(arr_in[tag_branch], tag_cfg) if tag_branch in arr_in else ak.zeros_like(pt_in, dtype=bool)
-                        tag_pass_out = pass_mask(arr_out[tag_branch], tag_cfg) if tag_branch in arr_out else ak.zeros_like(pt_out, dtype=bool)
-                        tnp_in = tnp_event_probes(arr_in, br, pass_mask(arr_in[branch], ecfg), tag_pass_in)
-                        tnp_out = tnp_event_probes(arr_out, br, pass_mask(arr_out[branch], ecfg), tag_pass_out)
+                        tnp_in = tnp_event_probe_with_pass(tnp_base_in, pass_mask(arr_in[branch], ecfg))
+                        tnp_out = tnp_event_probe_with_pass(tnp_base_out, pass_mask(arr_out[branch], ecfg))
                         add_tnp_mass_candidates(tnp_mass_store, (flavor, branch, "input", "tnp"), tnp_in, eff_edges, variables)
                         add_tnp_mass_candidates(tnp_mass_store, (flavor, branch, "output", "tnp"), tnp_out, eff_edges, variables)
 
